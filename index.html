@@ -10,9 +10,17 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root{--p:#6f42c1;--pd:#55309b;--bg:#f4f2f8;--card:#fff;--text:#25232a;--muted:#6d6875;--line:#e5e0ec;--danger:#b42318;--ok:#16794c}
-    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;color:var(--text);
+    background:
+      radial-gradient(circle at 15% 15%,#d9c8f7 0,transparent 28%),
+      radial-gradient(circle at 85% 10%,#eadffd 0,transparent 24%),
+      linear-gradient(135deg,#f7f3fd 0%,#eee7fa 45%,#f8f6fc 100%);
+      background-attachment:fixed}
     button,input,select,textarea{font:inherit} button{cursor:pointer}
     .hidden{display:none!important}
     .login{position:fixed;inset:0;background:linear-gradient(145deg,#4e258c,#7d4bd0);display:grid;place-items:center;padding:18px;z-index:100}
@@ -25,8 +33,21 @@
     .btn-primary{background:var(--p);color:#fff}.btn-primary:hover{background:var(--pd)}
     .btn-light{background:#eee9f5;color:#3c3150}.btn-danger{background:#fee4e2;color:var(--danger)}
     .login .btn{width:100%;margin-top:16px}.error{color:var(--danger);min-height:20px;text-align:center;margin-top:9px;font-size:13px}
-    .shell{min-height:100vh}.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
-    .top .brand{margin:0}.top .brand img{width:42px;height:42px}.top h1{font-size:22px}
+    .shell{min-height:100vh}.top{position:sticky;top:0;z-index:20;background:linear-gradient(90deg,#ffffffee,#f3ecffee);
+    backdrop-filter:blur(10px);border-bottom:1px solid #d7caea;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 8px 24px #5f36a41a}
+    .top .brand{margin:0}.top .brand img{width:42px;height:42px}.top h1{font-size:22px;letter-spacing:.2px}
+    .top .brand span{font-size:14px;font-weight:700;color:#5c4b70;padding:8px 14px;border-radius:999px;
+    background:linear-gradient(90deg,#eee4fb,#f7f2fd);border:1px solid #ded0f1}
+    .password-wrap{position:relative}.password-wrap input{padding-right:46px}
+    .eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:7px;font-size:18px}
+    .export-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:14px 0}
+    .export-bar>div{min-width:170px}
+    .back-calendar{margin-bottom:12px}
+    .drag-hint{font-size:12px;color:var(--muted);margin:5px 0 10px}
+    .cell.drag-over{background:#e8dcfa!important;outline:2px dashed var(--p);outline-offset:-3px}
+    .event[draggable="true"]{cursor:grab}
+    .event[draggable="true"]:active{cursor:grabbing}
     .content{max-width:1450px;margin:auto;padding:20px}
     .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
     .kpi,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px #3d245512}
@@ -36,7 +57,7 @@
     .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{min-height:22px;margin-top:12px;font-size:13px;color:var(--ok)}
     .table-wrap{overflow:auto;margin-top:16px;border:1px solid var(--line);border-radius:11px}
     table{border-collapse:collapse;width:100%;min-width:1200px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
-    th{background:#f3eff8;color:#443754;position:sticky;top:0}tbody tr:nth-child(odd) td{background:#fff}
+    th{background:linear-gradient(90deg,#6f42c1,#8356cc);color:#fff;position:sticky;top:0}tbody tr:nth-child(odd) td{background:#fff}
     tbody tr:nth-child(even) td{background:#f1f1f3}
     tbody tr{cursor:pointer}
     tbody tr:hover td{background:#e9e2f5!important}
@@ -45,7 +66,7 @@
     .calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
     .week{overflow:auto;border:1px solid var(--line);border-radius:11px}.grid{display:grid;grid-template-columns:70px repeat(7,minmax(145px,1fr));min-width:1085px}
     .head,.time,.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
-    .head{background:var(--p);color:#fff;padding:10px;text-align:center;font-weight:700;position:sticky;top:0;z-index:2}
+    .head{background:linear-gradient(135deg,#6f42c1,#8757cf);color:#fff;padding:10px;text-align:center;font-weight:700;position:sticky;top:0;z-index:2}
     .time{padding:24px 5px;text-align:center;background:#f7f5fa;font-weight:700}.cell{min-height:76px;padding:4px;background:#fff}
     .event{display:block;width:100%;border:0;border-left:4px solid var(--p);border-radius:7px;background:#efe8fa;padding:6px;text-align:left;font-size:12px;margin-bottom:4px}
     .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
@@ -59,7 +80,9 @@
   <div class="login-card">
     <div class="brand"><img src="./icon-192.png" alt=""><div><h1>Betonexa</h1><small>Hazır Beton Sevkiyat Yönetimi</small></div></div>
     <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem">
-    <label for="loginPass">Şifre</label><input id="loginPass" type="password" autocomplete="current-password">
+    <label for="loginPass">Şifre</label>
+    <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password">
+    <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
     <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
     <div id="loginError" class="error"></div>
   </div>
@@ -67,15 +90,15 @@
 
 <div id="app" class="shell hidden">
   <header class="top">
-    <div class="brand"><img src="./icon-192.png" alt=""><h1>Betonexa</h1><span>Hazır Beton Sevkiyat Yönetimi</span></div>
+    <div class="brand"><img src="./icon-192.png" alt=""><h1>Betonexa</h1><span>Akıllı Hazır Beton Sevkiyat ve Operasyon Platformu</span></div>
     <button id="logoutBtn" class="btn btn-light">Çıkış</button>
   </header>
   <main class="content">
     <section class="kpis">
       <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
       <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
+      <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
       <div class="kpi"><small>AYLIK m³</small><strong id="kpiMonth">0,00</strong></div>
-      <div class="kpi"><small>HAFTALIK SEVKİYAT TOPLAM m³</small><strong id="kpiWeek">0,00</strong></div>
     </section>
     <nav class="tabs">
       <button class="btn btn-light active" data-page="records">Sevkiyatlar</button>
@@ -109,13 +132,25 @@
         <div id="status" class="status"></div>
       </form>
 
+      <div class="export-bar">
+        <div><label>Plan dönemi</label><select id="exportRange">
+          <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
+          <option value="monthly">Aylık</option><option value="all">Tümü</option>
+        </select></div>
+        <div><label>Referans tarihi</label><input id="exportDate" type="date"></div>
+        <button type="button" class="btn btn-light" id="pdfBtn">PDF İndir</button>
+        <button type="button" class="btn btn-light" id="excelBtn">Excel İndir</button>
+        <button type="button" class="btn btn-light" id="printBtn">Yazdır</button>
+      </div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
+        <thead><tr><th>No</th><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
     </section>
 
     <section id="calendarPage" class="panel hidden">
+      <button type="button" id="calendarBack" class="btn btn-light back-calendar">← Sevkiyatlara Geri Dön</button>
+      <div class="drag-hint">Sevkiyat kartını sürükleyip başka gün veya saate bırakarak tarih ve saatini değiştirebilirsin.</div>
       <div class="calendar-toolbar"><div><button id="prevWeek" class="btn btn-light">◀ Önceki</button> <button id="thisWeek" class="btn btn-light">Bu Hafta</button> <button id="nextWeek" class="btn btn-light">Sonraki ▶</button></div><strong id="weekTitle"></strong></div>
       <div class="week"><div id="weekGrid" class="grid"></div></div>
     </section>
@@ -193,8 +228,9 @@ async function deleteRecord(id){
   setStatus("Sevkiyat silindi.");await loadRecords();
 }
 function renderTable(){
-  $("rows").innerHTML=records.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
-    <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
+  const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
+  $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
+    <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
     <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
     <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td>
     <td><div class="row-actions"><button class="btn btn-light" onclick="event.stopPropagation();editRecord(${Number(r.id)})">Düzenle</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">Sil</button></div></td>
@@ -228,19 +264,80 @@ function renderKpis(){
     return d>=thisWeekStart&&d<=thisWeekEnd;
   }).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
 }
+const monthNames=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+function longDayLabel(d,dayName){return `${dayName} ${String(d.getDate()).padStart(2,"0")} ${monthNames[d.getMonth()]}`}
+function calendarHours(){return [...Array(24)].map((_,i)=>(7+i)%24)}
+let draggedId=null;
+function dragStart(id){draggedId=id}
+function allowDrop(e){e.preventDefault();e.currentTarget.classList.add("drag-over")}
+function dragLeave(e){e.currentTarget.classList.remove("drag-over")}
+async function dropShipment(e,date,hour){
+  e.preventDefault();e.currentTarget.classList.remove("drag-over");
+  if(!draggedId)return;
+  const r=records.find(x=>String(x.id)===String(draggedId));if(!r)return;
+  const mins=(r.saat||"00:00").slice(3,5)||"00";
+  const newTime=`${String(hour).padStart(2,"0")}:${mins}`;
+  setLoading(true);
+  const {error}=await db.from(TABLE).update({tarih:date,saat:newTime}).eq("id",draggedId);
+  setLoading(false);draggedId=null;
+  if(error){setStatus("Takvimde taşıma başarısız: "+error.message,true);return}
+  setStatus("Sevkiyatın gün ve saati güncellendi.");await loadRecords();
+}
 function renderCalendar(){
   const days=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],grid=$("weekGrid");grid.innerHTML="";
   const end=addDays(weekStart,6);$("weekTitle").textContent=`${trDate(iso(weekStart))} – ${trDate(iso(end))}`;
   grid.insertAdjacentHTML("beforeend",'<div class="head">Saat</div>');
-  for(let i=0;i<7;i++){const d=addDays(weekStart,i);grid.insertAdjacentHTML("beforeend",`<div class="head">${days[i]}<br>${trDate(iso(d)).slice(0,5)}</div>`)}
-  for(let h=6;h<=22;h++){
+  for(let i=0;i<7;i++){const d=addDays(weekStart,i);grid.insertAdjacentHTML("beforeend",`<div class="head">${longDayLabel(d,days[i])}</div>`)}
+  for(const h of calendarHours()){
     grid.insertAdjacentHTML("beforeend",`<div class="time">${String(h).padStart(2,"0")}:00</div>`);
     for(let i=0;i<7;i++){
       const date=iso(addDays(weekStart,i));
       const items=records.filter(r=>r.tarih===date&&Number((r.saat||"00").slice(0,2))===h);
-      grid.insertAdjacentHTML("beforeend",`<div class="cell">${items.map(r=>`<button class="event" data-id="${Number(r.id)}" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
+      grid.insertAdjacentHTML("beforeend",`<div class="cell" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
     }
   }
+}
+function exportRecords(){
+  const range=$("exportRange").value;
+  const refStr=$("exportDate").value||iso(new Date());
+  const ref=new Date(refStr+"T00:00:00");
+  return records.filter(r=>{
+    if(range==="all")return true;
+    if(!r.tarih)return false;
+    const d=new Date(r.tarih+"T00:00:00");
+    if(range==="daily")return r.tarih===refStr;
+    if(range==="weekly"){const s=monday(ref),e=addDays(s,6);return d>=s&&d<=e}
+    if(range==="monthly")return r.tarih.slice(0,7)===refStr.slice(0,7);
+    return true;
+  }).sort((a,b)=>`${a.tarih} ${a.saat}`.localeCompare(`${b.tarih} ${b.saat}`));
+}
+function exportRows(){
+  return exportRecords().map((r,i)=>({
+    No:i+1,Tarih:trDate(r.tarih),Saat:(r.saat||"").slice(0,5),Santral:r.santral||"",Firma:r.firma||"",
+    Şantiye:r.santiye||"","Beton sınıfı":r.beton_sinifi||"","Beton özelliği":r.beton_ozelligi||"",
+    "Metraj (m³)":Number(r.metraj||0),Pompa:r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
+    "Sorumlu kişi":r.sorumlu_kisi||"",Telefon:r.telefon||""
+  }));
+}
+function downloadExcel(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Sevkiyat Planı");
+  XLSX.writeFile(wb,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.xlsx`);
+}
+function downloadPdf(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape"});
+  doc.setFontSize(16);doc.text("Betonexa Sevkiyat Planı",14,14);
+  const headers=Object.keys(rows[0]);const body=rows.map(r=>headers.map(h=>String(r[h]??"")));
+  doc.autoTable({head:[headers],body,startY:20,styles:{fontSize:7},headStyles:{fillColor:[111,66,193]}});
+  doc.save(`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
+}
+function printPlan(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const headers=Object.keys(rows[0]);
+  const w=window.open("","_blank");
+  w.document.write(`<html><head><title>Betonexa Sevkiyat Planı</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #bbb;padding:6px}th{background:#6f42c1;color:#fff}</style></head><body><h2>Betonexa Sevkiyat Planı</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 function showPage(p){
   $("recordsPage").classList.toggle("hidden",p!=="records");$("calendarPage").classList.toggle("hidden",p!=="calendar");
@@ -250,15 +347,23 @@ function login(){
   if($("loginUser").value.trim()===LOGIN_USER&&$("loginPass").value===LOGIN_PASS){sessionStorage.setItem("betonexa_login","1");$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
   else $("loginError").textContent="Kullanıcı adı veya şifre hatalı."
 }
+$("togglePass").addEventListener("click",()=>{
+  const p=$("loginPass");p.type=p.type==="password"?"text":"password";
+  $("togglePass").textContent=p.type==="password"?"👁️":"🙈";
+});
 $("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
 $("logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("betonexa_login");location.reload()});
-$("shipmentForm").addEventListener("submit",saveShipment);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+$("shipmentForm").addEventListener("submit",saveShipment);
+$("calendarBack").addEventListener("click",()=>showPage("records"));
+$("pdfBtn").addEventListener("click",downloadPdf);
+$("excelBtn").addEventListener("click",downloadExcel);
+$("printBtn").addEventListener("click",printPlan);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;
-$("tarih").value=iso(new Date());
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
+$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));
 </script>
