@@ -36,7 +36,11 @@
     .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{min-height:22px;margin-top:12px;font-size:13px;color:var(--ok)}
     .table-wrap{overflow:auto;margin-top:16px;border:1px solid var(--line);border-radius:11px}
     table{border-collapse:collapse;width:100%;min-width:1200px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
-    th{background:#f3eff8;color:#443754;position:sticky;top:0}tr:hover td{background:#fbf9fd}
+    th{background:#f3eff8;color:#443754;position:sticky;top:0}tbody tr:nth-child(odd) td{background:#fff}
+    tbody tr:nth-child(even) td{background:#f1f1f3}
+    tbody tr{cursor:pointer}
+    tbody tr:hover td{background:#e9e2f5!important}
+    .event.calendar-target{outline:3px solid #f2b705;background:#fff4bd;box-shadow:0 0 0 5px #f2b70533}
     .row-actions{display:flex;gap:6px}
     .calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
     .week{overflow:auto;border:1px solid var(--line);border-radius:11px}.grid{display:grid;grid-template-columns:70px repeat(7,minmax(145px,1fr));min-width:1085px}
@@ -71,7 +75,7 @@
       <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
       <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
       <div class="kpi"><small>AYLIK m³</small><strong id="kpiMonth">0,00</strong></div>
-      <div class="kpi"><small>POMPALI m³</small><strong id="kpiPump">0,00</strong></div>
+      <div class="kpi"><small>HAFTALIK SEVKİYAT TOPLAM m³</small><strong id="kpiWeek">0,00</strong></div>
     </section>
     <nav class="tabs">
       <button class="btn btn-light active" data-page="records">Sevkiyatlar</button>
@@ -96,7 +100,6 @@
           <div id="pumpTypeWrap" class="hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
           <div><label>Sorumlu kişi</label><input id="sorumluKisi"></div>
           <div><label>Telefon</label><input id="telefon" placeholder="0553 618 18 53"></div>
-          <div style="grid-column:1/-1"><label>Notlar</label><textarea id="notlar"></textarea></div>
         </div>
         <div class="actions">
           <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
@@ -107,7 +110,7 @@
       </form>
 
       <div class="table-wrap"><table>
-        <thead><tr><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>Not</th><th>İşlem</th></tr></thead>
+        <thead><tr><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
     </section>
@@ -162,8 +165,7 @@ function payload(){
     pompa_var_mi:$("pompaVar").value==="true",
     pompa_tipi:$("pompaVar").value==="true"?$("pompaTipi").value:null,
     sorumlu_kisi:$("sorumluKisi").value.trim(),
-    telefon:phoneFormat($("telefon").value),
-    notlar:$("notlar").value.trim()
+    telefon:phoneFormat($("telefon").value)
   };
 }
 function clearForm(){
@@ -181,7 +183,7 @@ async function saveShipment(e){
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";$("betonOzelligi").value=r.beton_ozelligi||"Normal";$("metraj").value=r.metraj??"";$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";$("notlar").value=r.notlar||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";$("betonOzelligi").value=r.beton_ozelligi||"Normal";$("metraj").value=r.metraj??"";$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -191,19 +193,40 @@ async function deleteRecord(id){
   setStatus("Sevkiyat silindi.");await loadRecords();
 }
 function renderTable(){
-  $("rows").innerHTML=records.map(r=>`<tr>
+  $("rows").innerHTML=records.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
     <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
     <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
-    <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td><td>${esc(r.notlar)}</td>
-    <td><div class="row-actions"><button class="btn btn-light" onclick="editRecord(${Number(r.id)})">Düzenle</button><button class="btn btn-danger" onclick="deleteRecord(${Number(r.id)})">Sil</button></div></td>
+    <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td>
+    <td><div class="row-actions"><button class="btn btn-light" onclick="event.stopPropagation();editRecord(${Number(r.id)})">Düzenle</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">Sil</button></div></td>
   </tr>`).join("");
+}
+function openInCalendar(id){
+  const r=records.find(x=>String(x.id)===String(id));
+  if(!r||!r.tarih)return;
+  weekStart=monday(new Date(r.tarih+"T00:00:00"));
+  showPage("calendar");
+  renderCalendar();
+  requestAnimationFrame(()=>{
+    const target=document.querySelector(`.event[data-id="${id}"]`);
+    if(target){
+      target.classList.add("calendar-target");
+      target.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+      setTimeout(()=>target.classList.remove("calendar-target"),3500);
+    }
+  });
 }
 function renderKpis(){
   const now=new Date(),today=iso(now),month=today.slice(0,7);
+  const thisWeekStart=monday(now);
+  const thisWeekEnd=addDays(thisWeekStart,6);
   $("kpiCount").textContent=records.length;
   $("kpiToday").textContent=m3(records.filter(r=>r.tarih===today).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
   $("kpiMonth").textContent=m3(records.filter(r=>(r.tarih||"").startsWith(month)).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
-  $("kpiPump").textContent=m3(records.filter(r=>r.pompa_var_mi).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
+  $("kpiWeek").textContent=m3(records.filter(r=>{
+    if(!r.tarih)return false;
+    const d=new Date(r.tarih+"T00:00:00");
+    return d>=thisWeekStart&&d<=thisWeekEnd;
+  }).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
 }
 function renderCalendar(){
   const days=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],grid=$("weekGrid");grid.innerHTML="";
@@ -215,7 +238,7 @@ function renderCalendar(){
     for(let i=0;i<7;i++){
       const date=iso(addDays(weekStart,i));
       const items=records.filter(r=>r.tarih===date&&Number((r.saat||"00").slice(0,2))===h);
-      grid.insertAdjacentHTML("beforeend",`<div class="cell">${items.map(r=>`<button class="event" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
+      grid.insertAdjacentHTML("beforeend",`<div class="cell">${items.map(r=>`<button class="event" data-id="${Number(r.id)}" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
     }
   }
 }
@@ -234,7 +257,7 @@ $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;
 $("tarih").value=iso(new Date());
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));

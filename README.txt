@@ -1,10 +1,7 @@
-BETONEXA 1.0 — GITHUB'A DOĞRUDAN YÜKLEME PAKETİ
+BETONEXA 1.1
 
-Bu klasördeki 6 dosyanın tamamını GitHub deponuzun ana dizinine yükleyin.
-
-Giriş:
-Kullanıcı adı: ozlem
-Şifre: Beton2026!
-
-Not:
-Bu ilk sürüm tek kullanıcı içindir. Veriler Supabase'deki sevkiyatlar tablosunda tutulur.
+Değişiklikler:
+- Üstteki POMPALI m³ kutusu HAFTALIK SEVKİYAT TOPLAM m³ olarak değiştirildi.
+- Sevkiyat listesi beyaz/gri satırlar halinde gösterilir.
+- Sevkiyat satırına tıklanınca takvimde ilgili haftaya ve kayda gidilir.
+- Sevkiyat formundaki Notlar alanı ve listedeki Not sütunu kaldırıldı.
