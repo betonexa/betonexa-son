@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa UI 2.1.2</title>
+  <title>Betonexa UI 2.1.3</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -673,6 +673,39 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 </style>
 </head>
 <body>
+
+<script id="betonexa-cache-refresh">
+(function(){
+  const VERSION="betonexa-ui-2.1.3";
+  const VERSION_KEY="betonexa_loaded_version";
+
+  async function clearOldApplicationCache(){
+    try{
+      if("caches" in window){
+        const names=await caches.keys();
+        await Promise.all(
+          names
+            .filter(name=>/betonexa|static|precache|workbox/i.test(name))
+            .map(name=>caches.delete(name))
+        );
+      }
+
+      if("serviceWorker" in navigator){
+        const registrations=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(registration=>registration.unregister()));
+      }
+    }catch(error){
+      console.warn("Önbellek temizliği tamamlanamadı:",error);
+    }
+  }
+
+  if(localStorage.getItem(VERSION_KEY)!==VERSION){
+    localStorage.setItem(VERSION_KEY,VERSION);
+    clearOldApplicationCache();
+  }
+})();
+</script>
+
 <div id="loading" class="loading hidden">Yükleniyor…</div>
 <section id="login" class="login">
   <div class="login-card">
@@ -2397,19 +2430,4 @@ window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=sh
 loadAppSettings();refreshFormOptions();
 updateConcretePropertySummary();
 document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
-$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
-const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
-if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
-if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
-  try{
-    const regs=await navigator.serviceWorker.getRegistrations();
-    for(const reg of regs)await reg.unregister();
-    if("caches" in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.map(k=>caches.delete(k)));
-    }
-  }catch(e){console.warn("Önbellek temizleme atlandı:",e)}
-});
-</script>
-</body>
-</html>
+$("tari
