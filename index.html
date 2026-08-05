@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa UI 2.1.3</title>
+  <title>Betonexa UI 2.1.5</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -867,6 +867,79 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
     document.addEventListener("DOMContentLoaded",initializeLogin,{once:true});
   }else{
     initializeLogin();
+  }
+})();
+</script>
+
+
+<script id="betonexa-tab-controller">
+(function(){
+  "use strict";
+
+  const PAGE_IDS={
+    records:"recordsPage",
+    tomorrow:"tomorrowPage",
+    calendar:"calendarPage",
+    analysis:"analysisPage",
+    settings:"settingsPage",
+    dashboard:"dashboardPage"
+  };
+
+  function openPage(pageName){
+    if(!PAGE_IDS[pageName]) pageName="records";
+
+    Object.entries(PAGE_IDS).forEach(([name,id])=>{
+      const page=document.getElementById(id);
+      if(page) page.classList.toggle("hidden",name!==pageName);
+    });
+
+    document.querySelectorAll(".tabs button[data-page]").forEach(button=>{
+      button.classList.toggle("active",button.dataset.page===pageName);
+    });
+
+    // Render only when the original application function is available.
+    try{
+      if(pageName==="dashboard" && typeof window.renderDashboard==="function"){
+        window.renderDashboard();
+      }else if(pageName==="tomorrow" && typeof window.renderTomorrowReport==="function"){
+        window.renderTomorrowReport();
+      }else if(pageName==="calendar" && typeof window.renderCalendar==="function"){
+        window.renderCalendar();
+      }else if(pageName==="analysis" && typeof window.renderAnalysis==="function"){
+        window.renderAnalysis();
+      }else if(pageName==="settings" && typeof window.renderSettings==="function"){
+        window.renderSettings();
+      }
+    }catch(error){
+      console.error("Sekme içeriği hazırlanırken hata oluştu:",error);
+    }
+
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function initializeTabs(){
+    document.querySelectorAll(".tabs button[data-page]").forEach(button=>{
+      button.type="button";
+      button.onclick=function(event){
+        event.preventDefault();
+        event.stopPropagation();
+        openPage(button.dataset.page);
+      };
+    });
+
+    window.showPage=openPage;
+
+    // Keep the records page active when the application becomes visible.
+    const app=document.getElementById("app");
+    if(app && !app.classList.contains("hidden")){
+      openPage("records");
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",initializeTabs,{once:true});
+  }else{
+    initializeTabs();
   }
 })();
 </script>
@@ -2409,25 +2482,4 @@ document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb
   cb.addEventListener("change",updateConcretePropertySummary);
 });
 document.addEventListener("click",e=>{
-  if(!$("betonOzellikSelect").contains(e.target)){
-    $("betonOzellikSelect").classList.remove("open");
-    $("betonOzellikToggle").setAttribute("aria-expanded","false");
-  }
-});
-$("dashboardRefresh").addEventListener("click",loadRecords);
-$("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
-$("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
-$("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
-$("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
-$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
-$("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
-$("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
-$("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.removeSettingItem=removeSettingItem;
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
-loadAppSettings();refreshFormOptions();
-updateConcretePropertySummary();
-document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
-$("tari
+  if(!$("betonOzellikSelect").contains(e.
