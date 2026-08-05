@@ -97,6 +97,16 @@
     .dashboard-chart h4{margin:0 0 12px;color:#4f356f;font-size:17px}
     .dashboard-chart canvas{width:100%!important;height:260px!important}
 
+    .dashboard-alerts{display:grid;gap:10px;margin-top:12px}
+    .dashboard-alert{display:flex;gap:12px;align-items:flex-start;border:1px solid #ead6d3;border-radius:12px;padding:13px 14px;background:#fff8f7}
+    .dashboard-alert.warning{border-color:#eadfb8;background:#fffaf0}
+    .dashboard-alert.info{border-color:#d9d2ee;background:#faf8fd}
+    .dashboard-alert.ok{border-color:#cfe8db;background:#f4fbf7}
+    .dashboard-alert .symbol{font-size:20px;line-height:1}
+    .dashboard-alert b{display:block;color:#4f356f;margin-bottom:3px}
+    .dashboard-alert span{font-size:13px;color:#6d6875}
+
+
 
     .analysis-mode-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .analysis-mode-tabs button.active{background:var(--p);color:#fff}
@@ -228,6 +238,9 @@
           <span id="dashTopPumpM3">0,00 m³</span>
         </div>
       </div>
+
+      <h3 class="dashboard-section-title">Operasyon Uyarıları</h3>
+      <div id="dashboardAlerts" class="dashboard-alerts"></div>
 
       <h3 class="dashboard-section-title">Operasyon Grafikleri</h3>
       <div class="dashboard-charts">
@@ -512,8 +525,29 @@ function renderDashboardCharts(){
 
   dashboardCharts.companies=new Chart($("chartTopCompanies"),{
     type:"bar",
-    data:{labels:topCompanies.map(x=>x.name),datasets:[{data:topCompanies.map(x=>x.total),backgroundColor:chartColors(topCompanies.length),borderRadius:7}]},
-    options:{...commonOptions,indexAxis:"y"}
+    data:{
+      labels:topCompanies.map(x=>x.name),
+      datasets:[{
+        label:"Toplam m³",
+        data:topCompanies.map(x=>Number(x.total||0)),
+        backgroundColor:chartColors(topCompanies.length),
+        borderRadius:7,
+        minBarLength:4
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      indexAxis:"y",
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>m3(ctx.raw)+" m³"}}
+      },
+      scales:{
+        x:{beginAtZero:true,ticks:{callback:v=>v+" m³"}},
+        y:{ticks:{autoSkip:false}}
+      }
+    }
   });
 
   dashboardCharts.plants=new Chart($("chartPlants"),{
@@ -527,6 +561,63 @@ function renderDashboardCharts(){
     data:{labels:pumps.map(x=>x.name),datasets:[{data:pumps.map(x=>x.total),backgroundColor:chartColors(pumps.length),borderRadius:7}]},
     options:commonOptions
   });
+}
+
+
+function pushDashboardAlert(list,type,symbol,title,text){
+  list.push({type,symbol,title,text});
+}
+function renderDashboardAlerts(todayRecords){
+  const alerts=[];
+  const byPumpAndTime=new Map();
+  const byTime=new Map();
+
+  todayRecords.forEach(r=>{
+    const hour=(r.saat||"").slice(0,5)||"Saat yok";
+    if(!byTime.has(hour))byTime.set(hour,[]);
+    byTime.get(hour).push(r);
+
+    if(r.pompa_var_mi){
+      const pump=String(r.pompa_tipi||"").trim();
+      if(!pump){
+        pushDashboardAlert(alerts,"warning","⚠️","Pompa tipi eksik",`${r.firma||"Firma belirtilmemiş"} kaydında pompalı seçilmiş fakat pompa tipi girilmemiş.`);
+      }else{
+        const key=`${pump}|${hour}`;
+        if(!byPumpAndTime.has(key))byPumpAndTime.set(key,[]);
+        byPumpAndTime.get(key).push(r);
+      }
+    }
+
+    if(Number(r.metraj||0)>=500){
+      pushDashboardAlert(alerts,"info","📌","Yüksek hacimli sevkiyat",`${r.firma||"Firma belirtilmemiş"} için ${m3(r.metraj)} m³ tek sevkiyat planlanmış.`);
+    }
+  });
+
+  byPumpAndTime.forEach((items,key)=>{
+    if(items.length>1){
+      const [pump,time]=key.split("|");
+      pushDashboardAlert(alerts,"danger","🚨","Pompa çakışması",`${pump} pompa saat ${time} için ${items.length} farklı sevkiyata atanmış.`);
+    }
+  });
+
+  byTime.forEach((items,time)=>{
+    if(items.length>=4){
+      const total=items.reduce((s,r)=>s+Number(r.metraj||0),0);
+      pushDashboardAlert(alerts,"warning","⏰","Saat yoğunluğu",`Saat ${time} için ${items.length} sevkiyat ve toplam ${m3(total)} m³ planlanmış.`);
+    }
+  });
+
+  if(!todayRecords.length){
+    pushDashboardAlert(alerts,"info","ℹ️","Bugün sevkiyat yok","Bugün için planlanmış bir sevkiyat bulunmuyor.");
+  }else if(!alerts.length){
+    pushDashboardAlert(alerts,"ok","✅","Operasyon normal","Bugünkü kayıtlarda belirgin bir çakışma veya eksik bilgi görünmüyor.");
+  }
+
+  $("dashboardAlerts").innerHTML=alerts.map(a=>`
+    <div class="dashboard-alert ${a.type}">
+      <div class="symbol">${a.symbol}</div>
+      <div><b>${esc(a.title)}</b><span>${esc(a.text)}</span></div>
+    </div>`).join("");
 }
 
 function renderDashboard(){
@@ -556,6 +647,7 @@ function renderDashboard(){
   $("dashTopSiteM3").textContent=m3(topSite?topSite.total:0)+" m³";
   $("dashTopPump").textContent=topPump?topPump.name:"-";
   $("dashTopPumpM3").textContent=m3(topPump?topPump.total:0)+" m³";
+  renderDashboardAlerts(todayRecords);
   requestAnimationFrame(renderDashboardCharts);
 }
 
@@ -1005,33 +1097,4 @@ function showPage(p){
   if(p==="dashboard")renderDashboard();
   if(p==="analysis")renderAnalysis();
 }
-function login(){
-  if($("loginUser").value.trim()===LOGIN_USER&&$("loginPass").value===LOGIN_PASS){sessionStorage.setItem("betonexa_login","1");$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
-  else $("loginError").textContent="Kullanıcı adı veya şifre hatalı."
-}
-$("togglePass").addEventListener("click",()=>{
-  const p=$("loginPass");p.type=p.type==="password"?"text":"password";
-  $("togglePass").textContent=p.type==="password"?"👁️":"🙈";
-});
-$("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-$("logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("betonexa_login");location.reload()});
-$("shipmentForm").addEventListener("submit",saveShipment);
-$("pdfBtn").addEventListener("click",downloadPdf);
-$("excelBtn").addEventListener("click",downloadExcel);
-$("printBtn").addEventListener("click",printPlan);
-$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
-$("dashboardRefresh").addEventListener("click",loadRecords);
-$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
-$("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
-$("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
-$("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
-$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
-const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
-if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
-if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));
-</script>
-</body>
-</html>
+functi
