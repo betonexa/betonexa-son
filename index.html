@@ -6,13 +6,14 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa UI 2.0</title>
+  <title>Betonexa UI 2.1</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
   <style>
 
@@ -724,7 +725,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
       <div class="dashboard-head">
         <div>
           <h2>Bugünün Operasyon Özeti</h2>
-          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">UI 2.0</small>
+          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">UI 2.1</small>
         </div>
         <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
       </div>
@@ -1432,33 +1433,269 @@ function downloadTomorrowExcel(){
   XLSX.utils.book_append_sheet(wb,ws,"Yarınki Sevkiyatlar");
   XLSX.writeFile(wb,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.xlsx`);
 }
-function downloadTomorrowPdf(){
-  if(!window.jspdf){alert("PDF modülü yüklenemedi.");return}
+async function downloadTomorrowPdf(){
+  if(!window.jspdf || !window.html2canvas){
+    alert("PDF modülü yüklenemedi. İnternet bağlantısını kontrol edip sayfayı yenile.");
+    return;
+  }
+
   const groups=groupTomorrow();
-  if(!groups.length){alert("Yarın için sevkiyat yok.");return}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:"landscape"});
-  doc.setFontSize(16);
-  doc.text(`Betonexa - Yarınki Sevkiyatlar (${trDate(tomorrowDateString())})`,14,14);
-  let y=20,grand=0;
-  groups.forEach(([company,items])=>{
-    const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
-    doc.setFontSize(11);doc.text(`${company} - ${m3(subtotal)} m3`,14,y);
-    doc.autoTable({
-      startY:y+3,
-      head:[["Saat","Santral","Şantiye","Beton","Özellik","Pompa","Metraj","Sorumlu","Telefon"]],
-      body:items.map(r=>[
-        (r.saat||"").slice(0,5),r.santral||"",r.santiye||"",r.beton_sinifi||"",r.beton_ozelligi||"",
-        r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",m3(r.metraj),r.sorumlu_kisi||"",r.telefon||""
-      ]),
-      styles:{fontSize:7},headStyles:{fillColor:[111,66,193]}
+  if(!groups.length){
+    alert("Yarın için sevkiyat yok.");
+    return;
+  }
+
+  const button=$("tomorrowPdfBtn");
+  const oldText=button.textContent;
+  button.disabled=true;
+  button.textContent="PDF hazırlanıyor…";
+
+  let grand=0;
+  const printable=document.createElement("div");
+  printable.setAttribute("aria-hidden","true");
+  printable.style.cssText=[
+    "position:fixed",
+    "left:-100000px",
+    "top:0",
+    "width:1120px",
+    "padding:38px 42px",
+    "background:#ffffff",
+    "color:#202633",
+    "font-family:Arial,Helvetica,sans-serif",
+    "font-size:14px",
+    "line-height:1.35"
+  ].join(";");
+
+  const sections=groups.map(([company,items])=>{
+    const subtotal=items.reduce((sum,row)=>sum+Number(row.metraj||0),0);
+    grand+=subtotal;
+
+    const rows=items.map(row=>`
+      <tr>
+        <td>${esc((row.saat||"").slice(0,5))}</td>
+        <td>${esc(row.santral||"")}</td>
+        <td>${esc(row.santiye||"")}</td>
+        <td>${esc(row.beton_sinifi||"")}</td>
+        <td>${esc(row.beton_ozelligi||"")}</td>
+        <td>${row.pompa_var_mi?esc(row.pompa_tipi||"Pompalı"):"Pompasız"}</td>
+        <td class="number">${m3(row.metraj)} m³</td>
+        <td>${esc(row.sorumlu_kisi||"")}</td>
+        <td>${esc(row.telefon||"")}</td>
+      </tr>`).join("");
+
+    return `
+      <section class="pdf-company">
+        <div class="pdf-company-title">
+          <strong>🏢 ${esc(company)}</strong>
+          <span>Firma Toplamı: ${m3(subtotal)} m³</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Saat</th>
+              <th>Santral</th>
+              <th>Şantiye</th>
+              <th>Beton</th>
+              <th>Özellik</th>
+              <th>Pompa</th>
+              <th>Metraj</th>
+              <th>Sorumlu</th>
+              <th>Telefon</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </section>`;
+  }).join("");
+
+  printable.innerHTML=`
+    <style>
+      *{box-sizing:border-box}
+      .pdf-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:20px;
+        margin-bottom:22px;
+        padding-bottom:16px;
+        border-bottom:3px solid #6f42c1;
+      }
+      .pdf-header h1{
+        margin:0;
+        color:#4f268f;
+        font-size:26px;
+        letter-spacing:0;
+      }
+      .pdf-header p{
+        margin:5px 0 0;
+        color:#667085;
+        font-size:14px;
+      }
+      .pdf-badge{
+        flex:0 0 auto;
+        padding:10px 14px;
+        border-radius:12px;
+        color:#5d2eae;
+        background:#eee6fb;
+        font-size:13px;
+        font-weight:700;
+      }
+      .pdf-company{
+        margin:0 0 22px;
+        break-inside:avoid;
+        page-break-inside:avoid;
+      }
+      .pdf-company-title{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:14px;
+        padding:12px 14px;
+        color:#4f268f;
+        background:#f2ecfb;
+        border:1px solid #dfd2f3;
+        border-bottom:0;
+        border-radius:11px 11px 0 0;
+        font-size:16px;
+      }
+      .pdf-company-title span{
+        white-space:nowrap;
+        font-weight:800;
+        color:#6f42c1;
+      }
+      table{
+        width:100%;
+        border-collapse:collapse;
+        table-layout:fixed;
+        border:1px solid #d8dbe3;
+      }
+      th{
+        padding:9px 7px;
+        color:#fff;
+        background:#6f42c1;
+        border:1px solid #7950c5;
+        font-size:11px;
+        text-align:left;
+      }
+      td{
+        padding:9px 7px;
+        border:1px solid #dde0e7;
+        color:#273142;
+        font-size:11px;
+        overflow-wrap:anywhere;
+        vertical-align:top;
+      }
+      tbody tr:nth-child(even) td{background:#f7f7f9}
+      .number{white-space:nowrap;font-weight:700;color:#5d2eae}
+      .pdf-total{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:20px;
+        margin-top:8px;
+        padding:15px 18px;
+        border-radius:12px;
+        color:#fff;
+        background:linear-gradient(90deg,#5a2ca7,#7544ca);
+        font-size:20px;
+        font-weight:900;
+      }
+      .pdf-footer{
+        margin-top:18px;
+        color:#7a8190;
+        font-size:10px;
+        text-align:center;
+      }
+    </style>
+
+    <header class="pdf-header">
+      <div>
+        <h1>Betonexa — Yarınki Sevkiyatlar</h1>
+        <p>${trDate(tomorrowDateString())}</p>
+      </div>
+      <div class="pdf-badge">${groups.length} firma</div>
+    </header>
+
+    ${sections}
+
+    <div class="pdf-total">
+      <span>∑ GENEL TOPLAM</span>
+      <strong>${m3(grand)} m³</strong>
+    </div>
+
+    <div class="pdf-footer">Betonexa Hazır Beton Sevkiyat Yönetimi</div>`;
+
+  document.body.appendChild(printable);
+
+  try{
+    // Wait for browser layout and fonts.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+
+    const canvas=await html2canvas(printable,{
+      scale:2,
+      backgroundColor:"#ffffff",
+      useCORS:true,
+      logging:false,
+      windowWidth:1120
     });
-    y=doc.lastAutoTable.finalY+10;
-    if(y>180){doc.addPage();y=16}
-  });
-  doc.setFontSize(13);doc.text(`GENEL TOPLAM: ${m3(grand)} m3`,14,y);
-  doc.save(`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({
+      orientation:"landscape",
+      unit:"mm",
+      format:"a4",
+      compress:true
+    });
+
+    const pageWidth=doc.internal.pageSize.getWidth();
+    const pageHeight=doc.internal.pageSize.getHeight();
+    const margin=8;
+    const usableWidth=pageWidth-(margin*2);
+    const usableHeight=pageHeight-(margin*2);
+
+    const imageWidth=usableWidth;
+    const imageHeight=canvas.height*imageWidth/canvas.width;
+    const pagePixelHeight=Math.floor(canvas.width*usableHeight/imageWidth);
+
+    let sourceY=0;
+    let pageIndex=0;
+
+    while(sourceY<canvas.height){
+      const sliceHeight=Math.min(pagePixelHeight,canvas.height-sourceY);
+      const slice=document.createElement("canvas");
+      slice.width=canvas.width;
+      slice.height=sliceHeight;
+
+      const context=slice.getContext("2d");
+      context.fillStyle="#ffffff";
+      context.fillRect(0,0,slice.width,slice.height);
+      context.drawImage(
+        canvas,
+        0,sourceY,canvas.width,sliceHeight,
+        0,0,canvas.width,sliceHeight
+      );
+
+      const sliceData=slice.toDataURL("image/jpeg",0.96);
+      const sliceMmHeight=sliceHeight*imageWidth/canvas.width;
+
+      if(pageIndex>0)doc.addPage();
+      doc.addImage(sliceData,"JPEG",margin,margin,imageWidth,sliceMmHeight,undefined,"FAST");
+
+      sourceY+=sliceHeight;
+      pageIndex++;
+    }
+
+    doc.save(`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
+  }catch(error){
+    console.error(error);
+    alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"));
+  }finally{
+    printable.remove();
+    button.disabled=false;
+    button.textContent=oldText;
+  }
 }
+
 function printTomorrow(){
   const groups=groupTomorrow();
   if(!groups.length){alert("Yarın için sevkiyat yok.");return}
@@ -1935,101 +2172,4 @@ $("forgotPasswordBtn").addEventListener("click",()=>{
   $("loginError").textContent="";
   if(!$("forgotPanel").classList.contains("hidden"))$("forgotEmail").focus();
 });
-$("cancelResetBtn").addEventListener("click",()=>{
-  $("forgotPanel").classList.add("hidden");
-  $("forgotStatus").textContent="";
-});
-$("sendResetBtn").addEventListener("click",async()=>{
-  const email=$("forgotEmail").value.trim();
-  const status=$("forgotStatus");
-  if(!email || !email.includes("@")){
-    status.textContent="Lütfen geçerli bir e-posta adresi gir.";
-    return;
-  }
-  const client=ensureDb();
-  if(!client || !client.auth){
-    status.textContent="Şifre sıfırlama servisine bağlanılamadı.";
-    return;
-  }
-  $("sendResetBtn").disabled=true;
-  status.textContent="Gönderiliyor…";
-  try{
-    const {error}=await client.auth.resetPasswordForEmail(email,{
-      redirectTo:window.location.origin
-    });
-    if(error)throw error;
-    status.textContent="Bağlantı gönderildi. E-posta kutunu kontrol et.";
-  }catch(error){
-    status.textContent="Gönderilemedi: "+(error.message||"Bilinmeyen hata");
-  }finally{
-    $("sendResetBtn").disabled=false;
-  }
-});
-
-$("togglePass").addEventListener("click",()=>{
-  const p=$("loginPass");p.type=p.type==="password"?"text":"password";
-  $("togglePass").textContent=p.type==="password"?"👁️":"🙈";
-});
-$("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-$("logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("betonexa_login");location.reload()});
-$("shipmentForm").addEventListener("submit",saveShipment);
-$("pdfBtn").addEventListener("click",downloadPdf);
-$("excelBtn").addEventListener("click",downloadExcel);
-$("printBtn").addEventListener("click",printPlan);
-$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
-$("themeBtn").addEventListener("click",()=>{
-  document.body.classList.toggle("dark-app");
-  localStorage.setItem("betonexa_theme",document.body.classList.contains("dark-app")?"dark":"light");
-  $("themeBtn").textContent=document.body.classList.contains("dark-app")?"☀️":"🌙";
-});
-$("tomorrowPdfBtn").addEventListener("click",downloadTomorrowPdf);
-$("tomorrowExcelBtn").addEventListener("click",downloadTomorrowExcel);
-$("tomorrowPrintBtn").addEventListener("click",printTomorrow);
-$("betonOzellikToggle").addEventListener("click",e=>{
-  e.stopPropagation();
-  const box=$("betonOzellikSelect");
-  const open=!box.classList.contains("open");
-  box.classList.toggle("open",open);
-  $("betonOzellikToggle").setAttribute("aria-expanded",String(open));
-});
-document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>{
-  cb.addEventListener("change",updateConcretePropertySummary);
-});
-document.addEventListener("click",e=>{
-  if(!$("betonOzellikSelect").contains(e.target)){
-    $("betonOzellikSelect").classList.remove("open");
-    $("betonOzellikToggle").setAttribute("aria-expanded","false");
-  }
-});
-$("dashboardRefresh").addEventListener("click",loadRecords);
-$("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
-$("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
-$("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
-$("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
-$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
-$("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
-$("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
-document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
-$("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.removeSettingItem=removeSettingItem;
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
-loadAppSettings();refreshFormOptions();
-updateConcretePropertySummary();
-document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
-$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
-const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
-if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
-if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
-  try{
-    const regs=await navigator.serviceWorker.getRegistrations();
-    for(const reg of regs)await reg.unregister();
-    if("caches" in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.map(k=>caches.delete(k)));
-    }
-  }catch(e){console.warn("Önbellek temizleme atlandı:",e)}
-});
-</script>
-</body>
-</html>
+$("cancelResetBtn").addEventLis
