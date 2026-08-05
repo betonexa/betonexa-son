@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa Stable 1.1</title>
+  <title>Betonexa Stable 1.1.1</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -681,7 +681,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
     <label for="loginPass">Şifre</label>
     <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password">
     <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
-    <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+    <button id="loginBtn" type="button" class="btn btn-primary">Giriş Yap</button>
     <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
     <div id="forgotPanel" class="forgot-panel hidden">
       <label for="forgotEmail">E-posta adresi</label>
@@ -2179,4 +2179,4 @@ $("shipmentForm").addEventListener("submit",saveShipment);
 $("pdfBtn").addEventListener("click",downloadPdf);
 $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
-$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);
+$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("cl
