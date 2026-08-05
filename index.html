@@ -83,6 +83,14 @@
     .dashboard-kpi small{display:block;color:var(--muted);font-weight:800;letter-spacing:.3px}
     .dashboard-kpi strong{display:block;color:var(--p);font-size:30px;margin-top:9px}
     .dashboard-kpi span{display:block;color:#6d6875;font-size:12px;margin-top:8px}
+
+    .dashboard-section-title{margin:24px 0 12px;color:#4f356f;font-size:20px}
+    .dashboard-leaders{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .dashboard-leader{background:#fff;border:1px solid #dfd4ee;border-radius:14px;padding:17px;box-shadow:0 5px 18px #4f356f10}
+    .dashboard-leader small{display:block;color:var(--muted);font-weight:800;margin-bottom:8px}
+    .dashboard-leader strong{display:block;color:#4f356f;font-size:20px;min-height:25px}
+    .dashboard-leader span{display:block;color:var(--p);font-weight:800;margin-top:8px}
+
     .analysis-mode-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .analysis-mode-tabs button.active{background:var(--p);color:#fff}
     .analysis-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
@@ -113,8 +121,8 @@
     .analysis-table{min-width:760px}
 
     .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
-    @media(max-width:950px){.kpis,.dashboard-kpis{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
-    @media(max-width:650px){.content{padding:12px}.kpis,.dashboard-kpis,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
+    @media(max-width:950px){.kpis,.dashboard-kpis,.dashboard-leaders{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
+    @media(max-width:650px){.content{padding:12px}.kpis,.dashboard-kpis,.dashboard-leaders,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
   </style>
 </head>
 <body>
@@ -187,6 +195,30 @@
           <small>POMPASIZ BETON</small>
           <strong id="dashUnpumpedM3">0,00 m³</strong>
           <span>Bugünkü pompasız sevkiyat miktarı</span>
+        </div>
+      </div>
+
+      <h3 class="dashboard-section-title">Bugünün En Yoğunları</h3>
+      <div class="dashboard-leaders">
+        <div class="dashboard-leader">
+          <small>🏢 EN YOĞUN FİRMA</small>
+          <strong id="dashTopCompany">-</strong>
+          <span id="dashTopCompanyM3">0,00 m³</span>
+        </div>
+        <div class="dashboard-leader">
+          <small>🏭 EN YOĞUN SANTRAL</small>
+          <strong id="dashTopPlant">-</strong>
+          <span id="dashTopPlantM3">0,00 m³</span>
+        </div>
+        <div class="dashboard-leader">
+          <small>🏗️ EN YOĞUN ŞANTİYE</small>
+          <strong id="dashTopSite">-</strong>
+          <span id="dashTopSiteM3">0,00 m³</span>
+        </div>
+        <div class="dashboard-leader">
+          <small>🚛 EN ÇOK KULLANILAN POMPA</small>
+          <strong id="dashTopPump">-</strong>
+          <span id="dashTopPumpM3">0,00 m³</span>
         </div>
       </div>
     </section>
@@ -406,6 +438,10 @@ function openInCalendar(id){
   });
 }
 
+function dashboardTop(items,keyFn){
+  const groups=groupAnalysis(items,keyFn);
+  return groups.length?groups[0]:null;
+}
 function renderDashboard(){
   if(!$("dashboardPage"))return;
   const today=iso(new Date());
@@ -413,12 +449,26 @@ function renderDashboard(){
   const total=todayRecords.reduce((s,r)=>s+Number(r.metraj||0),0);
   const pumped=todayRecords.filter(r=>r.pompa_var_mi).reduce((s,r)=>s+Number(r.metraj||0),0);
   const unpumped=todayRecords.filter(r=>!r.pompa_var_mi).reduce((s,r)=>s+Number(r.metraj||0),0);
+  const topCompany=dashboardTop(todayRecords,r=>r.firma);
+  const topPlant=dashboardTop(todayRecords,r=>r.santral);
+  const topSite=dashboardTop(todayRecords,r=>r.santiye);
+  const topPump=dashboardTop(todayRecords.filter(r=>r.pompa_var_mi),r=>r.pompa_tipi||"Pompalı");
   const now=new Date();
+
   $("dashboardDate").textContent=now.toLocaleDateString("tr-TR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
   $("dashTodayCount").textContent=todayRecords.length;
   $("dashTodayM3").textContent=m3(total)+" m³";
   $("dashPumpedM3").textContent=m3(pumped)+" m³";
   $("dashUnpumpedM3").textContent=m3(unpumped)+" m³";
+
+  $("dashTopCompany").textContent=topCompany?topCompany.name:"-";
+  $("dashTopCompanyM3").textContent=m3(topCompany?topCompany.total:0)+" m³";
+  $("dashTopPlant").textContent=topPlant?topPlant.name:"-";
+  $("dashTopPlantM3").textContent=m3(topPlant?topPlant.total:0)+" m³";
+  $("dashTopSite").textContent=topSite?topSite.name:"-";
+  $("dashTopSiteM3").textContent=m3(topSite?topSite.total:0)+" m³";
+  $("dashTopPump").textContent=topPump?topPump.name:"-";
+  $("dashTopPumpM3").textContent=m3(topPump?topPump.total:0)+" m³";
 }
 
 function renderKpis(){
