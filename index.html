@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa UI 2.1.1</title>
+  <title>Betonexa UI 2.1.2</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -1546,7 +1546,7 @@ function renderTomorrowReport(){
         </tr>`).join("")}</tbody>
       </table></div>
     </section>`;
-  }).join("")+`<div class="tomorrow-total"><span>∑ GENEL TOPLAM</span><strong>${m3(grand)} m³</strong></div>`;
+  }).join("")+`<div class="tomorrow-total"><span>GENEL TOPLAM</span><strong>${m3(grand)} m³</strong></div>`;
 }
 function tomorrowExportRows(){
   const rows=[];
@@ -1761,7 +1761,7 @@ async function downloadTomorrowPdf(){
     ${sections}
 
     <div class="pdf-total">
-      <span>∑ GENEL TOPLAM</span>
+      <span>GENEL TOPLAM</span>
       <strong>${m3(grand)} m³</strong>
     </div>
 
