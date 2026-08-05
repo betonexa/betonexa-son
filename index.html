@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa v3.5</title>
+  <title>Betonexa v4.1</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -403,6 +403,204 @@
       font-size:12px;font-weight:700
     }
 
+
+    /* Betonexa 3.6 - Telefon ve tablo yerleşimi düzeltmesi */
+    #recordsPage{
+      width:min(1180px,calc(100vw - 390px));
+      max-width:none!important;
+      min-width:0;
+    }
+    #recordsPage .form-grid{
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      align-items:start;
+    }
+    #recordsPage .contact-field{
+      min-width:0;
+    }
+    #recordsPage .contact-field input{
+      width:100%;
+    }
+    #recordsPage .table-wrap{
+      width:100%;
+      overflow-x:auto;
+    }
+    #recordsPage table{
+      width:100%;
+      min-width:1040px;
+      table-layout:auto;
+    }
+    #recordsPage th,
+    #recordsPage td{
+      padding:9px 8px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    #recordsPage th:nth-child(1),
+    #recordsPage td:nth-child(1){width:42px}
+    #recordsPage th:nth-child(2),
+    #recordsPage td:nth-child(2){width:86px}
+    #recordsPage th:nth-child(3),
+    #recordsPage td:nth-child(3){width:58px}
+    #recordsPage th:nth-child(4),
+    #recordsPage td:nth-child(4){width:82px}
+    #recordsPage th:nth-child(8),
+    #recordsPage td:nth-child(8){width:78px}
+    #recordsPage th:nth-child(9),
+    #recordsPage td:nth-child(9){width:76px}
+    #recordsPage th:nth-child(11),
+    #recordsPage td:nth-child(11){min-width:118px}
+    #recordsPage th:last-child,
+    #recordsPage td:last-child{
+      min-width:86px;
+      position:sticky;
+      right:0;
+      z-index:2;
+    }
+    #recordsPage th:last-child{
+      background:#7b4dca;
+      z-index:3;
+    }
+    #recordsPage td:last-child{
+      background:inherit;
+    }
+    @media(max-width:1250px){
+      #recordsPage{
+        width:calc(100vw - 70px);
+      }
+    }
+    @media(max-width:760px){
+      #recordsPage{
+        width:100%;
+      }
+      #recordsPage .form-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+
+    /* Betonexa 4.0 - Sabit ve düzenli sevkiyat formu */
+    #recordsPage{
+      width:min(1120px,calc(100vw - 390px));
+      max-width:none!important;
+      min-width:0;
+      padding:20px!important;
+      background:rgba(255,255,255,.76)!important;
+      backdrop-filter:blur(11px);
+    }
+    #shipmentForm{
+      display:block;
+    }
+    #recordsPage .shipment-fields{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      align-items:start;
+    }
+    #recordsPage .field{
+      min-width:0;
+    }
+    #recordsPage .field input,
+    #recordsPage .field select,
+    #recordsPage .field .multi-select-toggle{
+      width:100%;
+    }
+    #recordsPage .contact-row{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin-top:14px;
+      max-width:730px;
+    }
+    #recordsPage .form-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+    #recordsPage .records-report{
+      margin-top:28px;
+      padding-top:18px;
+      border-top:1px solid #dfe3eb;
+    }
+    #recordsPage .export-bar{
+      margin-top:0;
+    }
+    #recordsPage .table-wrap{
+      width:100%;
+      overflow-x:auto;
+      border-radius:12px;
+    }
+    #recordsPage table{
+      width:100%;
+      min-width:1120px;
+    }
+    #recordsPage th,
+    #recordsPage td{
+      white-space:nowrap;
+      font-size:12px;
+      padding:9px 8px;
+    }
+    @media(max-width:1250px){
+      #recordsPage{width:calc(100vw - 70px)}
+    }
+    @media(max-width:800px){
+      #recordsPage{width:100%;padding:15px!important}
+      #recordsPage .shipment-fields{grid-template-columns:1fr}
+      #recordsPage .contact-row{grid-template-columns:1fr;max-width:none}
+    }
+
+
+    /* Betonexa 4.1 - İkonlu işlem butonları */
+    #recordsPage th:last-child{
+      background:linear-gradient(135deg,#56309b,#6f42c1)!important;
+      color:#fff;
+      text-align:center;
+    }
+    #recordsPage td:last-child{
+      text-align:center;
+    }
+    .row-actions{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+    }
+    .icon-action{
+      width:34px;
+      height:34px;
+      padding:0;
+      border:1px solid transparent;
+      border-radius:10px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      line-height:1;
+      cursor:pointer;
+      transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+    }
+    .icon-action:hover{
+      transform:translateY(-1px);
+    }
+    .icon-action.edit{
+      background:#eee7fb;
+      color:#5c31aa;
+      border-color:#ddcff4;
+    }
+    .icon-action.edit:hover{
+      background:#dfd1f6;
+      box-shadow:0 5px 12px rgba(92,49,170,.18);
+    }
+    .icon-action.delete{
+      background:#ffe9e7;
+      color:#c7352b;
+      border-color:#f6d0cc;
+    }
+    .icon-action.delete:hover{
+      background:#ffd7d3;
+      box-shadow:0 5px 12px rgba(199,53,43,.16);
+    }
+
 </style>
 </head>
 <body>
@@ -448,7 +646,7 @@
       <div class="dashboard-head">
         <div>
           <h2>Bugünün Operasyon Özeti</h2>
-          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 3.5</small>
+          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 4.1</small>
         </div>
         <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
       </div>
@@ -547,16 +745,20 @@
       <div class="dashboard-head"><div><h2>Yeni Sevkiyat Ekle</h2><small>Sevkiyat bilgilerini doldurarak kaydedebilirsin.</small></div></div>
       <form id="shipmentForm">
         <input id="editId" type="hidden">
-        <div class="form-grid">
-          <div><label>Tarih</label><input id="tarih" type="date" required></div>
-          <div><label>Saat</label><input id="saat" type="time" required></div>
-          <div><label>Santral</label><select id="santral" required>
+        <div class="shipment-fields">
+          <div class="field"><label>Tarih</label><input id="tarih" type="date" required></div>
+          <div class="field"><label>Saat</label><input id="saat" type="time" required></div>
+          <div class="field"><label>Santral</label><select id="santral" required>
             <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
           </select></div>
-          <div><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
-          <div><label>Şantiye</label><input id="santiye"></div>
-          <div><label>Beton sınıfı</label><select id="betonSinifi" required><option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option></select></div>
-          <div>
+
+          <div class="field"><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
+          <div class="field"><label>Şantiye</label><input id="santiye"></div>
+          <div class="field"><label>Beton sınıfı</label><select id="betonSinifi" required>
+            <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option>
+          </select></div>
+
+          <div class="field">
             <label>Beton özelliği</label>
             <div class="multi-select" id="betonOzellikSelect">
               <button type="button" class="multi-select-toggle" id="betonOzellikToggle" aria-expanded="false">
@@ -574,13 +776,17 @@
               </div>
             </div>
           </div>
-          <div><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
-          <div><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
-          <div id="pumpTypeWrap" class="hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
-          <div><label>Sorumlu kişi</label><input id="sorumluKisi"></div>
-          <div><label>Telefon</label><input id="telefon" placeholder="0553 618 18 53"></div>
+
+          <div class="field"><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
+          <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
+          <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
         </div>
-        <div class="actions">
+
+        <div class="contact-row">
+          <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" placeholder="Sorumlu kişi adı"></div>
+          <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="0553 618 18 53"></div>
+        </div>
+        <div class="form-actions">
           <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
           <button class="btn btn-light hidden" type="button" id="cancelEdit">Düzenlemeyi İptal Et</button>
           <button class="btn btn-light" type="button" id="refreshBtn">Yenile</button>
@@ -588,6 +794,7 @@
         <div id="status" class="status"></div>
       </form>
 
+      <div class="records-report">
       <div class="export-bar">
         <div><label>Plan dönemi</label><select id="exportRange">
           <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
@@ -602,6 +809,7 @@
         <thead><tr><th>No</th><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
+      </div>
     </section>
 
     <section id="calendarPage" class="panel hidden">
@@ -872,7 +1080,10 @@ function renderTable(){
     <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
     <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
     <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td>
-    <td><div class="row-actions"><button class="btn btn-light" onclick="event.stopPropagation();editRecord(${Number(r.id)})">Düzenle</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">Sil</button></div></td>
+    <td><div class="row-actions">
+      <button type="button" class="icon-action edit" title="Düzenle" aria-label="Düzenle" onclick="event.stopPropagation();editRecord(${Number(r.id)})">✏️</button>
+      <button type="button" class="icon-action delete" title="Sil" aria-label="Sil" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">🗑️</button>
+    </div></td>
   </tr>`).join("");
 }
 function openInCalendar(id){
