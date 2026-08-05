@@ -13,6 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root{--p:#6f42c1;--pd:#55309b;--bg:#f4f2f8;--card:#fff;--text:#25232a;--muted:#6d6875;--line:#e5e0ec;--danger:#b42318;--ok:#16794c}
     *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;color:var(--text);
@@ -91,6 +92,12 @@
     .dashboard-leader strong{display:block;color:#4f356f;font-size:20px;min-height:25px}
     .dashboard-leader span{display:block;color:var(--p);font-weight:800;margin-top:8px}
 
+    .dashboard-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+    .dashboard-chart{background:#fff;border:1px solid #dfd4ee;border-radius:14px;padding:16px;box-shadow:0 5px 18px #4f356f10;min-height:330px}
+    .dashboard-chart h4{margin:0 0 12px;color:#4f356f;font-size:17px}
+    .dashboard-chart canvas{width:100%!important;height:260px!important}
+
+
     .analysis-mode-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .analysis-mode-tabs button.active{background:var(--p);color:#fff}
     .analysis-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
@@ -121,7 +128,7 @@
     .analysis-table{min-width:760px}
 
     .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
-    @media(max-width:950px){.kpis,.dashboard-kpis,.dashboard-leaders{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
+    @media(max-width:950px){.kpis,.dashboard-kpis,.dashboard-leaders{grid-template-columns:repeat(2,1fr)}.dashboard-charts{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
     @media(max-width:650px){.content{padding:12px}.kpis,.dashboard-kpis,.dashboard-leaders,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
   </style>
 </head>
@@ -219,6 +226,26 @@
           <small>🚛 EN ÇOK KULLANILAN POMPA</small>
           <strong id="dashTopPump">-</strong>
           <span id="dashTopPumpM3">0,00 m³</span>
+        </div>
+      </div>
+
+      <h3 class="dashboard-section-title">Operasyon Grafikleri</h3>
+      <div class="dashboard-charts">
+        <div class="dashboard-chart">
+          <h4>📈 Son 7 Günlük Beton</h4>
+          <canvas id="chartLast7Days"></canvas>
+        </div>
+        <div class="dashboard-chart">
+          <h4>🏢 İlk 5 Firma</h4>
+          <canvas id="chartTopCompanies"></canvas>
+        </div>
+        <div class="dashboard-chart">
+          <h4>🏭 Santral Dağılımı</h4>
+          <canvas id="chartPlants"></canvas>
+        </div>
+        <div class="dashboard-chart">
+          <h4>🚛 Pompa Kullanımı</h4>
+          <canvas id="chartPumps"></canvas>
         </div>
       </div>
     </section>
@@ -341,6 +368,7 @@ let selectedAnalysisPlant="";
 let selectedAnalysisSite="";
 let selectedAnalysisPump="";
 let analysisMode="company";
+let dashboardCharts={};
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -442,6 +470,65 @@ function dashboardTop(items,keyFn){
   const groups=groupAnalysis(items,keyFn);
   return groups.length?groups[0]:null;
 }
+
+function destroyDashboardCharts(){
+  Object.values(dashboardCharts).forEach(c=>{if(c&&typeof c.destroy==="function")c.destroy()});
+  dashboardCharts={};
+}
+function chartColors(count){
+  const colors=["#6f42c1","#8b5bd3","#a57be0","#5c3a9e","#c2a6ea","#4f356f","#9a6ad4","#7f55bb"];
+  return Array.from({length:count},(_,i)=>colors[i%colors.length]);
+}
+function renderDashboardCharts(){
+  if(!window.Chart)return;
+  destroyDashboardCharts();
+
+  const today=new Date();
+  const labels=[];
+  const values=[];
+  for(let i=6;i>=0;i--){
+    const d=addDays(today,-i);
+    const date=iso(d);
+    labels.push(d.toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit"}));
+    values.push(records.filter(r=>r.tarih===date).reduce((s,r)=>s+Number(r.metraj||0),0));
+  }
+
+  const topCompanies=groupAnalysis(records,r=>r.firma).slice(0,5);
+  const plants=groupAnalysis(records,r=>r.santral).slice(0,8);
+  const pumps=groupAnalysis(records.filter(r=>r.pompa_var_mi),r=>r.pompa_tipi||"Pompalı");
+
+  const commonOptions={
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,ticks:{callback:v=>v+" m³"}}}
+  };
+
+  dashboardCharts.last7=new Chart($("chartLast7Days"),{
+    type:"line",
+    data:{labels,datasets:[{label:"m³",data:values,borderColor:"#6f42c1",backgroundColor:"#6f42c122",fill:true,tension:.35,pointRadius:4}]},
+    options:commonOptions
+  });
+
+  dashboardCharts.companies=new Chart($("chartTopCompanies"),{
+    type:"bar",
+    data:{labels:topCompanies.map(x=>x.name),datasets:[{data:topCompanies.map(x=>x.total),backgroundColor:chartColors(topCompanies.length),borderRadius:7}]},
+    options:{...commonOptions,indexAxis:"y"}
+  });
+
+  dashboardCharts.plants=new Chart($("chartPlants"),{
+    type:"doughnut",
+    data:{labels:plants.map(x=>x.name),datasets:[{data:plants.map(x=>x.total),backgroundColor:chartColors(plants.length),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12}}}}
+  });
+
+  dashboardCharts.pumps=new Chart($("chartPumps"),{
+    type:"bar",
+    data:{labels:pumps.map(x=>x.name),datasets:[{data:pumps.map(x=>x.total),backgroundColor:chartColors(pumps.length),borderRadius:7}]},
+    options:commonOptions
+  });
+}
+
 function renderDashboard(){
   if(!$("dashboardPage"))return;
   const today=iso(new Date());
@@ -469,6 +556,7 @@ function renderDashboard(){
   $("dashTopSiteM3").textContent=m3(topSite?topSite.total:0)+" m³";
   $("dashTopPump").textContent=topPump?topPump.name:"-";
   $("dashTopPumpM3").textContent=m3(topPump?topPump.total:0)+" m³";
+  requestAnimationFrame(renderDashboardCharts);
 }
 
 function renderKpis(){
