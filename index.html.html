@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#6f42c1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Betonexa">
+  <title>Betonexa</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root{--p:#6f42c1;--pd:#55309b;--bg:#f4f2f8;--card:#fff;--text:#25232a;--muted:#6d6875;--line:#e5e0ec;--danger:#b42318;--ok:#16794c}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;color:var(--text);
+    background:
+      radial-gradient(circle at 15% 15%,#d9c8f7 0,transparent 28%),
+      radial-gradient(circle at 85% 10%,#eadffd 0,transparent 24%),
+      linear-gradient(135deg,#f7f3fd 0%,#eee7fa 45%,#f8f6fc 100%);
+      background-attachment:fixed}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .hidden{display:none!important}
+    .login{position:fixed;inset:0;background:linear-gradient(145deg,#4e258c,#7d4bd0);display:grid;place-items:center;padding:18px;z-index:100}
+    .login-card{width:min(430px,100%);background:#fff;border-radius:22px;padding:30px;box-shadow:0 24px 70px #26124780}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.brand img{width:64px;height:64px;border-radius:16px}.brand h1{margin:0;color:var(--p)}
+    label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}
+    input,select,textarea{width:100%;padding:11px;border:1px solid #cbc4d6;border-radius:9px;background:#fff}
+    textarea{min-height:80px;resize:vertical}
+    .btn{border:0;border-radius:9px;padding:11px 16px;font-weight:700}
+    .btn-primary{background:var(--p);color:#fff}.btn-primary:hover{background:var(--pd)}
+    .btn-light{background:#eee9f5;color:#3c3150}.btn-danger{background:#fee4e2;color:var(--danger)}
+    .login .btn{width:100%;margin-top:16px}.error{color:var(--danger);min-height:20px;text-align:center;margin-top:9px;font-size:13px}
+    .shell{min-height:100vh}.top{position:sticky;top:0;z-index:20;background:linear-gradient(90deg,#ffffffee,#f3ecffee);
+    backdrop-filter:blur(10px);border-bottom:1px solid #d7caea;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 8px 24px #5f36a41a}
+    .top .brand{margin:0}.top .brand img{width:42px;height:42px}.top h1{font-size:22px;letter-spacing:.2px}
+    .top .brand span{font-size:14px;font-weight:700;color:#5c4b70;padding:8px 14px;border-radius:999px;
+    background:linear-gradient(90deg,#eee4fb,#f7f2fd);border:1px solid #ded0f1}
+    .password-wrap{position:relative}.password-wrap input{padding-right:46px}
+    .eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;padding:7px;font-size:18px}
+    .export-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:14px 0}
+    .export-bar>div{min-width:170px}
+    .drag-hint{font-size:12px;color:var(--muted);margin:5px 0 10px}
+    .cell.drag-over{background:#e8dcfa!important;outline:2px dashed var(--p);outline-offset:-3px}
+    .event[draggable="true"]{cursor:grab}
+    .event[draggable="true"]:active{cursor:grabbing}
+    .content{max-width:1450px;margin:auto;padding:20px}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+    .kpi,.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px #3d245512}
+    .kpi{padding:17px}.kpi small{color:var(--muted);font-weight:700}.kpi strong{display:block;font-size:27px;color:var(--p);margin-top:7px}
+    .kpi input[type="month"]{margin-top:9px;padding:7px 9px;border-radius:8px;border:1px solid #d4c7e8;background:#faf8fd;color:#5b3c82}
+    .tabs{display:flex;gap:8px;margin-bottom:14px}.tabs button.active{background:var(--p);color:#fff}
+    .panel{padding:18px}.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .multi-check{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:9px;border:1px solid #cbc4d6;border-radius:9px;background:#fff}
+    .multi-check label{display:flex;align-items:center;gap:6px;margin:0;font-size:13px;font-weight:600}
+    .multi-check input{width:auto}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.status{min-height:22px;margin-top:12px;font-size:13px;color:var(--ok)}
+    .table-wrap{overflow:auto;margin-top:16px;border:1px solid var(--line);border-radius:11px}
+    table{border-collapse:collapse;width:100%;min-width:1200px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+    th{background:linear-gradient(90deg,#6f42c1,#8356cc);color:#fff;position:sticky;top:0}tbody tr:nth-child(odd) td{background:#fff}
+    tbody tr:nth-child(even) td{background:#f1f1f3}
+    tbody tr{cursor:pointer}
+    tbody tr:hover td{background:#e9e2f5!important}
+    .event.calendar-target{outline:3px solid #f2b705;background:#fff4bd;box-shadow:0 0 0 5px #f2b70533}
+    .row-actions{display:flex;gap:6px}
+    .calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .week{overflow:auto;border:1px solid var(--line);border-radius:11px}.grid{display:grid;grid-template-columns:70px repeat(7,minmax(145px,1fr));min-width:1085px}
+    .head,.time,.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .head{background:linear-gradient(135deg,#6f42c1,#8757cf);color:#fff;padding:10px;text-align:center;font-weight:700;position:sticky;top:0;z-index:2}
+    .time{padding:24px 5px;text-align:center;background:#f7f5fa;font-weight:700}.cell{min-height:76px;padding:4px;background:#fff}
+    .event{display:block;width:100%;border:0;border-left:4px solid var(--p);border-radius:7px;background:#efe8fa;padding:6px;text-align:left;font-size:12px;margin-bottom:4px}
+
+    .analysis-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
+    .analysis-toolbar>div{min-width:180px}
+    .analysis-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+    .analysis-card{background:linear-gradient(145deg,#fff,#f7f2fd);border:1px solid #dfd4ee;border-radius:13px;padding:15px}
+    .analysis-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:7px}
+    .analysis-card strong{font-size:24px;color:var(--p)}
+    .analysis-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.9fr);gap:16px}
+    .analysis-box{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+    .analysis-box h3{margin:0;padding:14px 16px;background:linear-gradient(90deg,#f0e8fb,#faf8fd);color:#55309b;border-bottom:1px solid var(--line)}
+    .analysis-list{max-height:620px;overflow:auto}
+    .analysis-company{width:100%;border:0;border-bottom:1px solid var(--line);background:#fff;padding:13px 15px;text-align:left;display:flex;justify-content:space-between;gap:12px}
+    .analysis-company:hover,.analysis-company.active{background:#eee7fa}
+    .analysis-company b{display:block;color:#39284f}
+    .analysis-company span{font-size:12px;color:var(--muted)}
+    .analysis-company strong{color:var(--p);white-space:nowrap}
+    .analysis-detail{padding:16px}
+    .analysis-empty{padding:28px;text-align:center;color:var(--muted)}
+    .analysis-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .analysis-mini{border:1px solid var(--line);border-radius:10px;padding:12px;background:#faf8fd}
+    .analysis-mini small{display:block;color:var(--muted);font-weight:700;margin-bottom:5px}
+    .analysis-mini strong{color:var(--p);font-size:18px}
+    .analysis-section{margin-top:16px}
+    .analysis-section h4{margin:0 0 8px;color:#4f356f}
+    .analysis-chips{display:flex;gap:7px;flex-wrap:wrap}
+    .analysis-chip{background:#eee7fa;color:#4f356f;border:1px solid #ded0f1;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
+    .analysis-table{min-width:760px}
+
+    .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
+    @media(max-width:950px){.kpis{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
+    @media(max-width:650px){.content{padding:12px}.kpis,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
+  </style>
+</head>
+<body>
+<div id="loading" class="loading hidden">Yükleniyor…</div>
+<section id="login" class="login">
+  <div class="login-card">
+    <div class="brand"><img src="./icon-192.png" alt=""><div><h1>Betonexa</h1><small>Hazır Beton Sevkiyat Yönetimi</small></div></div>
+    <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem">
+    <label for="loginPass">Şifre</label>
+    <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password">
+    <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
+    <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+    <div id="loginError" class="error"></div>
+  </div>
+</section>
+
+<div id="app" class="shell hidden">
+  <header class="top">
+    <div class="brand"><img src="./icon-192.png" alt=""><h1>Betonexa</h1><span>Akıllı Hazır Beton Sevkiyat ve Operasyon Platformu</span></div>
+    <button id="logoutBtn" class="btn btn-light">Çıkış</button>
+  </header>
+  <main class="content">
+    <section class="kpis">
+      <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
+      <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
+      <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
+      <div class="kpi">
+        <small>AYLIK m³</small>
+        <input id="kpiMonthPicker" type="month" aria-label="Aylık m³ için ay seç">
+        <strong id="kpiMonth">0,00</strong>
+      </div>
+    </section>
+    <nav class="tabs">
+      <button class="btn btn-light active" data-page="records">Sevkiyatlar</button>
+      <button class="btn btn-light" data-page="calendar">Haftalık Takvim</button>
+      <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
+    </nav>
+
+    <section id="recordsPage" class="panel">
+      <form id="shipmentForm">
+        <input id="editId" type="hidden">
+        <div class="form-grid">
+          <div><label>Tarih</label><input id="tarih" type="date" required></div>
+          <div><label>Saat</label><input id="saat" type="time" required></div>
+          <div><label>Santral</label><select id="santral" required>
+            <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
+          </select></div>
+          <div><label>Firma</label><input id="firma"></div>
+          <div><label>Şantiye</label><input id="santiye"></div>
+          <div><label>Beton sınıfı</label><select id="betonSinifi" required><option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option></select></div>
+          <div>
+            <label>Beton özelliği</label>
+            <div id="betonOzellikleri" class="multi-check">
+              <label><input type="checkbox" value="Normal"> Normal</label>
+              <label><input type="checkbox" value="S3"> S3</label>
+              <label><input type="checkbox" value="S4"> S4</label>
+              <label><input type="checkbox" value="Az Katkılı"> Az Katkılı</label>
+              <label><input type="checkbox" value="Katkısız"> Katkısız</label>
+              <label><input type="checkbox" value="Brüt"> Brüt</label>
+              <label><input type="checkbox" value="Su Geçirimsiz"> Su Geçirimsiz</label>
+            </div>
+          </div>
+          <div><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
+          <div><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
+          <div id="pumpTypeWrap" class="hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
+          <div><label>Sorumlu kişi</label><input id="sorumluKisi"></div>
+          <div><label>Telefon</label><input id="telefon" placeholder="0553 618 18 53"></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
+          <button class="btn btn-light hidden" type="button" id="cancelEdit">Düzenlemeyi İptal Et</button>
+          <button class="btn btn-light" type="button" id="refreshBtn">Yenile</button>
+        </div>
+        <div id="status" class="status"></div>
+      </form>
+
+      <div class="export-bar">
+        <div><label>Plan dönemi</label><select id="exportRange">
+          <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
+          <option value="monthly">Aylık</option><option value="all">Tümü</option>
+        </select></div>
+        <div><label>Referans tarihi</label><input id="exportDate" type="date"></div>
+        <button type="button" class="btn btn-light" id="pdfBtn">PDF İndir</button>
+        <button type="button" class="btn btn-light" id="excelBtn">Excel İndir</button>
+        <button type="button" class="btn btn-light" id="printBtn">Yazdır</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>No</th><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+    </section>
+
+    <section id="calendarPage" class="panel hidden">
+      <div class="drag-hint">Sevkiyat kartını sürükleyip başka gün veya saate bırakarak tarih ve saatini değiştirebilirsin.</div>
+      <div class="calendar-toolbar"><div><button id="prevWeek" class="btn btn-light">◀ Önceki</button> <button id="thisWeek" class="btn btn-light">Bu Hafta</button> <button id="nextWeek" class="btn btn-light">Sonraki ▶</button></div><strong id="weekTitle"></strong></div>
+      <div class="week"><div id="weekGrid" class="grid"></div></div>
+    </section>
+
+    <section id="analysisPage" class="panel hidden">
+      <div class="analysis-toolbar">
+        <div><label>Analiz dönemi</label><select id="analysisRange">
+          <option value="week">Bu hafta</option>
+          <option value="month">Bu ay</option>
+          <option value="year">Bu yıl</option>
+          <option value="all">Tüm zamanlar</option>
+          <option value="custom">Özel tarih aralığı</option>
+        </select></div>
+        <div id="analysisStartWrap" class="hidden"><label>Başlangıç</label><input id="analysisStart" type="date"></div>
+        <div id="analysisEndWrap" class="hidden"><label>Bitiş</label><input id="analysisEnd" type="date"></div>
+        <button id="analysisRefresh" type="button" class="btn btn-primary">Analizi Yenile</button>
+      </div>
+
+      <div class="analysis-summary">
+        <div class="analysis-card"><small>FİRMA SAYISI</small><strong id="analysisCompanyCount">0</strong></div>
+        <div class="analysis-card"><small>TOPLAM SEVKİYAT</small><strong id="analysisShipmentCount">0</strong></div>
+        <div class="analysis-card"><small>TOPLAM BETON</small><strong id="analysisTotalM3">0,00 m³</strong></div>
+        <div class="analysis-card"><small>ORTALAMA SEVKİYAT</small><strong id="analysisAverageM3">0,00 m³</strong></div>
+      </div>
+
+      <div class="analysis-layout">
+        <div class="analysis-box">
+          <h3>Firma Analizi</h3>
+          <div id="analysisCompanyList" class="analysis-list"></div>
+        </div>
+        <div class="analysis-box">
+          <h3 id="analysisDetailTitle">Firma ayrıntısı</h3>
+          <div id="analysisDetail" class="analysis-detail">
+            <div class="analysis-empty">Ayrıntıları görmek için soldan bir firma seç.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const SUPABASE_URL="https://wryxelgeycagmljvtmnr.supabase.co";
+const SUPABASE_KEY="sb_publishable_c2KnSZnHRnSGGq6R9AzU9g_rUfxtOog";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const TABLE="sevkiyatlar";
+const LOGIN_USER="ozlem";
+const LOGIN_PASS="Beton2026!";
+let records=[];
+let weekStart=monday(new Date());
+let selectedAnalysisCompany="";
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+function setLoading(v){$("loading").classList.toggle("hidden",!v)}
+function setStatus(t,err=false){$("status").textContent=t;$("status").style.color=err?"var(--danger)":"var(--ok)"}
+function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function monday(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function trDate(s){return s?s.split("-").reverse().join("."):""}
+function m3(n){return Number(n||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function phoneFormat(v){const d=String(v||"").replace(/\D/g,"").slice(0,11);return [d.slice(0,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)].filter(Boolean).join(" ")}
+
+async function loadRecords(){
+  setLoading(true);setStatus("");
+  const {data,error}=await db.from(TABLE).select("*").order("tarih",{ascending:true}).order("saat",{ascending:true});
+  setLoading(false);
+  if(error){setStatus("Veriler alınamadı: "+error.message,true);return}
+  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();
+}
+
+function selectedConcreteProperties(){
+  return [...document.querySelectorAll('#betonOzellikleri input[type="checkbox"]:checked')].map(x=>x.value);
+}
+function setConcreteProperties(value){
+  const selected=String(value||"").split(",").map(x=>x.trim()).filter(Boolean);
+  document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>{
+    cb.checked=selected.includes(cb.value);
+  });
+}
+function clearConcreteProperties(){
+  document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>cb.checked=false);
+}
+function payload(){
+  return {
+    tarih:$("tarih").value,
+    saat:$("saat").value,
+    santral:$("santral").value,
+    firma:$("firma").value.trim(),
+    santiye:$("santiye").value.trim(),
+    beton_sinifi:$("betonSinifi").value,
+    beton_ozelligi:selectedConcreteProperties().join(", "),
+    metraj:Number($("metraj").value),
+    pompa_var_mi:$("pompaVar").value==="true",
+    pompa_tipi:$("pompaVar").value==="true"?$("pompaTipi").value:null,
+    sorumlu_kisi:$("sorumluKisi").value.trim(),
+    telefon:phoneFormat($("telefon").value)
+  };
+}
+function clearForm(){
+  $("shipmentForm").reset();clearConcreteProperties();$("editId").value="";$("cancelEdit").classList.add("hidden");$("saveBtn").textContent="Sevkiyatı Kaydet";$("pumpTypeWrap").classList.add("hidden");$("tarih").value=iso(new Date())
+}
+async function saveShipment(e){
+  e.preventDefault();const p=payload();
+  if(!p.tarih||!p.saat||!p.santral||!p.beton_sinifi||!Number.isFinite(p.metraj)){setStatus("Zorunlu alanları doldurun.",true);return}
+  if(p.pompa_var_mi&&!p.pompa_tipi){setStatus("Pompa tipini seçin.",true);return}
+  setLoading(true);const id=$("editId").value;
+  const q=id?db.from(TABLE).update(p).eq("id",id):db.from(TABLE).insert(p);
+  const {error}=await q;setLoading(false);
+  if(error){setStatus("Kayıt işlemi başarısız: "+error.message,true);return}
+  setStatus(id?"Sevkiyat güncellendi.":"Sevkiyat kaydedildi.");clearForm();await loadRecords();
+}
+function editRecord(id){
+  const r=records.find(x=>String(x.id)===String(id));if(!r)return;
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=r.metraj??"";$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
+  $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
+}
+async function deleteRecord(id){
+  if(!confirm("Bu sevkiyat silinsin mi?"))return;
+  setLoading(true);const {error}=await db.from(TABLE).delete().eq("id",id);setLoading(false);
+  if(error){setStatus("Silinemedi: "+error.message,true);return}
+  setStatus("Sevkiyat silindi.");await loadRecords();
+}
+function renderTable(){
+  const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
+  $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
+    <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
+    <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+    <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td>
+    <td><div class="row-actions"><button class="btn btn-light" onclick="event.stopPropagation();editRecord(${Number(r.id)})">Düzenle</button><button class="btn btn-danger" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">Sil</button></div></td>
+  </tr>`).join("");
+}
+function openInCalendar(id){
+  const r=records.find(x=>String(x.id)===String(id));
+  if(!r||!r.tarih)return;
+  weekStart=monday(new Date(r.tarih+"T00:00:00"));
+  showPage("calendar");
+  renderCalendar();
+  requestAnimationFrame(()=>{
+    const target=document.querySelector(`.event[data-id="${id}"]`);
+    if(target){
+      target.classList.add("calendar-target");
+      target.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+      setTimeout(()=>target.classList.remove("calendar-target"),3500);
+    }
+  });
+}
+function renderKpis(){
+  const now=new Date(),today=iso(now);
+  const selectedMonth=$("kpiMonthPicker").value||today.slice(0,7);
+  const thisWeekStart=monday(now);
+  const thisWeekEnd=addDays(thisWeekStart,6);
+  $("kpiCount").textContent=records.length;
+  $("kpiToday").textContent=m3(records.filter(r=>r.tarih===today).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
+  $("kpiWeek").textContent=m3(records.filter(r=>{
+    if(!r.tarih)return false;
+    const d=new Date(r.tarih+"T00:00:00");
+    return d>=thisWeekStart&&d<=thisWeekEnd;
+  }).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
+  $("kpiMonth").textContent=m3(records.filter(r=>(r.tarih||"").startsWith(selectedMonth)).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
+}
+const monthNames=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+function longDayLabel(d,dayName){return `${dayName} ${String(d.getDate()).padStart(2,"0")} ${monthNames[d.getMonth()]}`}
+function calendarHours(){return [...Array(24)].map((_,i)=>(7+i)%24)}
+let draggedId=null;
+function dragStart(id){draggedId=id}
+function allowDrop(e){e.preventDefault();e.currentTarget.classList.add("drag-over")}
+function dragLeave(e){e.currentTarget.classList.remove("drag-over")}
+async function dropShipment(e,date,hour){
+  e.preventDefault();e.currentTarget.classList.remove("drag-over");
+  if(!draggedId)return;
+  const r=records.find(x=>String(x.id)===String(draggedId));if(!r)return;
+  const mins=(r.saat||"00:00").slice(3,5)||"00";
+  const newTime=`${String(hour).padStart(2,"0")}:${mins}`;
+  setLoading(true);
+  const {error}=await db.from(TABLE).update({tarih:date,saat:newTime}).eq("id",draggedId);
+  setLoading(false);draggedId=null;
+  if(error){setStatus("Takvimde taşıma başarısız: "+error.message,true);return}
+  setStatus("Sevkiyatın gün ve saati güncellendi.");await loadRecords();
+}
+function renderCalendar(){
+  const days=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],grid=$("weekGrid");grid.innerHTML="";
+  const end=addDays(weekStart,6);$("weekTitle").textContent=`${trDate(iso(weekStart))} – ${trDate(iso(end))}`;
+  grid.insertAdjacentHTML("beforeend",'<div class="head">Saat</div>');
+  for(let i=0;i<7;i++){const d=addDays(weekStart,i);grid.insertAdjacentHTML("beforeend",`<div class="head">${longDayLabel(d,days[i])}</div>`)}
+  for(const h of calendarHours()){
+    grid.insertAdjacentHTML("beforeend",`<div class="time">${String(h).padStart(2,"0")}:00</div>`);
+    for(let i=0;i<7;i++){
+      const date=iso(addDays(weekStart,i));
+      const items=records.filter(r=>r.tarih===date&&Number((r.saat||"00").slice(0,2))===h);
+      grid.insertAdjacentHTML("beforeend",`<div class="cell" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
+    }
+  }
+}
+
+function analysisRecords(){
+  const range=$("analysisRange").value;
+  const now=new Date();
+  const today=iso(now);
+  const startValue=$("analysisStart").value;
+  const endValue=$("analysisEnd").value;
+  return records.filter(r=>{
+    if(!r.tarih)return false;
+    if(range==="all")return true;
+    if(range==="week"){
+      const s=monday(now),e=addDays(s,6),d=new Date(r.tarih+"T00:00:00");
+      return d>=s&&d<=e;
+    }
+    if(range==="month")return r.tarih.slice(0,7)===today.slice(0,7);
+    if(range==="year")return r.tarih.slice(0,4)===today.slice(0,4);
+    if(range==="custom"){
+      if(startValue&&r.tarih<startValue)return false;
+      if(endValue&&r.tarih>endValue)return false;
+      return true;
+    }
+    return true;
+  });
+}
+function groupAnalysis(items,keyFn){
+  const map=new Map();
+  items.forEach(r=>{
+    const key=String(keyFn(r)||"Belirtilmemiş").trim()||"Belirtilmemiş";
+    if(!map.has(key))map.set(key,{name:key,count:0,total:0,records:[]});
+    const x=map.get(key);x.count++;x.total+=Number(r.metraj||0);x.records.push(r);
+  });
+  return [...map.values()].sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,"tr"));
+}
+function analysisDateRangeText(items){
+  if(!items.length)return "-";
+  const dates=items.map(r=>r.tarih).filter(Boolean).sort();
+  return `${trDate(dates[0])} – ${trDate(dates[dates.length-1])}`;
+}
+function renderAnalysis(){
+  if(!$("analysisPage"))return;
+  const items=analysisRecords();
+  const companies=groupAnalysis(items,r=>r.firma);
+  const total=items.reduce((s,r)=>s+Number(r.metraj||0),0);
+  $("analysisCompanyCount").textContent=companies.length;
+  $("analysisShipmentCount").textContent=items.length;
+  $("analysisTotalM3").textContent=m3(total)+" m³";
+  $("analysisAverageM3").textContent=m3(items.length?total/items.length:0)+" m³";
+
+  if(selectedAnalysisCompany&&!companies.some(x=>x.name===selectedAnalysisCompany))selectedAnalysisCompany="";
+  $("analysisCompanyList").innerHTML=companies.length?companies.map(c=>`
+    <button type="button" class="analysis-company ${c.name===selectedAnalysisCompany?"active":""}" onclick="selectAnalysisCompany('${encodeURIComponent(c.name)}')">
+      <span><b>${esc(c.name)}</b><span>${c.count} sevkiyat</span></span>
+      <strong>${m3(c.total)} m³</strong>
+    </button>`).join(""):'<div class="analysis-empty">Seçilen dönemde firma kaydı bulunamadı.</div>';
+
+  if(!selectedAnalysisCompany){
+    $("analysisDetailTitle").textContent="Firma ayrıntısı";
+    $("analysisDetail").innerHTML='<div class="analysis-empty">Ayrıntıları görmek için soldan bir firma seç.</div>';
+    return;
+  }
+  const company=companies.find(x=>x.name===selectedAnalysisCompany);
+  if(!company)return;
+  renderAnalysisCompanyDetail(company);
+}
+function topAnalysisItems(items,keyFn,limit=6){
+  return groupAnalysis(items,keyFn).slice(0,limit);
+}
+function analysisChips(items,suffix=""){
+  return items.length?items.map(x=>`<span class="analysis-chip">${esc(x.name)} · ${m3(x.total)}${suffix}</span>`).join(""):'<span class="analysis-chip">Kayıt yok</span>';
+}
+function renderAnalysisCompanyDetail(company){
+  const companyRecords=[...company.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const plants=topAnalysisItems(companyRecords,r=>r.santral);
+  const sites=topAnalysisItems(companyRecords,r=>r.santiye);
+  const concretes=topAnalysisItems(companyRecords,r=>r.beton_sinifi);
+  const pumps=topAnalysisItems(companyRecords,r=>r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız");
+  const dates=companyRecords.map(r=>r.tarih).filter(Boolean).sort();
+  $("analysisDetailTitle").textContent=company.name;
+  $("analysisDetail").innerHTML=`
+    <div class="analysis-mini-grid">
+      <div class="analysis-mini"><small>TOPLAM SEVKİYAT</small><strong>${company.count}</strong></div>
+      <div class="analysis-mini"><small>TOPLAM BETON</small><strong>${m3(company.total)} m³</strong></div>
+      <div class="analysis-mini"><small>İLK SEVKİYAT</small><strong>${dates.length?trDate(dates[0]):"-"}</strong></div>
+      <div class="analysis-mini"><small>SON SEVKİYAT</small><strong>${dates.length?trDate(dates[dates.length-1]):"-"}</strong></div>
+    </div>
+    <div class="analysis-section"><h4>Çalışılan şantiyeler</h4><div class="analysis-chips">${analysisChips(sites," m³")}</div></div>
+    <div class="analysis-section"><h4>Kullanılan santraller</h4><div class="analysis-chips">${analysisChips(plants," m³")}</div></div>
+    <div class="analysis-section"><h4>Beton sınıfları</h4><div class="analysis-chips">${analysisChips(concretes," m³")}</div></div>
+    <div class="analysis-section"><h4>Pompa dağılımı</h4><div class="analysis-chips">${analysisChips(pumps," m³")}</div></div>
+    <div class="analysis-section">
+      <h4>Sevkiyat geçmişi · ${analysisDateRangeText(companyRecords)}</h4>
+      <div class="table-wrap"><table class="analysis-table">
+        <thead><tr><th>Tarih</th><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th></tr></thead>
+        <tbody>${companyRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
+          <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td>
+          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+          <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+    </div>`;
+}
+function selectAnalysisCompany(encodedName){
+  selectedAnalysisCompany=decodeURIComponent(encodedName);
+  renderAnalysis();
+}
+function toggleAnalysisDates(){
+  const custom=$("analysisRange").value==="custom";
+  $("analysisStartWrap").classList.toggle("hidden",!custom);
+  $("analysisEndWrap").classList.toggle("hidden",!custom);
+  if(!custom)renderAnalysis();
+}
+
+function exportRecords(){
+  const range=$("exportRange").value;
+  const refStr=$("exportDate").value||iso(new Date());
+  const ref=new Date(refStr+"T00:00:00");
+  return records.filter(r=>{
+    if(range==="all")return true;
+    if(!r.tarih)return false;
+    const d=new Date(r.tarih+"T00:00:00");
+    if(range==="daily")return r.tarih===refStr;
+    if(range==="weekly"){const s=monday(ref),e=addDays(s,6);return d>=s&&d<=e}
+    if(range==="monthly")return r.tarih.slice(0,7)===refStr.slice(0,7);
+    return true;
+  }).sort((a,b)=>`${a.tarih} ${a.saat}`.localeCompare(`${b.tarih} ${b.saat}`));
+}
+function exportRows(){
+  return exportRecords().map((r,i)=>({
+    No:i+1,Tarih:trDate(r.tarih),Saat:(r.saat||"").slice(0,5),Santral:r.santral||"",Firma:r.firma||"",
+    Şantiye:r.santiye||"","Beton sınıfı":r.beton_sinifi||"","Beton özelliği":r.beton_ozelligi||"",
+    "Metraj (m³)":Number(r.metraj||0),Pompa:r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
+    "Sorumlu kişi":r.sorumlu_kisi||"",Telefon:r.telefon||""
+  }));
+}
+function downloadExcel(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Sevkiyat Planı");
+  XLSX.writeFile(wb,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.xlsx`);
+}
+function downloadPdf(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape"});
+  doc.setFontSize(16);doc.text("Betonexa Sevkiyat Planı",14,14);
+  const headers=Object.keys(rows[0]);const body=rows.map(r=>headers.map(h=>String(r[h]??"")));
+  doc.autoTable({head:[headers],body,startY:20,styles:{fontSize:7},headStyles:{fillColor:[111,66,193]}});
+  doc.save(`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
+}
+function printPlan(){
+  const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const headers=Object.keys(rows[0]);
+  const w=window.open("","_blank");
+  w.document.write(`<html><head><title>Betonexa Sevkiyat Planı</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #bbb;padding:6px}th{background:#6f42c1;color:#fff}</style></head><body><h2>Betonexa Sevkiyat Planı</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+function showPage(p){
+  $("recordsPage").classList.toggle("hidden",p!=="records");
+  $("calendarPage").classList.toggle("hidden",p!=="calendar");
+  $("analysisPage").classList.toggle("hidden",p!=="analysis");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+  if(p==="analysis")renderAnalysis();
+}
+function login(){
+  if($("loginUser").value.trim()===LOGIN_USER&&$("loginPass").value===LOGIN_PASS){sessionStorage.setItem("betonexa_login","1");$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
+  else $("loginError").textContent="Kullanıcı adı veya şifre hatalı."
+}
+$("togglePass").addEventListener("click",()=>{
+  const p=$("loginPass");p.type=p.type==="password"?"text":"password";
+  $("togglePass").textContent=p.type==="password"?"👁️":"🙈";
+});
+$("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
+$("logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("betonexa_login");location.reload()});
+$("shipmentForm").addEventListener("submit",saveShipment);
+$("pdfBtn").addEventListener("click",downloadPdf);
+$("excelBtn").addEventListener("click",downloadExcel);
+$("printBtn").addEventListener("click",printPlan);
+$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
+$("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
+$("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+$("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
+$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
+const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
+if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.error));
+</script>
+</body>
+</html>
