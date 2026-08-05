@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa v3.4</title>
+  <title>Betonexa v3.5</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -367,6 +367,42 @@
       }
     }
 
+
+    /* Betonexa 3.5 - Şeffaf sevkiyat paneli ve çoklu beton özelliği */
+    #recordsPage{
+      background:rgba(255,255,255,.72)!important;
+      backdrop-filter:blur(10px);
+      box-shadow:0 14px 36px rgba(58,64,75,.10);
+    }
+    .multi-select{position:relative}
+    .multi-select-toggle{
+      width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;
+      gap:10px;padding:10px 12px;border:1px solid #cfd6e2;border-radius:9px;
+      background:rgba(255,255,255,.94);color:#202735;text-align:left;cursor:pointer
+    }
+    .multi-select-toggle:focus{
+      outline:none;border-color:#8d69cb;box-shadow:0 0 0 3px rgba(111,66,193,.12)
+    }
+    .multi-select-toggle .placeholder{color:#7a8494}
+    .multi-select-arrow{font-size:12px;color:#6a7280}
+    .multi-select-menu{
+      position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:50;display:none;
+      padding:8px;border:1px solid #d8deea;border-radius:10px;background:rgba(255,255,255,.98);
+      box-shadow:0 16px 34px rgba(46,52,65,.16);max-height:260px;overflow:auto
+    }
+    .multi-select.open .multi-select-menu{display:block}
+    .multi-select-option{
+      display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
+      cursor:pointer;color:#263041
+    }
+    .multi-select-option:hover{background:#f1ebfa}
+    .multi-select-option input{width:16px;height:16px;margin:0}
+    .multi-select-summary{display:flex;flex-wrap:wrap;gap:6px}
+    .multi-select-chip{
+      padding:4px 8px;border-radius:999px;background:#eee7fa;color:#5f37b3;
+      font-size:12px;font-weight:700
+    }
+
 </style>
 </head>
 <body>
@@ -412,7 +448,7 @@
       <div class="dashboard-head">
         <div>
           <h2>Bugünün Operasyon Özeti</h2>
-          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 3.4</small>
+          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 3.5</small>
         </div>
         <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
       </div>
@@ -522,14 +558,20 @@
           <div><label>Beton sınıfı</label><select id="betonSinifi" required><option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option></select></div>
           <div>
             <label>Beton özelliği</label>
-            <div id="betonOzellikleri" class="multi-check">
-              <label><input type="checkbox" value="Normal"> Normal</label>
-              <label><input type="checkbox" value="S3"> S3</label>
-              <label><input type="checkbox" value="S4"> S4</label>
-              <label><input type="checkbox" value="Az Katkılı"> Az Katkılı</label>
-              <label><input type="checkbox" value="Katkısız"> Katkısız</label>
-              <label><input type="checkbox" value="Brüt"> Brüt</label>
-              <label><input type="checkbox" value="Su Geçirimsiz"> Su Geçirimsiz</label>
+            <div class="multi-select" id="betonOzellikSelect">
+              <button type="button" class="multi-select-toggle" id="betonOzellikToggle" aria-expanded="false">
+                <span id="betonOzellikSummary" class="placeholder">Beton özelliği seçiniz</span>
+                <span class="multi-select-arrow">▼</span>
+              </button>
+              <div class="multi-select-menu" id="betonOzellikleri">
+                <label class="multi-select-option"><input type="checkbox" value="Normal"> Normal</label>
+                <label class="multi-select-option"><input type="checkbox" value="S3"> S3</label>
+                <label class="multi-select-option"><input type="checkbox" value="S4"> S4</label>
+                <label class="multi-select-option"><input type="checkbox" value="Az Katkılı"> Az Katkılı</label>
+                <label class="multi-select-option"><input type="checkbox" value="Katkısız"> Katkısız</label>
+                <label class="multi-select-option"><input type="checkbox" value="Brüt"> Brüt</label>
+                <label class="multi-select-option"><input type="checkbox" value="Su Geçirimsiz"> Su Geçirimsiz</label>
+              </div>
             </div>
           </div>
           <div><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
@@ -762,14 +804,27 @@ async function loadRecords(){
 function selectedConcreteProperties(){
   return [...document.querySelectorAll('#betonOzellikleri input[type="checkbox"]:checked')].map(x=>x.value);
 }
+function updateConcretePropertySummary(){
+  const values=selectedConcreteProperties();
+  const summary=$("betonOzellikSummary");
+  if(!values.length){
+    summary.className="placeholder";
+    summary.textContent="Beton özelliği seçiniz";
+  }else{
+    summary.className="multi-select-summary";
+    summary.innerHTML=values.map(v=>`<span class="multi-select-chip">${esc(v)}</span>`).join("");
+  }
+}
 function setConcreteProperties(value){
   const selected=String(value||"").split(",").map(x=>x.trim()).filter(Boolean);
   document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>{
     cb.checked=selected.includes(cb.value);
   });
+  updateConcretePropertySummary();
 }
 function clearConcreteProperties(){
   document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>cb.checked=false);
+  updateConcretePropertySummary();
 }
 function payload(){
   return {
@@ -1603,6 +1658,22 @@ $("themeBtn").addEventListener("click",()=>{
 $("tomorrowPdfBtn").addEventListener("click",downloadTomorrowPdf);
 $("tomorrowExcelBtn").addEventListener("click",downloadTomorrowExcel);
 $("tomorrowPrintBtn").addEventListener("click",printTomorrow);
+$("betonOzellikToggle").addEventListener("click",e=>{
+  e.stopPropagation();
+  const box=$("betonOzellikSelect");
+  const open=!box.classList.contains("open");
+  box.classList.toggle("open",open);
+  $("betonOzellikToggle").setAttribute("aria-expanded",String(open));
+});
+document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener("change",updateConcretePropertySummary);
+});
+document.addEventListener("click",e=>{
+  if(!$("betonOzellikSelect").contains(e.target)){
+    $("betonOzellikSelect").classList.remove("open");
+    $("betonOzellikToggle").setAttribute("aria-expanded","false");
+  }
+});
 $("dashboardRefresh").addEventListener("click",loadRecords);
 $("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
 $("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
@@ -1617,6 +1688,7 @@ $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);rend
 window.removeSettingItem=removeSettingItem;
 window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
 loadAppSettings();refreshFormOptions();
+updateConcretePropertySummary();
 document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
 $("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
