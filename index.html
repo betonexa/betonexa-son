@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#6f42c1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa v1.8</title>
+  <title>Betonexa v1.9</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -137,8 +137,20 @@
     .analysis-chip{background:#eee7fa;color:#4f356f;border:1px solid #ded0f1;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
     .analysis-table{min-width:760px}
 
+
+    .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .settings-box{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .settings-box h3{margin:0;padding:14px 16px;background:linear-gradient(90deg,#f0e8fb,#faf8fd);color:#55309b;border-bottom:1px solid var(--line)}
+    .settings-body{padding:16px}
+    .settings-add{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+    .settings-list{display:grid;gap:8px;margin-top:14px;max-height:480px;overflow:auto}
+    .settings-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#faf8fd}
+    .settings-item b{color:#4f356f}
+    .settings-item button{padding:7px 10px}
+    .settings-note{margin-top:14px;padding:12px;border-radius:10px;background:#f4effb;color:#5c4b70;font-size:13px}
+
     .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
-    @media(max-width:950px){.kpis,.dashboard-kpis,.dashboard-leaders{grid-template-columns:repeat(2,1fr)}.dashboard-charts{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
+    @media(max-width:950px){.kpis,.dashboard-kpis,.dashboard-leaders{grid-template-columns:repeat(2,1fr)}.dashboard-charts,.settings-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
     @media(max-width:650px){.content{padding:12px}.kpis,.dashboard-kpis,.dashboard-leaders,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
   </style>
 </head>
@@ -177,13 +189,14 @@
       <button class="btn btn-light" data-page="records">Sevkiyatlar</button>
       <button class="btn btn-light" data-page="calendar">Haftalık Takvim</button>
       <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
+      <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
     </nav>
 
     <section id="dashboardPage" class="panel">
       <div class="dashboard-head">
         <div>
           <h2>Bugünün Operasyon Özeti</h2>
-          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 1.8</small>
+          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Sürüm 1.9</small>
         </div>
         <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
       </div>
@@ -272,7 +285,7 @@
           <div><label>Santral</label><select id="santral" required>
             <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
           </select></div>
-          <div><label>Firma</label><input id="firma"></div>
+          <div><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
           <div><label>Şantiye</label><input id="santiye"></div>
           <div><label>Beton sınıfı</label><select id="betonSinifi" required><option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option></select></div>
           <div>
@@ -363,6 +376,43 @@
         </div>
       </div>
     </section>
+
+    <section id="settingsPage" class="panel hidden">
+      <div class="dashboard-head">
+        <div>
+          <h2>Ayarlar</h2>
+          <small>Sevkiyat formunda kullanılacak firma ve santral listelerini yönet.</small>
+        </div>
+      </div>
+
+      <div class="settings-grid">
+        <div class="settings-box">
+          <h3>🏢 Firmalar</h3>
+          <div class="settings-body">
+            <div class="settings-add">
+              <div><label>Yeni firma adı</label><input id="newCompanyName" placeholder="Örn. AAA İnşaat"></div>
+              <button id="addCompanyBtn" type="button" class="btn btn-primary">Ekle</button>
+            </div>
+            <div id="settingsCompanyList" class="settings-list"></div>
+          </div>
+        </div>
+
+        <div class="settings-box">
+          <h3>🏭 Santraller</h3>
+          <div class="settings-body">
+            <div class="settings-add">
+              <div><label>Yeni santral adı</label><input id="newPlantName" placeholder="Örn. Bornova"></div>
+              <button id="addPlantBtn" type="button" class="btn btn-primary">Ekle</button>
+            </div>
+            <div id="settingsPlantList" class="settings-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-note">
+        Eklediğin firma ve santraller sevkiyat formuna otomatik yansır. Kullanılmış bir kayıt silinse bile eski sevkiyat kayıtları değişmez.
+      </div>
+    </section>
   </main>
 </div>
 
@@ -390,6 +440,8 @@ let selectedAnalysisSite="";
 let selectedAnalysisPump="";
 let analysisMode="company";
 let dashboardCharts={};
+const DEFAULT_PLANTS=["Işıkkent","Torbalı","Gaziemir","Özbek","Çeşme","Çiğli","Koyundere","Aliağa","Zeytindağ","Akhisar","Aydın","Tekirdağ","Kıraç","Çorlu"];
+let appSettings={companies:[],plants:[]};
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -402,6 +454,65 @@ function trDate(s){return s?s.split("-").reverse().join("."):""}
 function m3(n){return Number(n||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})}
 function phoneFormat(v){const d=String(v||"").replace(/\D/g,"").slice(0,11);return [d.slice(0,4),d.slice(4,7),d.slice(7,9),d.slice(9,11)].filter(Boolean).join(" ")}
 
+
+function loadAppSettings(){
+  try{
+    const saved=JSON.parse(localStorage.getItem("betonexa_settings")||"{}");
+    appSettings.companies=Array.isArray(saved.companies)?saved.companies:[];
+    appSettings.plants=Array.isArray(saved.plants)?saved.plants:[...DEFAULT_PLANTS];
+  }catch{
+    appSettings={companies:[],plants:[...DEFAULT_PLANTS]};
+  }
+  if(!appSettings.plants.length)appSettings.plants=[...DEFAULT_PLANTS];
+}
+function saveAppSettings(){
+  localStorage.setItem("betonexa_settings",JSON.stringify(appSettings));
+  renderSettings();
+  refreshFormOptions();
+}
+function uniqueSorted(values){
+  return [...new Set(values.map(x=>String(x||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
+}
+function refreshFormOptions(){
+  const recordCompanies=records.map(r=>r.firma);
+  const companies=uniqueSorted([...appSettings.companies,...recordCompanies]);
+  $("firmaList").innerHTML=companies.map(x=>`<option value="${esc(x)}"></option>`).join("");
+
+  const current=$("santral").value;
+  const recordPlants=records.map(r=>r.santral);
+  const plants=uniqueSorted([...DEFAULT_PLANTS,...appSettings.plants,...recordPlants]);
+  $("santral").innerHTML='<option value="">Seçiniz</option>'+plants.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  if(plants.includes(current))$("santral").value=current;
+}
+function renderSettings(){
+  if(!$("settingsPage"))return;
+  const companies=uniqueSorted([...appSettings.companies,...records.map(r=>r.firma)]);
+  const plants=uniqueSorted([...appSettings.plants,...records.map(r=>r.santral)]);
+  $("settingsCompanyList").innerHTML=companies.length?companies.map(name=>`
+    <div class="settings-item"><b>${esc(name)}</b>
+      <button type="button" class="btn btn-danger" onclick="removeSettingItem('company','${encodeURIComponent(name)}')">Sil</button>
+    </div>`).join(""):'<div class="analysis-empty">Henüz firma eklenmedi.</div>';
+  $("settingsPlantList").innerHTML=plants.length?plants.map(name=>`
+    <div class="settings-item"><b>${esc(name)}</b>
+      <button type="button" class="btn btn-danger" onclick="removeSettingItem('plant','${encodeURIComponent(name)}')">Sil</button>
+    </div>`).join(""):'<div class="analysis-empty">Henüz santral eklenmedi.</div>';
+}
+function addSettingItem(type){
+  const input=type==="company"?$("newCompanyName"):$("newPlantName");
+  const value=input.value.trim();
+  if(!value)return;
+  const key=type==="company"?"companies":"plants";
+  appSettings[key]=uniqueSorted([...appSettings[key],value]);
+  input.value="";
+  saveAppSettings();
+}
+function removeSettingItem(type,encoded){
+  const value=decodeURIComponent(encoded);
+  const key=type==="company"?"companies":"plants";
+  appSettings[key]=appSettings[key].filter(x=>x!==value);
+  saveAppSettings();
+}
+
 async function loadRecords(){
   const client=ensureDb();
   if(!client){
@@ -413,7 +524,7 @@ async function loadRecords(){
   const {data,error}=await client.from(TABLE).select("*").order("tarih",{ascending:true}).order("saat",{ascending:true});
   setLoading(false);
   if(error){setStatus("Veriler alınamadı: "+error.message,true);return}
-  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();renderDashboard();
+  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();renderDashboard();refreshFormOptions();renderSettings();
 }
 
 function selectedConcreteProperties(){
@@ -1109,9 +1220,11 @@ function showPage(p){
   $("recordsPage").classList.toggle("hidden",p!=="records");
   $("calendarPage").classList.toggle("hidden",p!=="calendar");
   $("analysisPage").classList.toggle("hidden",p!=="analysis");
+  $("settingsPage").classList.toggle("hidden",p!=="settings");
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   if(p==="dashboard")renderDashboard();
   if(p==="analysis")renderAnalysis();
+  if(p==="settings")renderSettings();
 }
 function login(){
   if($("loginUser").value.trim()===LOGIN_USER&&$("loginPass").value===LOGIN_PASS){sessionStorage.setItem("betonexa_login","1");$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
@@ -1129,13 +1242,19 @@ $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
 $("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
 $("dashboardRefresh").addEventListener("click",loadRecords);
+$("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
+$("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
+$("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
+$("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
+window.removeSettingItem=removeSettingItem;
 window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
+loadAppSettings();refreshFormOptions();
 $("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
