@@ -73,6 +73,16 @@
     .time{padding:24px 5px;text-align:center;background:#f7f5fa;font-weight:700}.cell{min-height:76px;padding:4px;background:#fff}
     .event{display:block;width:100%;border:0;border-left:4px solid var(--p);border-radius:7px;background:#efe8fa;padding:6px;text-align:left;font-size:12px;margin-bottom:4px}
 
+    .dashboard-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .dashboard-head h2{margin:0;color:#4f356f}
+    .dashboard-head small{color:var(--muted)}
+    .dashboard-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .dashboard-kpi{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff,#f7f2fd);border:1px solid #dfd4ee;border-radius:16px;padding:20px;min-height:145px;box-shadow:0 8px 24px #4f356f14}
+    .dashboard-kpi::after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-25px;bottom:-30px;background:#6f42c116}
+    .dashboard-kpi .icon{font-size:28px;margin-bottom:14px}
+    .dashboard-kpi small{display:block;color:var(--muted);font-weight:800;letter-spacing:.3px}
+    .dashboard-kpi strong{display:block;color:var(--p);font-size:30px;margin-top:9px}
+    .dashboard-kpi span{display:block;color:#6d6875;font-size:12px;margin-top:8px}
     .analysis-mode-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
     .analysis-mode-tabs button.active{background:var(--p);color:#fff}
     .analysis-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:16px}
@@ -103,8 +113,8 @@
     .analysis-table{min-width:760px}
 
     .loading{position:fixed;inset:0;background:#ffffffb8;display:grid;place-items:center;z-index:90;font-size:18px;font-weight:700;color:var(--p)}
-    @media(max-width:950px){.kpis{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
-    @media(max-width:650px){.content{padding:12px}.kpis,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
+    @media(max-width:950px){.kpis,.dashboard-kpis{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.analysis-summary,.analysis-mini-grid{grid-template-columns:repeat(2,1fr)}.analysis-layout{grid-template-columns:1fr}}
+    @media(max-width:650px){.content{padding:12px}.kpis,.dashboard-kpis,.form-grid,.analysis-summary,.analysis-mini-grid{grid-template-columns:1fr}.top{padding:10px 12px}.top .brand span{display:none}.panel{padding:14px}.tabs{overflow:auto}.tabs button{white-space:nowrap}}
   </style>
 </head>
 <body>
@@ -138,12 +148,50 @@
       </div>
     </section>
     <nav class="tabs">
-      <button class="btn btn-light active" data-page="records">Sevkiyatlar</button>
+      <button class="btn btn-light active" data-page="dashboard">📈 Dashboard</button>
+      <button class="btn btn-light" data-page="records">Sevkiyatlar</button>
       <button class="btn btn-light" data-page="calendar">Haftalık Takvim</button>
       <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
     </nav>
 
-    <section id="recordsPage" class="panel">
+    <section id="dashboardPage" class="panel">
+      <div class="dashboard-head">
+        <div>
+          <h2>Bugünün Operasyon Özeti</h2>
+          <small id="dashboardDate"></small>
+        </div>
+        <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
+      </div>
+
+      <div class="dashboard-kpis">
+        <div class="dashboard-kpi">
+          <div class="icon">🚚</div>
+          <small>BUGÜNKÜ SEVKİYAT</small>
+          <strong id="dashTodayCount">0</strong>
+          <span>Bugün planlanan toplam sevkiyat</span>
+        </div>
+        <div class="dashboard-kpi">
+          <div class="icon">🧱</div>
+          <small>BUGÜNKÜ TOPLAM BETON</small>
+          <strong id="dashTodayM3">0,00 m³</strong>
+          <span>Bugün planlanan toplam beton miktarı</span>
+        </div>
+        <div class="dashboard-kpi">
+          <div class="icon">🚛</div>
+          <small>POMPALI BETON</small>
+          <strong id="dashPumpedM3">0,00 m³</strong>
+          <span>Bugünkü pompalı sevkiyat miktarı</span>
+        </div>
+        <div class="dashboard-kpi">
+          <div class="icon">🏗️</div>
+          <small>POMPASIZ BETON</small>
+          <strong id="dashUnpumpedM3">0,00 m³</strong>
+          <span>Bugünkü pompasız sevkiyat miktarı</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="recordsPage" class="panel hidden">
       <form id="shipmentForm">
         <input id="editId" type="hidden">
         <div class="form-grid">
@@ -278,7 +326,7 @@ async function loadRecords(){
   const {data,error}=await db.from(TABLE).select("*").order("tarih",{ascending:true}).order("saat",{ascending:true});
   setLoading(false);
   if(error){setStatus("Veriler alınamadı: "+error.message,true);return}
-  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();
+  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();renderDashboard();
 }
 
 function selectedConcreteProperties(){
@@ -357,6 +405,22 @@ function openInCalendar(id){
     }
   });
 }
+
+function renderDashboard(){
+  if(!$("dashboardPage"))return;
+  const today=iso(new Date());
+  const todayRecords=records.filter(r=>r.tarih===today);
+  const total=todayRecords.reduce((s,r)=>s+Number(r.metraj||0),0);
+  const pumped=todayRecords.filter(r=>r.pompa_var_mi).reduce((s,r)=>s+Number(r.metraj||0),0);
+  const unpumped=todayRecords.filter(r=>!r.pompa_var_mi).reduce((s,r)=>s+Number(r.metraj||0),0);
+  const now=new Date();
+  $("dashboardDate").textContent=now.toLocaleDateString("tr-TR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  $("dashTodayCount").textContent=todayRecords.length;
+  $("dashTodayM3").textContent=m3(total)+" m³";
+  $("dashPumpedM3").textContent=m3(pumped)+" m³";
+  $("dashUnpumpedM3").textContent=m3(unpumped)+" m³";
+}
+
 function renderKpis(){
   const now=new Date(),today=iso(now);
   const selectedMonth=$("kpiMonthPicker").value||today.slice(0,7);
@@ -795,10 +859,12 @@ function printPlan(){
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 function showPage(p){
+  $("dashboardPage").classList.toggle("hidden",p!=="dashboard");
   $("recordsPage").classList.toggle("hidden",p!=="records");
   $("calendarPage").classList.toggle("hidden",p!=="calendar");
   $("analysisPage").classList.toggle("hidden",p!=="analysis");
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+  if(p==="dashboard")renderDashboard();
   if(p==="analysis")renderAnalysis();
 }
 function login(){
@@ -816,6 +882,7 @@ $("pdfBtn").addEventListener("click",downloadPdf);
 $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
 $("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+$("dashboardRefresh").addEventListener("click",loadRecords);
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
