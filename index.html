@@ -208,6 +208,7 @@
         <button type="button" class="btn btn-light active" data-analysis-mode="company">🏢 Firma Analizi</button>
         <button type="button" class="btn btn-light" data-analysis-mode="plant">🏭 Santral Analizi</button>
         <button type="button" class="btn btn-light" data-analysis-mode="site">🏗️ Şantiye Analizi</button>
+        <button type="button" class="btn btn-light" data-analysis-mode="pump">🚛 Pompa Analizi</button>
       </div>
       <div class="analysis-toolbar">
         <div><label>Analiz dönemi</label><select id="analysisRange">
@@ -258,6 +259,7 @@ let weekStart=monday(new Date());
 let selectedAnalysisCompany="";
 let selectedAnalysisPlant="";
 let selectedAnalysisSite="";
+let selectedAnalysisPump="";
 let analysisMode="company";
 
 const $=id=>document.getElementById(id);
@@ -458,6 +460,10 @@ function renderAnalysis(){
     renderSiteAnalysis(items);
     return;
   }
+  if(analysisMode==="pump"){
+    renderPumpAnalysis(items);
+    return;
+  }
 
   const companies=groupAnalysis(items,r=>r.firma);
   $("analysisEntityLabel").textContent="FİRMA SAYISI";
@@ -524,6 +530,31 @@ function renderSiteAnalysis(items){
   const site=sites.find(x=>x.name===selectedAnalysisSite);
   if(!site)return;
   renderAnalysisSiteDetail(site);
+}
+
+
+function renderPumpAnalysis(items){
+  const pumpedItems=items.filter(r=>r.pompa_var_mi);
+  const pumps=groupAnalysis(pumpedItems,r=>r.pompa_tipi||"Pompalı");
+  $("analysisEntityLabel").textContent="POMPA TİPİ SAYISI";
+  $("analysisCompanyCount").textContent=pumps.length;
+  $("analysisListTitle").textContent="Pompa Analizi";
+
+  if(selectedAnalysisPump&&!pumps.some(x=>x.name===selectedAnalysisPump))selectedAnalysisPump="";
+  $("analysisCompanyList").innerHTML=pumps.length?pumps.map(p=>`
+    <button type="button" class="analysis-company ${p.name===selectedAnalysisPump?"active":""}" onclick="selectAnalysisPump('${encodeURIComponent(p.name)}')">
+      <span><b>${esc(p.name)}</b><span>${p.count} pompalı iş</span></span>
+      <strong>${m3(p.total)} m³</strong>
+    </button>`).join(""):'<div class="analysis-empty">Seçilen dönemde pompalı sevkiyat bulunamadı.</div>';
+
+  if(!selectedAnalysisPump){
+    $("analysisDetailTitle").textContent="Pompa ayrıntısı";
+    $("analysisDetail").innerHTML='<div class="analysis-empty">Ayrıntıları görmek için soldan bir pompa tipi seç.</div>';
+    return;
+  }
+  const pump=pumps.find(x=>x.name===selectedAnalysisPump);
+  if(!pump)return;
+  renderAnalysisPumpDetail(pump);
 }
 
 function topAnalysisItems(items,keyFn,limit=6){
@@ -663,6 +694,57 @@ function selectAnalysisSite(encodedName){
   renderAnalysis();
 }
 
+
+function renderAnalysisPumpDetail(pump){
+  const pumpRecords=[...pump.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const companies=groupAnalysis(pumpRecords,r=>r.firma);
+  const sites=groupAnalysis(pumpRecords,r=>r.santiye);
+  const plants=groupAnalysis(pumpRecords,r=>r.santral);
+  const concretes=topAnalysisItems(pumpRecords,r=>r.beton_sinifi);
+  const topCompany=companies[0];
+  const topPlant=plants[0];
+  const dates=pumpRecords.map(r=>r.tarih).filter(Boolean).sort();
+
+  $("analysisDetailTitle").textContent=pump.name+" Pompa";
+  $("analysisDetail").innerHTML=`
+    <div class="analysis-mini-grid">
+      <div class="analysis-mini"><small>TOPLAM POMPALI İŞ</small><strong>${pump.count}</strong></div>
+      <div class="analysis-mini"><small>TOPLAM BETON</small><strong>${m3(pump.total)} m³</strong></div>
+      <div class="analysis-mini"><small>FİRMA SAYISI</small><strong>${companies.length}</strong></div>
+      <div class="analysis-mini"><small>ŞANTİYE SAYISI</small><strong>${sites.length}</strong></div>
+    </div>
+    <div class="analysis-mini-grid">
+      <div class="analysis-mini"><small>SANTRAL SAYISI</small><strong>${plants.length}</strong></div>
+      <div class="analysis-mini"><small>İLK KULLANIM</small><strong>${dates.length?trDate(dates[0]):"-"}</strong></div>
+      <div class="analysis-mini"><small>SON KULLANIM</small><strong>${dates.length?trDate(dates[dates.length-1]):"-"}</strong></div>
+      <div class="analysis-mini"><small>ORTALAMA İŞ HACMİ</small><strong>${m3(pump.count?pump.total/pump.count:0)} m³</strong></div>
+    </div>
+    <div class="analysis-mini-grid">
+      <div class="analysis-mini"><small>EN ÇOK ÇALIŞTIĞI FİRMA</small><strong>${topCompany?esc(topCompany.name):"-"}</strong></div>
+      <div class="analysis-mini"><small>FİRMA TOPLAMI</small><strong>${topCompany?m3(topCompany.total)+" m³":"-"}</strong></div>
+      <div class="analysis-mini"><small>EN ÇOK ÇALIŞTIĞI SANTRAL</small><strong>${topPlant?esc(topPlant.name):"-"}</strong></div>
+      <div class="analysis-mini"><small>SANTRAL TOPLAMI</small><strong>${topPlant?m3(topPlant.total)+" m³":"-"}</strong></div>
+    </div>
+    <div class="analysis-section"><h4>Çalıştığı firmalar</h4><div class="analysis-chips">${analysisChips(companies.slice(0,8)," m³")}</div></div>
+    <div class="analysis-section"><h4>Çalıştığı şantiyeler</h4><div class="analysis-chips">${analysisChips(sites.slice(0,8)," m³")}</div></div>
+    <div class="analysis-section"><h4>Çalıştığı santraller</h4><div class="analysis-chips">${analysisChips(plants.slice(0,8)," m³")}</div></div>
+    <div class="analysis-section"><h4>Beton sınıfları</h4><div class="analysis-chips">${analysisChips(concretes," m³")}</div></div>
+    <div class="analysis-section">
+      <h4>Pompa kullanım geçmişi · ${analysisDateRangeText(pumpRecords)}</h4>
+      <div class="table-wrap"><table class="analysis-table">
+        <thead><tr><th>Tarih</th><th>Saat</th><th>Firma</th><th>Şantiye</th><th>Santral</th><th>Beton</th><th>Metraj</th></tr></thead>
+        <tbody>${pumpRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
+          <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
+          <td>${esc(r.santral)}</td><td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+    </div>`;
+}
+function selectAnalysisPump(encodedName){
+  selectedAnalysisPump=decodeURIComponent(encodedName);
+  renderAnalysis();
+}
+
 function toggleAnalysisDates(){
   const custom=$("analysisRange").value==="custom";
   $("analysisStartWrap").classList.toggle("hidden",!custom);
@@ -740,7 +822,7 @@ $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.val
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
 document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
-window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
 $("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");loadRecords()}
