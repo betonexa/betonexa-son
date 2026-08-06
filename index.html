@@ -893,6 +893,49 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
   }
 }
 
+
+
+/* BETONEXA MADDE 9 — AYLIK KART SON DÜZEN */
+@media (max-width: 700px) {
+  .kpi:has(#kpiMonthPicker) {
+    min-height: 168px !important;
+    padding: 18px 20px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .kpi:has(#kpiMonthPicker) small {
+    display: block !important;
+  }
+
+  #kpiMonthPicker {
+    display: block !important;
+    width: calc(100% - 8px) !important;
+    max-width: calc(100% - 8px) !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    box-sizing: border-box !important;
+    margin: 10px auto 0 !important;
+    padding: 10px 12px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+
+  .kpi:has(#kpiMonthPicker) #kpiMonth {
+    margin-top: 10px !important;
+    display: block !important;
+  }
+
+  #kpiMonthPicker::-webkit-date-and-time-value,
+  #kpiMonthPicker::-webkit-datetime-edit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+}
+
 </style>
 </head>
 <body>
