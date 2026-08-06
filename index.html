@@ -1496,7 +1496,7 @@ async function downloadTomorrowPdf(){
   doc.setFont(pdfFont.name,"normal");
   doc.setCharSpace(0);
   doc.setFontSize(16);
-  doc.text(text(`Betonexa - Yarınki Sevkiyatlar (${trDate(tomorrowDateString())})`),14,14);
+  doc.text(text(`YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})`),14,14);
 
   let y=20,grand=0;
 
@@ -1559,7 +1559,7 @@ function printTomorrow(){
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
     return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${m3(r.metraj)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
   }).join("");
-  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>Betonexa - Yarınki Sevkiyatlar (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
+  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 
