@@ -1494,44 +1494,65 @@ async function downloadTomorrowPdf(){
   const text=pdfFont.text;
 
   const pageWidth=doc.internal.pageSize.getWidth();
+  const marginLeft=14;
+  const marginRight=14;
   const purple=[111,66,193];
-  const headerTop=8;
-  const headerBottom=22;
+  const lightGray=[172,172,178];
+  const commonFontSize=11;
+
   const tomorrowIso=tomorrowDateString();
   const dateParts=tomorrowIso.split("-").map(Number);
   const tomorrowDate=new Date(dateParts[0],dateParts[1]-1,dateParts[2]);
-  const monthNames=["OCAK","ŞUBAT","MART","NİSAN","MAYIS","HAZİRAN","TEMMUZ","AĞUSTOS","EYLÜL","EKİM","KASIM","ARALIK"];
-  const dayNames=["PAZAR","PAZARTESİ","SALI","ÇARŞAMBA","PERŞEMBE","CUMA","CUMARTESİ"];
-  const longDate=`${tomorrowDate.getDate()} ${monthNames[tomorrowDate.getMonth()]} ${tomorrowDate.getFullYear()} ${dayNames[tomorrowDate.getDay()]}`;
-
-  doc.setDrawColor(...purple);
-  doc.setLineWidth(0.45);
-  doc.line(14,headerTop,pageWidth-14,headerTop);
-  doc.line(14,headerBottom,pageWidth-14,headerBottom);
+  const monthNames=[
+    "OCAK","ŞUBAT","MART","NİSAN","MAYIS","HAZİRAN",
+    "TEMMUZ","AĞUSTOS","EYLÜL","EKİM","KASIM","ARALIK"
+  ];
+  const dayNames=[
+    "PAZAR","PAZARTESİ","SALI","ÇARŞAMBA",
+    "PERŞEMBE","CUMA","CUMARTESİ"
+  ];
+  const longDate=
+    `${tomorrowDate.getDate()} ${monthNames[tomorrowDate.getMonth()]} `+
+    `${tomorrowDate.getFullYear()} ${dayNames[tomorrowDate.getDay()]}`;
 
   doc.setFont(pdfFont.name,"normal");
   doc.setCharSpace(0);
-  doc.setTextColor(...purple);
-  doc.setFontSize(13);
-  doc.text(text(`YARINKİ SEVKİYATLAR - ${longDate}`),pageWidth/2,17,{align:"center"});
 
-  const logoSize=5;
+  /* Sağ üstte küçük, açık gri Betonexa işareti */
+  const logoSize=4;
   const brandText="BETONEXA";
-  doc.setFontSize(6.5);
-  const brandWidth=doc.getTextWidth(text(brandText));
-  const brandX=pageWidth-14-brandWidth;
-  const logoX=brandX-logoSize-2;
-  const logoY=headerTop-logoSize/2;
-  doc.setDrawColor(...purple);
-  doc.setLineWidth(0.6);
-  doc.roundedRect(logoX,logoY,logoSize,logoSize,1.1,1.1);
-  doc.setFontSize(4.2);
-  doc.text("B",logoX+logoSize/2,logoY+3.7,{align:"center"});
-  doc.setFontSize(6.5);
-  doc.text(text(brandText),brandX,headerTop+1.8);
-  doc.setTextColor(0,0,0);
+  doc.setTextColor(...lightGray);
+  doc.setDrawColor(...lightGray);
+  doc.setLineWidth(0.45);
+  doc.setFontSize(5.2);
 
-  let y=30,grand=0;
+  const brandWidth=doc.getTextWidth(text(brandText));
+  const brandX=pageWidth-marginRight-brandWidth;
+  const logoX=brandX-logoSize-1.6;
+  const logoY=4.6;
+
+  doc.roundedRect(logoX,logoY,logoSize,logoSize,0.8,0.8);
+  doc.setFontSize(3.5);
+  doc.text("B",logoX+logoSize/2,logoY+2.95,{align:"center"});
+  doc.setFontSize(5.2);
+  doc.text(text(brandText),brandX,logoY+2.9);
+
+  /* Başlık: sola hizalı ve firma/genel toplamla aynı punto */
+  doc.setTextColor(...purple);
+  doc.setFontSize(commonFontSize);
+  doc.text(
+    text(`YARINKİ SEVKİYATLAR - ${longDate}`),
+    marginLeft,
+    14
+  );
+
+  /* Üst çizgi yok; yalnızca başlığın altında tek çizgi */
+  doc.setDrawColor(...purple);
+  doc.setLineWidth(0.4);
+  doc.line(marginLeft,18,pageWidth-marginRight,18);
+
+  let y=30;
+  let grand=0;
 
   groups.forEach(([company,items])=>{
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
@@ -1539,11 +1560,13 @@ async function downloadTomorrowPdf(){
 
     doc.setFont(pdfFont.name,"normal");
     doc.setCharSpace(0);
-    doc.setFontSize(11);
-    doc.text(text(`${company} - ${m3(subtotal)} m³`),14,y);
+    doc.setFontSize(commonFontSize);
+    doc.setTextColor(...purple);
+    doc.text(text(`${company} - ${m3(subtotal)} m³`),marginLeft,y);
 
     doc.autoTable({
-      startY:y+3,
+      startY:y+4,
+      margin:{left:marginLeft,right:marginRight},
       head:[[
         text("Saat"),text("Santral"),text("Şantiye"),text("Beton"),
         text("Özellik"),text("Pompa"),text("Metraj"),text("Sorumlu"),text("Telefon")
@@ -1568,18 +1591,30 @@ async function downloadTomorrowPdf(){
       headStyles:{
         font:pdfFont.name,
         fontStyle:"normal",
-        fillColor:[111,66,193]
+        fillColor:purple
       }
     });
 
     y=doc.lastAutoTable.finalY+10;
-    if(y>180){doc.addPage();y=16}
+    if(y>180){
+      doc.addPage();
+      y=16;
+    }
   });
 
+  /* Genel toplam: sağa hizalı, diğer başlıklarla aynı punto */
   doc.setFont(pdfFont.name,"normal");
   doc.setCharSpace(0);
-  doc.setFontSize(13);
-  doc.text(text(`GENEL TOPLAM: ${m3(grand)} m³`),14,y);
+  doc.setFontSize(commonFontSize);
+  doc.setTextColor(...purple);
+  doc.text(
+    text(`GENEL TOPLAM: ${m3(grand)} m³`),
+    pageWidth-marginRight,
+    y,
+    {align:"right"}
+  );
+
+  doc.setTextColor(0,0,0);
   doc.save(`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
 }
 
