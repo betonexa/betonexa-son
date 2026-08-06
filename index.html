@@ -2146,6 +2146,82 @@ function printPlan(){
   }
 }
 
+
+
+/* BETONEXA MADDE 9 — MOBİL SEVKİYAT FORMU PANEL TAŞMA DÜZELTMESİ */
+@media (max-width: 700px) {
+  /* Sevkiyat ekleme panelinin tüm içeriğini kendi sınırında tut */
+  #recordsPage {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #recordsPage > .dashboard-head,
+  #recordsPage > #shipmentForm {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  #recordsPage > .dashboard-head {
+    padding: 16px 16px 5px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 17px 17px 0 0;
+  }
+
+  #recordsPage > #shipmentForm {
+    padding: 8px 16px 17px;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0 0 17px 17px;
+  }
+
+  #shipmentForm,
+  #shipmentForm .shipment-fields,
+  #shipmentForm .contact-row,
+  #shipmentForm .field,
+  #shipmentForm .multi-select {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  #shipmentForm input,
+  #shipmentForm select,
+  #shipmentForm textarea,
+  #shipmentForm .multi-select-toggle,
+  #shipmentForm .multi-select-menu {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  /* iOS tarih/saat alanlarının doğal minimum genişliğini kır */
+  #shipmentForm input[type="date"],
+  #shipmentForm input[type="time"] {
+    display: block;
+    inline-size: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Rapor alanı ayrı madde 10'dur; sadece panel sınırında kalmasını sağla */
+  #recordsPage > .records-report {
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+    margin: 16px 12px 12px;
+    box-sizing: border-box;
+  }
+}
+
 </style></head><body><h2>Betonexa Sevkiyat Planı</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
