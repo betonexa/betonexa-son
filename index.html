@@ -669,6 +669,195 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
   .settings-add { grid-template-columns: 1fr; }
 }
 
+
+/* BETONEXA MADDE 1 — SADECE MOBİL ORAN DÜZENİ */
+@media (max-width: 700px) {
+  /* Üst başlık: daha kompakt ve dengeli */
+  .top {
+    gap: 10px;
+    padding: 10px 12px;
+    min-height: 72px;
+  }
+
+  .top .brand {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .top .brand img {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .top .brand h1 {
+    font-size: 22px;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .top > .btn,
+  #logoutBtn {
+    min-width: 82px;
+    min-height: 46px;
+    padding: 10px 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  /* Sayfa genel boşlukları */
+  .content {
+    padding: 14px 12px 28px;
+  }
+
+  /* Özet kartları: gereksiz yüksekliği azalt */
+  .kpis,
+  .dashboard-kpis {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .kpi {
+    min-height: 106px;
+    padding: 15px 16px;
+    border-radius: 16px;
+  }
+
+  .kpi small {
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .kpi strong {
+    margin-top: 6px;
+    font-size: 26px;
+    line-height: 1.15;
+  }
+
+  .kpi input[type="month"] {
+    min-height: 42px;
+    margin-top: 7px;
+    font-size: 15px;
+  }
+
+  /* Ana menü: eşit genişlik, eşit yükseklik */
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .tabs .btn,
+  .tabs button {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+    padding: 10px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.15;
+    font-size: 14px;
+    border-radius: 12px;
+    white-space: normal;
+  }
+
+  /* Genel mobil buton standardı */
+  .panel .btn:not(.btn-icon):not(.delete-btn),
+  .settings-card .btn:not(.btn-icon):not(.delete-btn) {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 11px;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 390px) {
+  .top .brand h1 {
+    font-size: 20px;
+  }
+
+  .tabs .btn,
+  .tabs button {
+    font-size: 13px;
+    padding-inline: 6px;
+  }
+}
+
+
+/* BETONEXA MADDE 9 — MOBİL SEVKİYAT FORMU GERÇEK DÜZELTME */
+@media (max-width: 700px) {
+  /* width:auto, formun padding dahil kullanılabilir alanı aşmasını engeller. */
+  #recordsPage {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #recordsPage > .dashboard-head,
+  #recordsPage > #shipmentForm {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #recordsPage > #shipmentForm {
+    overflow: hidden !important;
+  }
+
+  #shipmentForm .shipment-fields,
+  #shipmentForm .contact-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    box-sizing: border-box !important;
+  }
+
+  #shipmentForm .field,
+  #shipmentForm .multi-select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  #shipmentForm input:not([type="hidden"]),
+  #shipmentForm select,
+  #shipmentForm textarea,
+  #shipmentForm .multi-select-toggle {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #shipmentForm input[type="date"],
+  #shipmentForm input[type="time"] {
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    max-inline-size: 100% !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+
+  #shipmentForm input[type="date"]::-webkit-date-and-time-value,
+  #shipmentForm input[type="time"]::-webkit-date-and-time-value {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2098,121 +2287,6 @@ function printPlan(){
   const w=window.open("","_blank");
   w.document.write(`<html><head><title>Betonexa Sevkiyat Planı</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #bbb;padding:6px}th{background:#6f42c1;color:#fff}
 
-/* BETONEXA MADDE 1 — SADECE MOBİL ORAN DÜZENİ */
-@media (max-width: 700px) {
-  /* Üst başlık: daha kompakt ve dengeli */
-  .top {
-    gap: 10px;
-    padding: 10px 12px;
-    min-height: 72px;
-  }
-
-  .top .brand {
-    min-width: 0;
-    gap: 10px;
-  }
-
-  .top .brand img {
-    width: 42px;
-    height: 42px;
-    flex: 0 0 42px;
-  }
-
-  .top .brand h1 {
-    font-size: 22px;
-    line-height: 1.05;
-    white-space: nowrap;
-  }
-
-  .top > .btn,
-  #logoutBtn {
-    min-width: 82px;
-    min-height: 46px;
-    padding: 10px 14px;
-    font-size: 15px;
-    border-radius: 12px;
-  }
-
-  /* Sayfa genel boşlukları */
-  .content {
-    padding: 14px 12px 28px;
-  }
-
-  /* Özet kartları: gereksiz yüksekliği azalt */
-  .kpis,
-  .dashboard-kpis {
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .kpi {
-    min-height: 106px;
-    padding: 15px 16px;
-    border-radius: 16px;
-  }
-
-  .kpi small {
-    font-size: 13px;
-    line-height: 1.25;
-  }
-
-  .kpi strong {
-    margin-top: 6px;
-    font-size: 26px;
-    line-height: 1.15;
-  }
-
-  .kpi input[type="month"] {
-    min-height: 42px;
-    margin-top: 7px;
-    font-size: 15px;
-  }
-
-  /* Ana menü: eşit genişlik, eşit yükseklik */
-  .tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-
-  .tabs .btn,
-  .tabs button {
-    width: 100%;
-    min-width: 0;
-    min-height: 50px;
-    padding: 10px 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    line-height: 1.15;
-    font-size: 14px;
-    border-radius: 12px;
-    white-space: normal;
-  }
-
-  /* Genel mobil buton standardı */
-  .panel .btn:not(.btn-icon):not(.delete-btn),
-  .settings-card .btn:not(.btn-icon):not(.delete-btn) {
-    min-height: 44px;
-    padding: 10px 14px;
-    border-radius: 11px;
-    line-height: 1.15;
-  }
-}
-
-@media (max-width: 390px) {
-  .top .brand h1 {
-    font-size: 20px;
-  }
-
-  .tabs .btn,
-  .tabs button {
-    font-size: 13px;
-    padding-inline: 6px;
-  }
-}
 
 </style></head><body><h2>Betonexa Sevkiyat Planı</h2><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${headers.map(h=>`<td>${esc(r[h])}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
