@@ -6,7 +6,7 @@
  <meta name="theme-color" content="#6f42c1">
  <meta name="apple-mobile-web-app-capable" content="yes">
  <meta name="apple-mobile-web-app-title" content="Betonexa">
- <title>Betonexa PDF Stable</title>
+ <title>Betonexa Font Test</title>
  <link rel="manifest" href="./manifest.webmanifest">
  <link rel="apple-touch-icon" href="./icon-192.png">
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
@@ -1433,129 +1433,117 @@ function downloadTomorrowExcel(){
   XLSX.writeFile(wb,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.xlsx`);
 }
 
-function createCanvasPdfDocument(){
-  if(!window.jspdf)throw new Error("PDF modülü yüklenemedi.");
-  const {jsPDF}=window.jspdf;
-  return new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});
-}
-function canvasPdfPage(){
-  const canvas=document.createElement("canvas");
-  canvas.width=1600;canvas.height=1131;
-  const ctx=canvas.getContext("2d");
-  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.textBaseline="top";
-  return {canvas,ctx};
-}
-function canvasWrapText(ctx,text,maxWidth){
-  const value=String(text??"");
-  if(!value)return [""];
-  const words=value.split(/\s+/);
-  const lines=[];let line="";
-  words.forEach(word=>{
-    const test=line?line+" "+word:word;
-    if(ctx.measureText(test).width<=maxWidth||!line)line=test;
-    else{lines.push(line);line=word}
-  });
-  if(line)lines.push(line);
-  return lines.length?lines:[""];
-}
-function canvasDrawText(ctx,text,x,y,maxWidth,lineHeight,maxLines=2,align="left"){
-  const lines=canvasWrapText(ctx,text,maxWidth).slice(0,maxLines);
-  lines.forEach((line,index)=>{
-    let tx=x;
-    if(align==="right")tx=x+maxWidth-ctx.measureText(line).width;
-    else if(align==="center")tx=x+(maxWidth-ctx.measureText(line).width)/2;
-    ctx.fillText(line,tx,y+index*lineHeight);
-  });
-  return lines.length;
-}
-function canvasPdfAddPage(doc,canvas,isFirst){
-  if(!isFirst)doc.addPage();
-  doc.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,297,210,undefined,"FAST");
-}
-function canvasDrawHeader(ctx,title,subtitle,badge){
-  ctx.fillStyle="#4f268f";ctx.font="700 34px Arial";
-  ctx.fillText(title,60,45);
-  ctx.fillStyle="#667085";ctx.font="22px Arial";
-  ctx.fillText(subtitle||"",60,92);
-  if(badge){
-    const bw=Math.max(150,ctx.measureText(badge).width+40);
-    ctx.fillStyle="#eee6fb";ctx.beginPath();ctx.roundRect(1600-60-bw,46,bw,48,14);ctx.fill();
-    ctx.fillStyle="#5d2eae";ctx.font="700 21px Arial";ctx.fillText(badge,1600-60-bw+20,59);
-  }
-  ctx.fillStyle="#6f42c1";ctx.fillRect(60,135,1480,5);
-  return 168;
-}
-function canvasDrawTableHeader(ctx,headers,widths,y){
-  let x=60;ctx.font="700 17px Arial";
-  headers.forEach((header,i)=>{
-    ctx.fillStyle="#6f42c1";ctx.fillRect(x,y,widths[i],44);
-    ctx.strokeStyle="#7e56c6";ctx.strokeRect(x,y,widths[i],44);
-    ctx.fillStyle="#ffffff";canvasDrawText(ctx,header,x+7,y+11,widths[i]-14,18,2,"left");
-    x+=widths[i];
-  });
-  return y+44;
-}
-function canvasDrawTableRow(ctx,row,widths,y,rowIndex){
-  ctx.font="16px Arial";
-  const lineHeight=20;
-  const lines=row.map((value,i)=>canvasWrapText(ctx,String(value??""),widths[i]-14).slice(0,2));
-  const rowHeight=Math.max(42,Math.max(...lines.map(v=>v.length))*lineHeight+16);
-  let x=60;
-  row.forEach((value,i)=>{
-    ctx.fillStyle=rowIndex%2===0?"#ffffff":"#f7f7f9";ctx.fillRect(x,y,widths[i],rowHeight);
-    ctx.strokeStyle="#d9dde5";ctx.strokeRect(x,y,widths[i],rowHeight);
-    ctx.fillStyle=i===row.length-1?"#273142":"#273142";
-    canvasDrawText(ctx,value,x+7,y+8,widths[i]-14,lineHeight,2,"left");
-    x+=widths[i];
-  });
-  return y+rowHeight;
-}
-function canvasDrawTotal(ctx,label,value,y){
-  ctx.fillStyle="#5a2ca7";ctx.beginPath();ctx.roundRect(60,y,1480,62,13);ctx.fill();
-  ctx.fillStyle="#ffffff";ctx.font="700 27px Arial";ctx.fillText(label,82,y+16);
-  const w=ctx.measureText(value).width;ctx.fillText(value,1515-w,y+16);
-}
-function saveCanvasPages(doc,pages,fileName){
-  pages.forEach((page,index)=>canvasPdfAddPage(doc,page,index===0));
-  doc.save(fileName);
+let betonexaPdfFontPromise=null;
+
+function pdfAsciiFallback(value){
+  return String(value??"")
+    .replaceAll("Ş","S").replaceAll("ş","s")
+    .replaceAll("Ğ","G").replaceAll("ğ","g")
+    .replaceAll("İ","I").replaceAll("ı","i")
+    .replaceAll("Ç","C").replaceAll("ç","c")
+    .replaceAll("Ö","O").replaceAll("ö","o")
+    .replaceAll("Ü","U").replaceAll("ü","u")
+    .replaceAll("³","3");
 }
 
-function downloadTomorrowPdf(){
+async function preparePdfFont(doc){
+  if(!betonexaPdfFontPromise){
+    betonexaPdfFontPromise=(async()=>{
+      const fontUrl="https://raw.githubusercontent.com/google/fonts/main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf";
+      const response=await fetch(fontUrl,{cache:"force-cache"});
+      if(!response.ok)throw new Error("PDF fontu indirilemedi.");
+      const bytes=new Uint8Array(await response.arrayBuffer());
+      let binary="";
+      const chunkSize=0x8000;
+      for(let i=0;i<bytes.length;i+=chunkSize){
+        binary+=String.fromCharCode(...bytes.subarray(i,i+chunkSize));
+      }
+      return btoa(binary);
+    })();
+  }
+
+  try{
+    const base64=await betonexaPdfFontPromise;
+    if(!doc.existsFileInVFS("NotoSans.ttf")){
+      doc.addFileToVFS("NotoSans.ttf",base64);
+    }
+    doc.addFont("NotoSans.ttf","NotoSans","normal");
+    doc.setFont("NotoSans","normal");
+    doc.setCharSpace(0);
+    return {name:"NotoSans",text:value=>String(value??"")};
+  }catch(error){
+    console.warn("Türkçe PDF fontu yüklenemedi, güvenli yedek kullanılıyor.",error);
+    doc.setFont("helvetica","normal");
+    doc.setCharSpace(0);
+    return {name:"helvetica",text:pdfAsciiFallback};
+  }
+}
+
+async function downloadTomorrowPdf(){
+  if(!window.jspdf){alert("PDF modülü yüklenemedi.");return}
   const groups=groupTomorrow();
   if(!groups.length){alert("Yarın için sevkiyat yok.");return}
-  const button=$("tomorrowPdfBtn"),oldText=button.textContent;
-  button.disabled=true;button.textContent="PDF hazırlanıyor…";
-  try{
-    const doc=createCanvasPdfDocument();
-    const pages=[];
-    const headers=["Saat","Santral","Şantiye","Beton","Özellik","Pompa","Metraj","Sorumlu","Telefon"];
-    const widths=[88,135,190,105,165,120,105,155,142];
-    let page=canvasPdfPage(),ctx=page.ctx;
-    let y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`);
-    let grand=0;
-    groups.forEach(([company,items])=>{
-      const subtotal=items.reduce((sum,row)=>sum+Number(row.metraj||0),0);grand+=subtotal;
-      const needed=72+44+Math.min(items.length,2)*58;
-      if(y+needed>1040){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`)}
-      ctx.fillStyle="#f2ecfb";ctx.beginPath();ctx.roundRect(60,y,1480,55,11);ctx.fill();
-      ctx.fillStyle="#4f268f";ctx.font="700 23px Arial";ctx.fillText(company,78,y+15);
-      const totalText=`Firma Toplamı: ${m3(subtotal)} m³`;ctx.fillStyle="#6f42c1";ctx.font="700 20px Arial";
-      ctx.fillText(totalText,1518-ctx.measureText(totalText).width,y+17);y+=55;
-      y=canvasDrawTableHeader(ctx,headers,widths,y);
-      items.forEach((r,index)=>{
-        const row=[(r.saat||"").slice(0,5),r.santral||"",r.santiye||"",r.beton_sinifi||"",r.beton_ozelligi||"",r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",`${m3(r.metraj)} m³`,r.sorumlu_kisi||"",r.telefon||""];
-        ctx.font="16px Arial";const estimated=Math.max(42,Math.max(...row.map((v,i)=>canvasWrapText(ctx,String(v),widths[i]-14).slice(0,2).length))*20+16);
-        if(y+estimated>1040){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`);y=canvasDrawTableHeader(ctx,headers,widths,y)}
-        y=canvasDrawTableRow(ctx,row,widths,y,index);
-      });
-      y+=25;
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape"});
+  const pdfFont=await preparePdfFont(doc);
+  const text=pdfFont.text;
+
+  doc.setFont(pdfFont.name,"normal");
+  doc.setCharSpace(0);
+  doc.setFontSize(16);
+  doc.text(text(`Betonexa - Yarınki Sevkiyatlar (${trDate(tomorrowDateString())})`),14,14);
+
+  let y=20,grand=0;
+
+  groups.forEach(([company,items])=>{
+    const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
+    grand+=subtotal;
+
+    doc.setFont(pdfFont.name,"normal");
+    doc.setCharSpace(0);
+    doc.setFontSize(11);
+    doc.text(text(`${company} - ${m3(subtotal)} m³`),14,y);
+
+    doc.autoTable({
+      startY:y+3,
+      head:[[
+        text("Saat"),text("Santral"),text("Şantiye"),text("Beton"),
+        text("Özellik"),text("Pompa"),text("Metraj"),text("Sorumlu"),text("Telefon")
+      ]],
+      body:items.map(r=>[
+        text((r.saat||"").slice(0,5)),
+        text(r.santral||""),
+        text(r.santiye||""),
+        text(r.beton_sinifi||""),
+        text(r.beton_ozelligi||""),
+        text(r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız"),
+        text(`${m3(r.metraj)} m³`),
+        text(r.sorumlu_kisi||""),
+        text(r.telefon||"")
+      ]),
+      styles:{
+        font:pdfFont.name,
+        fontStyle:"normal",
+        fontSize:7,
+        charSpace:0
+      },
+      headStyles:{
+        font:pdfFont.name,
+        fontStyle:"normal",
+        fillColor:[111,66,193]
+      }
     });
-    if(y+75>1070){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`)}
-    canvasDrawTotal(ctx,"GENEL TOPLAM",`${m3(grand)} m³`,y);pages.push(page.canvas);
-    saveCanvasPages(doc,pages,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
-  }catch(error){console.error(error);alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"))}
-  finally{button.disabled=false;button.textContent=oldText}
+
+    y=doc.lastAutoTable.finalY+10;
+    if(y>180){doc.addPage();y=16}
+  });
+
+  doc.setFont(pdfFont.name,"normal");
+  doc.setCharSpace(0);
+  doc.setFontSize(13);
+  doc.text(text(`GENEL TOPLAM: ${m3(grand)} m³`),14,y);
+  doc.save(`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
 }
 
 function printTomorrow(){
@@ -1994,30 +1982,42 @@ function downloadExcel(){
   const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Sevkiyat Planı");
   XLSX.writeFile(wb,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.xlsx`);
 }
-function downloadPdf(){
+async function downloadPdf(){
+  if(!window.jspdf){alert("PDF modülü yüklenemedi. Sayfayı yenileyip tekrar deneyin.");return}
   const rows=exportRows();
   if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
-  const button=$("pdfBtn"),oldText=button.textContent;
-  button.disabled=true;button.textContent="PDF hazırlanıyor…";
-  try{
-    const doc=createCanvasPdfDocument();
-    const pages=[];
-    const headers=Object.keys(rows[0]);
-    const widths=[55,95,70,105,135,155,150,105,100,110,140,160];
-    const rangeLabels={daily:"Günlük plan",weekly:"Haftalık plan",monthly:"Aylık plan",all:"Tüm kayıtlar"};
-    let page=canvasPdfPage(),ctx=page.ctx;
-    let y=canvasDrawHeader(ctx,"Betonexa - Sevkiyat Planı",`${rangeLabels[$("exportRange").value]||"Sevkiyat planı"} - ${trDate($("exportDate").value)}`,`${rows.length} sevkiyat`);
-    y=canvasDrawTableHeader(ctx,headers,widths,y);
-    rows.forEach((record,index)=>{
-      const row=headers.map(header=>header==="Metraj (m³)"?`${m3(record[header])} m³`:String(record[header]??""));
-      ctx.font="15px Arial";const estimated=Math.max(42,Math.max(...row.map((v,i)=>canvasWrapText(ctx,v,widths[i]-14).slice(0,2).length))*20+16);
-      if(y+estimated>1050){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Sevkiyat Planı",`${rangeLabels[$("exportRange").value]||"Sevkiyat planı"} - ${trDate($("exportDate").value)}`,`${rows.length} sevkiyat`);y=canvasDrawTableHeader(ctx,headers,widths,y)}
-      y=canvasDrawTableRow(ctx,row,widths,y,index);
-    });
-    pages.push(page.canvas);
-    saveCanvasPages(doc,pages,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
-  }catch(error){console.error(error);alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"))}
-  finally{button.disabled=false;button.textContent=oldText}
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"landscape"});
+  const pdfFont=await preparePdfFont(doc);
+  const text=pdfFont.text;
+
+  doc.setFont(pdfFont.name,"normal");
+  doc.setCharSpace(0);
+  doc.setFontSize(16);
+  doc.text(text("Betonexa Sevkiyat Planı"),14,14);
+
+  const headers=Object.keys(rows[0]);
+  const body=rows.map(row=>headers.map(header=>text(String(row[header]??""))));
+
+  doc.autoTable({
+    head:[headers.map(text)],
+    body,
+    startY:20,
+    styles:{
+      font:pdfFont.name,
+      fontStyle:"normal",
+      fontSize:7,
+      charSpace:0
+    },
+    headStyles:{
+      font:pdfFont.name,
+      fontStyle:"normal",
+      fillColor:[111,66,193]
+    }
+  });
+
+  doc.save(`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
 }
 
 function printPlan(){
@@ -2088,4 +2088,67 @@ $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRef
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>s
+document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
+$("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
+window.removeSettingItem=removeSettingItem;
+window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
+loadAppSettings();refreshFormOptions();
+updateConcretePropertySummary();
+document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
+$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
+const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
+if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
+if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
+  try{
+    const regs=await navigator.serviceWorker.getRegistrations();
+    for(const reg of regs)await reg.unregister();
+    if("caches" in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+  }catch(e){console.warn("Önbellek temizleme atlandı:",e)}
+});
+</script>
+
+<script id="betonexa-forgot-password">
+(function(){
+  "use strict";
+  function init(){
+    const button=document.getElementById("forgotPasswordBtn");
+    const panel=document.getElementById("forgotPanel");
+    const email=document.getElementById("forgotEmail");
+    const send=document.getElementById("sendResetBtn");
+    const cancel=document.getElementById("cancelResetBtn");
+    const status=document.getElementById("forgotStatus");
+    if(!button||!panel||!send||!cancel)return;
+
+    button.addEventListener("click",function(e){
+      e.preventDefault();
+      panel.classList.toggle("hidden");
+      if(status)status.textContent="";
+      if(!panel.classList.contains("hidden")&&email)setTimeout(()=>email.focus(),0);
+    });
+
+    cancel.addEventListener("click",function(e){
+      e.preventDefault();
+      panel.classList.add("hidden");
+      if(status)status.textContent="";
+    });
+
+    send.addEventListener("click",async function(e){
+      e.preventDefault();
+      const value=(email?.value||"").trim();
+      if(!value||!value.includes("@")){
+        if(status)status.textContent="Lütfen geçerli bir e-posta adresi gir.";
+        return;
+      }
+      if(!window.supabase||typeof window.supabase.createClient!=="function"){
+        if(status)status.textContent="Şifre sıfırlama servisi yüklenemedi.";
+        return;
+      }
+      send.disabled=true;
+      if(status)status.textContent="Gönderiliyor…";
+      try{
+        const client=window.supabase.createClient(
+          "https://wryxelgeycagmljvtmnr.supabase.co",
+          "sb_publishable_c2KnSZnHRnSG
