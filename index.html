@@ -1497,7 +1497,7 @@ async function downloadTomorrowPdf(){
   const marginLeft=14;
   const marginRight=14;
   const purple=[111,66,193];
-  const lightGray=[172,172,178];
+  const lightGray=[145,145,150];
   const commonFontSize=11;
 
   const tomorrowIso=tomorrowDateString();
@@ -1519,23 +1519,23 @@ async function downloadTomorrowPdf(){
   doc.setCharSpace(0);
 
   /* Sağ üstte küçük, açık gri Betonexa işareti */
-  const logoSize=4;
+  const logoSize=6;
   const brandText="BETONEXA";
   doc.setTextColor(...lightGray);
   doc.setDrawColor(...lightGray);
-  doc.setLineWidth(0.45);
-  doc.setFontSize(5.2);
+  doc.setLineWidth(0.7);
+  doc.setFontSize(7);
 
   const brandWidth=doc.getTextWidth(text(brandText));
   const brandX=pageWidth-marginRight-brandWidth;
   const logoX=brandX-logoSize-1.6;
-  const logoY=4.6;
+  const logoY=3.8;
 
   doc.roundedRect(logoX,logoY,logoSize,logoSize,0.8,0.8);
-  doc.setFontSize(3.5);
-  doc.text("B",logoX+logoSize/2,logoY+2.95,{align:"center"});
-  doc.setFontSize(5.2);
-  doc.text(text(brandText),brandX,logoY+2.9);
+  doc.setFontSize(5);
+  doc.text("B",logoX+logoSize/2,logoY+4.25,{align:"center"});
+  doc.setFontSize(7);
+  doc.text(text(brandText),brandX,logoY+4.2);
 
   /* Başlık: sola hizalı ve firma/genel toplamla aynı punto */
   doc.setTextColor(...purple);
