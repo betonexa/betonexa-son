@@ -1,21 +1,20 @@
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#6f42c1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Betonexa">
-  <title>Betonexa Stable 1.2</title>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
-  <style>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#6f42c1">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-title" content="Betonexa">
+ <title>Betonexa PDF Stable</title>
+ <link rel="manifest" href="./manifest.webmanifest">
+ <link rel="apple-touch-icon" href="./icon-192.png">
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js?v=betonexa-20260805-1"></script>
+ <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
+ <style>
 
 :root {
   --purple: #6734bd;
@@ -675,306 +674,306 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 <body>
 <div id="loading" class="loading hidden">Yükleniyor…</div>
 <section id="login" class="login">
-  <div class="login-card">
-    <div class="brand"><img src="./icon-192.png" alt=""><div><h1>Betonexa</h1><small>Hazır Beton Sevkiyat Yönetimi</small></div></div>
-    <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem">
-    <label for="loginPass">Şifre</label>
-    <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password">
-    <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
-    <button id="loginBtn" type="button" class="btn btn-primary">Giriş Yap</button>
-    <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
-    <div id="forgotPanel" class="forgot-panel hidden">
-      <label for="forgotEmail">E-posta adresi</label>
-      <input id="forgotEmail" type="email" autocomplete="email" placeholder="ornek@firma.com">
-      <div class="forgot-actions">
-        <button id="sendResetBtn" type="button" class="btn btn-primary">Sıfırlama Bağlantısı Gönder</button>
-        <button id="cancelResetBtn" type="button" class="btn btn-light">Vazgeç</button>
-      </div>
-      <div id="forgotStatus" class="forgot-status"></div>
-    </div>
-    <div id="loginError" class="error"></div>
-  </div>
+ <div class="login-card">
+ <div class="brand"><img src="./icon-192.png" alt=""><div><h1>Betonexa</h1><small>Hazır Beton Sevkiyat Yönetimi</small></div></div>
+ <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem">
+ <label for="loginPass">Şifre</label>
+ <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password">
+ <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
+ <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+ <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
+ <div id="forgotPanel" class="forgot-panel hidden">
+ <label for="forgotEmail">E-posta adresi</label>
+ <input id="forgotEmail" type="email" autocomplete="email" placeholder="ornek@firma.com">
+ <div class="forgot-actions">
+ <button id="sendResetBtn" type="button" class="btn btn-primary">Sıfırlama Bağlantısı Gönder</button>
+ <button id="cancelResetBtn" type="button" class="btn btn-light">Vazgeç</button>
+ </div>
+ <div id="forgotStatus" class="forgot-status"></div>
+ </div>
+ <div id="loginError" class="error"></div>
+ </div>
 </section>
 
 <div id="app" class="shell hidden">
-  <header class="top">
-    <div class="brand"><img src="./icon-192.png" alt=""><h1>Betonexa</h1><span>Akıllı Hazır Beton Sevkiyat ve Operasyon Platformu</span></div>
-    <div style="display:flex;gap:8px"><button id="themeBtn" class="btn btn-light theme-btn" title="Tema değiştir">🌙</button><button id="logoutBtn" class="btn btn-light">Çıkış</button></div>
-  </header>
-  <main class="content">
-    <section class="kpis">
-      <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
-      <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
-      <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
-      <div class="kpi">
-        <small>AYLIK m³</small>
-        <input id="kpiMonthPicker" type="month" aria-label="Aylık m³ için ay seç">
-        <strong id="kpiMonth">0,00</strong>
-      </div>
-    </section>
-    <nav class="tabs">
-      <button class="btn btn-light active" data-page="records">🚚 Sevkiyatlar</button>
-      <button class="btn btn-light" data-page="tomorrow">📅 Yarınki Sevkiyatlar</button>
-      <button class="btn btn-light" data-page="calendar">📅 Haftalık Takvim</button>
-      <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
-      <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
-      <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
-    </nav>
+ <header class="top">
+ <div class="brand"><img src="./icon-192.png" alt=""><h1>Betonexa</h1><span>Akıllı Hazır Beton Sevkiyat ve Operasyon Platformu</span></div>
+ <div style="display:flex;gap:8px"><button id="themeBtn" class="btn btn-light theme-btn" title="Tema değiştir">🌙</button><button id="logoutBtn" class="btn btn-light">Çıkış</button></div>
+ </header>
+ <main class="content">
+ <section class="kpis">
+ <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
+ <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
+ <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
+ <div class="kpi">
+ <small>AYLIK m³</small>
+ <input id="kpiMonthPicker" type="month" aria-label="Aylık m³ için ay seç">
+ <strong id="kpiMonth">0,00</strong>
+ </div>
+ </section>
+ <nav class="tabs">
+ <button class="btn btn-light active" data-page="records">🚚 Sevkiyatlar</button>
+ <button class="btn btn-light" data-page="tomorrow">📅 Yarınki Sevkiyatlar</button>
+ <button class="btn btn-light" data-page="calendar">📅 Haftalık Takvim</button>
+ <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
+ <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
+ <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
+ </nav>
 
-    <section id="dashboardPage" class="panel hidden">
-      <div class="dashboard-head">
-        <div>
-          <h2>Bugünün Operasyon Özeti</h2>
-          <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Stable 1.0</small>
-        </div>
-        <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
-      </div>
+ <section id="dashboardPage" class="panel hidden">
+ <div class="dashboard-head">
+ <div>
+ <h2>Bugünün Operasyon Özeti</h2>
+ <small id="dashboardDate"></small><small style="margin-left:8px;color:#8b5bd3">Stable 1.0</small>
+ </div>
+ <button id="dashboardRefresh" type="button" class="btn btn-primary">Dashboard'u Yenile</button>
+ </div>
 
-      <div class="dashboard-kpis">
-        <div class="dashboard-kpi">
-          <div class="icon">🚚</div>
-          <small>BUGÜNKÜ SEVKİYAT</small>
-          <strong id="dashTodayCount">0</strong>
-          <span>Bugün planlanan toplam sevkiyat</span>
-        </div>
-        <div class="dashboard-kpi">
-          <div class="icon">🧱</div>
-          <small>BUGÜNKÜ TOPLAM BETON</small>
-          <strong id="dashTodayM3">0,00 m³</strong>
-          <span>Bugün planlanan toplam beton miktarı</span>
-        </div>
-        <div class="dashboard-kpi">
-          <div class="icon">🚛</div>
-          <small>POMPALI BETON</small>
-          <strong id="dashPumpedM3">0,00 m³</strong>
-          <span>Bugünkü pompalı sevkiyat miktarı</span>
-        </div>
-        <div class="dashboard-kpi">
-          <div class="icon">🏗️</div>
-          <small>POMPASIZ BETON</small>
-          <strong id="dashUnpumpedM3">0,00 m³</strong>
-          <span>Bugünkü pompasız sevkiyat miktarı</span>
-        </div>
-      </div>
+ <div class="dashboard-kpis">
+ <div class="dashboard-kpi">
+ <div class="icon">🚚</div>
+ <small>BUGÜNKÜ SEVKİYAT</small>
+ <strong id="dashTodayCount">0</strong>
+ <span>Bugün planlanan toplam sevkiyat</span>
+ </div>
+ <div class="dashboard-kpi">
+ <div class="icon">🧱</div>
+ <small>BUGÜNKÜ TOPLAM BETON</small>
+ <strong id="dashTodayM3">0,00 m³</strong>
+ <span>Bugün planlanan toplam beton miktarı</span>
+ </div>
+ <div class="dashboard-kpi">
+ <div class="icon">🚛</div>
+ <small>POMPALI BETON</small>
+ <strong id="dashPumpedM3">0,00 m³</strong>
+ <span>Bugünkü pompalı sevkiyat miktarı</span>
+ </div>
+ <div class="dashboard-kpi">
+ <div class="icon">🏗️</div>
+ <small>POMPASIZ BETON</small>
+ <strong id="dashUnpumpedM3">0,00 m³</strong>
+ <span>Bugünkü pompasız sevkiyat miktarı</span>
+ </div>
+ </div>
 
-      <h3 class="dashboard-section-title">Bugünün En Yoğunları</h3>
-      <div class="dashboard-leaders">
-        <div class="dashboard-leader">
-          <small>🏢 EN YOĞUN FİRMA</small>
-          <strong id="dashTopCompany">-</strong>
-          <span id="dashTopCompanyM3">0,00 m³</span>
-        </div>
-        <div class="dashboard-leader">
-          <small>🏭 EN YOĞUN SANTRAL</small>
-          <strong id="dashTopPlant">-</strong>
-          <span id="dashTopPlantM3">0,00 m³</span>
-        </div>
-        <div class="dashboard-leader">
-          <small>🏗️ EN YOĞUN ŞANTİYE</small>
-          <strong id="dashTopSite">-</strong>
-          <span id="dashTopSiteM3">0,00 m³</span>
-        </div>
-        <div class="dashboard-leader">
-          <small>🚛 EN ÇOK KULLANILAN POMPA</small>
-          <strong id="dashTopPump">-</strong>
-          <span id="dashTopPumpM3">0,00 m³</span>
-        </div>
-      </div>
+ <h3 class="dashboard-section-title">Bugünün En Yoğunları</h3>
+ <div class="dashboard-leaders">
+ <div class="dashboard-leader">
+ <small>🏢 EN YOĞUN FİRMA</small>
+ <strong id="dashTopCompany">-</strong>
+ <span id="dashTopCompanyM3">0,00 m³</span>
+ </div>
+ <div class="dashboard-leader">
+ <small>🏭 EN YOĞUN SANTRAL</small>
+ <strong id="dashTopPlant">-</strong>
+ <span id="dashTopPlantM3">0,00 m³</span>
+ </div>
+ <div class="dashboard-leader">
+ <small>🏗️ EN YOĞUN ŞANTİYE</small>
+ <strong id="dashTopSite">-</strong>
+ <span id="dashTopSiteM3">0,00 m³</span>
+ </div>
+ <div class="dashboard-leader">
+ <small>🚛 EN ÇOK KULLANILAN POMPA</small>
+ <strong id="dashTopPump">-</strong>
+ <span id="dashTopPumpM3">0,00 m³</span>
+ </div>
+ </div>
 
-      <h3 class="dashboard-section-title">Operasyon Uyarıları</h3>
-      <div id="dashboardAlerts" class="dashboard-alerts"></div>
+ <h3 class="dashboard-section-title">Operasyon Uyarıları</h3>
+ <div id="dashboardAlerts" class="dashboard-alerts"></div>
 
-      <h3 class="dashboard-section-title">Operasyon Grafikleri</h3>
-      <div class="dashboard-charts">
-        <div class="dashboard-chart">
-          <h4>📈 Son 7 Günlük Beton</h4>
-          <canvas id="chartLast7Days"></canvas>
-        </div>
-        <div class="dashboard-chart">
-          <h4>🏢 İlk 5 Firma</h4>
-          <canvas id="chartTopCompanies"></canvas>
-        </div>
-        <div class="dashboard-chart">
-          <h4>🏭 Santral Dağılımı</h4>
-          <canvas id="chartPlants"></canvas>
-        </div>
-        <div class="dashboard-chart">
-          <h4>🚛 Pompa Kullanımı</h4>
-          <canvas id="chartPumps"></canvas>
-        </div>
-      </div>
-    </section>
+ <h3 class="dashboard-section-title">Operasyon Grafikleri</h3>
+ <div class="dashboard-charts">
+ <div class="dashboard-chart">
+ <h4>📈 Son 7 Günlük Beton</h4>
+ <canvas id="chartLast7Days"></canvas>
+ </div>
+ <div class="dashboard-chart">
+ <h4>🏢 İlk 5 Firma</h4>
+ <canvas id="chartTopCompanies"></canvas>
+ </div>
+ <div class="dashboard-chart">
+ <h4>🏭 Santral Dağılımı</h4>
+ <canvas id="chartPlants"></canvas>
+ </div>
+ <div class="dashboard-chart">
+ <h4>🚛 Pompa Kullanımı</h4>
+ <canvas id="chartPumps"></canvas>
+ </div>
+ </div>
+ </section>
 
-    <section id="tomorrowPage" class="panel hidden">
-      <div class="tomorrow-header">
-        <div>
-          <h2>📅 Yarınki Sevkiyatlar</h2>
-          <small id="tomorrowDateLabel"></small>
-        </div>
-        <div class="tomorrow-actions">
-          <button id="tomorrowPdfBtn" class="btn btn-primary" type="button">PDF İndir</button>
-          <button id="tomorrowExcelBtn" class="btn btn-light" type="button">Excel İndir</button>
-          <button id="tomorrowPrintBtn" class="btn btn-light" type="button">Yazdır</button>
-        </div>
-      </div>
-      <div id="tomorrowReport"></div>
-    </section>
+ <section id="tomorrowPage" class="panel hidden">
+ <div class="tomorrow-header">
+ <div>
+ <h2>📅 Yarınki Sevkiyatlar</h2>
+ <small id="tomorrowDateLabel"></small>
+ </div>
+ <div class="tomorrow-actions">
+ <button id="tomorrowPdfBtn" class="btn btn-primary" type="button">PDF İndir</button>
+ <button id="tomorrowExcelBtn" class="btn btn-light" type="button">Excel İndir</button>
+ <button id="tomorrowPrintBtn" class="btn btn-light" type="button">Yazdır</button>
+ </div>
+ </div>
+ <div id="tomorrowReport"></div>
+ </section>
 
-    <section id="recordsPage" class="panel">
-      <div class="dashboard-head"><div><h2>Yeni Sevkiyat Ekle</h2><small>Sevkiyat bilgilerini doldurarak kaydedebilirsin.</small></div></div>
-      <form id="shipmentForm">
-        <input id="editId" type="hidden">
-        <div class="shipment-fields">
-          <div class="field"><label>Tarih</label><input id="tarih" type="date" required></div>
-          <div class="field"><label>Saat</label><input id="saat" type="time" required></div>
-          <div class="field"><label>Santral</label><select id="santral" required>
-            <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
-          </select></div>
+ <section id="recordsPage" class="panel">
+ <div class="dashboard-head"><div><h2>Yeni Sevkiyat Ekle</h2><small>Sevkiyat bilgilerini doldurarak kaydedebilirsin.</small></div></div>
+ <form id="shipmentForm">
+ <input id="editId" type="hidden">
+ <div class="shipment-fields">
+ <div class="field"><label>Tarih</label><input id="tarih" type="date" required></div>
+ <div class="field"><label>Saat</label><input id="saat" type="time" required></div>
+ <div class="field"><label>Santral</label><select id="santral" required>
+ <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
+ </select></div>
 
-          <div class="field"><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
-          <div class="field"><label>Şantiye</label><input id="santiye"></div>
-          <div class="field"><label>Beton sınıfı</label><select id="betonSinifi" required>
-            <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option>
-          </select></div>
+ <div class="field"><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
+ <div class="field"><label>Şantiye</label><input id="santiye"></div>
+ <div class="field"><label>Beton sınıfı</label><select id="betonSinifi" required>
+ <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option>
+ </select></div>
 
-          <div class="field">
-            <label>Beton özelliği</label>
-            <div class="multi-select" id="betonOzellikSelect">
-              <button type="button" class="multi-select-toggle" id="betonOzellikToggle" aria-expanded="false">
-                <span id="betonOzellikSummary" class="placeholder">Beton özelliği seçiniz</span>
-                <span class="multi-select-arrow">▼</span>
-              </button>
-              <div class="multi-select-menu" id="betonOzellikleri">
-                <label class="multi-select-option"><input type="checkbox" value="Normal"> Normal</label>
-                <label class="multi-select-option"><input type="checkbox" value="S3"> S3</label>
-                <label class="multi-select-option"><input type="checkbox" value="S4"> S4</label>
-                <label class="multi-select-option"><input type="checkbox" value="Az Katkılı"> Az Katkılı</label>
-                <label class="multi-select-option"><input type="checkbox" value="Katkısız"> Katkısız</label>
-                <label class="multi-select-option"><input type="checkbox" value="Brüt"> Brüt</label>
-                <label class="multi-select-option"><input type="checkbox" value="Su Geçirimsiz"> Su Geçirimsiz</label>
-              </div>
-            </div>
-          </div>
+ <div class="field">
+ <label>Beton özelliği</label>
+ <div class="multi-select" id="betonOzellikSelect">
+ <button type="button" class="multi-select-toggle" id="betonOzellikToggle" aria-expanded="false">
+ <span id="betonOzellikSummary" class="placeholder">Beton özelliği seçiniz</span>
+ <span class="multi-select-arrow">▼</span>
+ </button>
+ <div class="multi-select-menu" id="betonOzellikleri">
+ <label class="multi-select-option"><input type="checkbox" value="Normal"> Normal</label>
+ <label class="multi-select-option"><input type="checkbox" value="S3"> S3</label>
+ <label class="multi-select-option"><input type="checkbox" value="S4"> S4</label>
+ <label class="multi-select-option"><input type="checkbox" value="Az Katkılı"> Az Katkılı</label>
+ <label class="multi-select-option"><input type="checkbox" value="Katkısız"> Katkısız</label>
+ <label class="multi-select-option"><input type="checkbox" value="Brüt"> Brüt</label>
+ <label class="multi-select-option"><input type="checkbox" value="Su Geçirimsiz"> Su Geçirimsiz</label>
+ </div>
+ </div>
+ </div>
 
-          <div class="field"><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
-          <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
-          <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
-        </div>
+ <div class="field"><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
+ <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
+ <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
+ </div>
 
-        <div class="contact-row">
-          <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" placeholder="Sorumlu kişi adı"></div>
-          <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="0553 618 18 53"></div>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
-          <button class="btn btn-light hidden" type="button" id="cancelEdit">Düzenlemeyi İptal Et</button>
-          <button class="btn btn-light" type="button" id="refreshBtn">Yenile</button>
-        </div>
-        <div id="status" class="status"></div>
-      </form>
+ <div class="contact-row">
+ <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" placeholder="Sorumlu kişi adı"></div>
+ <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="0553 618 18 53"></div>
+ </div>
+ <div class="form-actions">
+ <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
+ <button class="btn btn-light hidden" type="button" id="cancelEdit">Düzenlemeyi İptal Et</button>
+ <button class="btn btn-light" type="button" id="refreshBtn">Yenile</button>
+ </div>
+ <div id="status" class="status"></div>
+ </form>
 
-      <div class="records-report">
-      <div class="export-bar">
-        <div><label>Plan dönemi</label><select id="exportRange">
-          <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
-          <option value="monthly">Aylık</option><option value="all">Tümü</option>
-        </select></div>
-        <div><label>Referans tarihi</label><input id="exportDate" type="date"></div>
-        <button type="button" class="btn btn-light" id="pdfBtn">PDF İndir</button>
-        <button type="button" class="btn btn-light" id="excelBtn">Excel İndir</button>
-        <button type="button" class="btn btn-light" id="printBtn">Yazdır</button>
-      </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>No</th><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table></div>
-      </div>
-    </section>
+ <div class="records-report">
+ <div class="export-bar">
+ <div><label>Plan dönemi</label><select id="exportRange">
+ <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
+ <option value="monthly">Aylık</option><option value="all">Tümü</option>
+ </select></div>
+ <div><label>Referans tarihi</label><input id="exportDate" type="date"></div>
+ <button type="button" class="btn btn-light" id="pdfBtn">PDF İndir</button>
+ <button type="button" class="btn btn-light" id="excelBtn">Excel İndir</button>
+ <button type="button" class="btn btn-light" id="printBtn">Yazdır</button>
+ </div>
+ <div class="table-wrap"><table>
+ <thead><tr><th>No</th><th>Tarih</th><th>Saat</th><th>Santral</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th><th>Sorumlu</th><th>Telefon</th><th>İşlem</th></tr></thead>
+ <tbody id="rows"></tbody>
+ </table></div>
+ </div>
+ </section>
 
-    <section id="calendarPage" class="panel hidden">
-      <div class="drag-hint">Sevkiyat kartını sürükleyip başka gün veya saate bırakarak tarih ve saatini değiştirebilirsin.</div>
-      <div class="calendar-toolbar"><div><button id="prevWeek" class="btn btn-light">◀ Önceki</button> <button id="thisWeek" class="btn btn-light">Bu Hafta</button> <button id="nextWeek" class="btn btn-light">Sonraki ▶</button></div><strong id="weekTitle"></strong></div>
-      <div class="week"><div id="weekGrid" class="grid"></div></div>
-    </section>
+ <section id="calendarPage" class="panel hidden">
+ <div class="drag-hint">Sevkiyat kartını sürükleyip başka gün veya saate bırakarak tarih ve saatini değiştirebilirsin.</div>
+ <div class="calendar-toolbar"><div><button id="prevWeek" class="btn btn-light">◀ Önceki</button> <button id="thisWeek" class="btn btn-light">Bu Hafta</button> <button id="nextWeek" class="btn btn-light">Sonraki ▶</button></div><strong id="weekTitle"></strong></div>
+ <div class="week"><div id="weekGrid" class="grid"></div></div>
+ </section>
 
-    <section id="analysisPage" class="panel hidden">
-      <div class="analysis-mode-tabs">
-        <button type="button" class="btn btn-light active" data-analysis-mode="company">🏢 Firma Analizi</button>
-        <button type="button" class="btn btn-light" data-analysis-mode="plant">🏭 Santral Analizi</button>
-        <button type="button" class="btn btn-light" data-analysis-mode="site">🏗️ Şantiye Analizi</button>
-        <button type="button" class="btn btn-light" data-analysis-mode="pump">🚛 Pompa Analizi</button>
-      </div>
-      <div class="analysis-toolbar">
-        <div><label>Analiz dönemi</label><select id="analysisRange">
-          <option value="week">Bu hafta</option>
-          <option value="month">Bu ay</option>
-          <option value="year">Bu yıl</option>
-          <option value="all">Tüm zamanlar</option>
-          <option value="custom">Özel tarih aralığı</option>
-        </select></div>
-        <div id="analysisStartWrap" class="hidden"><label>Başlangıç</label><input id="analysisStart" type="date"></div>
-        <div id="analysisEndWrap" class="hidden"><label>Bitiş</label><input id="analysisEnd" type="date"></div>
-        <button id="analysisRefresh" type="button" class="btn btn-primary">Analizi Yenile</button>
-      </div>
+ <section id="analysisPage" class="panel hidden">
+ <div class="analysis-mode-tabs">
+ <button type="button" class="btn btn-light active" data-analysis-mode="company">🏢 Firma Analizi</button>
+ <button type="button" class="btn btn-light" data-analysis-mode="plant">🏭 Santral Analizi</button>
+ <button type="button" class="btn btn-light" data-analysis-mode="site">🏗️ Şantiye Analizi</button>
+ <button type="button" class="btn btn-light" data-analysis-mode="pump">🚛 Pompa Analizi</button>
+ </div>
+ <div class="analysis-toolbar">
+ <div><label>Analiz dönemi</label><select id="analysisRange">
+ <option value="week">Bu hafta</option>
+ <option value="month">Bu ay</option>
+ <option value="year">Bu yıl</option>
+ <option value="all">Tüm zamanlar</option>
+ <option value="custom">Özel tarih aralığı</option>
+ </select></div>
+ <div id="analysisStartWrap" class="hidden"><label>Başlangıç</label><input id="analysisStart" type="date"></div>
+ <div id="analysisEndWrap" class="hidden"><label>Bitiş</label><input id="analysisEnd" type="date"></div>
+ <button id="analysisRefresh" type="button" class="btn btn-primary">Analizi Yenile</button>
+ </div>
 
-      <div class="analysis-summary">
-        <div class="analysis-card"><small id="analysisEntityLabel">FİRMA SAYISI</small><strong id="analysisCompanyCount">0</strong></div>
-        <div class="analysis-card"><small>TOPLAM SEVKİYAT</small><strong id="analysisShipmentCount">0</strong></div>
-        <div class="analysis-card"><small>TOPLAM BETON</small><strong id="analysisTotalM3">0,00 m³</strong></div>
-        <div class="analysis-card"><small>ORTALAMA SEVKİYAT</small><strong id="analysisAverageM3">0,00 m³</strong></div>
-      </div>
+ <div class="analysis-summary">
+ <div class="analysis-card"><small id="analysisEntityLabel">FİRMA SAYISI</small><strong id="analysisCompanyCount">0</strong></div>
+ <div class="analysis-card"><small>TOPLAM SEVKİYAT</small><strong id="analysisShipmentCount">0</strong></div>
+ <div class="analysis-card"><small>TOPLAM BETON</small><strong id="analysisTotalM3">0,00 m³</strong></div>
+ <div class="analysis-card"><small>ORTALAMA SEVKİYAT</small><strong id="analysisAverageM3">0,00 m³</strong></div>
+ </div>
 
-      <div class="analysis-layout">
-        <div class="analysis-box">
-          <h3 id="analysisListTitle">Firma Analizi</h3>
-          <div id="analysisCompanyList" class="analysis-list"></div>
-        </div>
-        <div class="analysis-box">
-          <h3 id="analysisDetailTitle">Firma ayrıntısı</h3>
-          <div id="analysisDetail" class="analysis-detail">
-            <div class="analysis-empty">Ayrıntıları görmek için soldan bir firma seç.</div>
-          </div>
-        </div>
-      </div>
-    </section>
+ <div class="analysis-layout">
+ <div class="analysis-box">
+ <h3 id="analysisListTitle">Firma Analizi</h3>
+ <div id="analysisCompanyList" class="analysis-list"></div>
+ </div>
+ <div class="analysis-box">
+ <h3 id="analysisDetailTitle">Firma ayrıntısı</h3>
+ <div id="analysisDetail" class="analysis-detail">
+ <div class="analysis-empty">Ayrıntıları görmek için soldan bir firma seç.</div>
+ </div>
+ </div>
+ </div>
+ </section>
 
-    <section id="settingsPage" class="panel hidden">
-      <div class="dashboard-head">
-        <div>
-          <h2>Ayarlar</h2>
-          <small>Sevkiyat formunda kullanılacak firma ve santral listelerini yönet.</small>
-        </div>
-      </div>
+ <section id="settingsPage" class="panel hidden">
+ <div class="dashboard-head">
+ <div>
+ <h2>Ayarlar</h2>
+ <small>Sevkiyat formunda kullanılacak firma ve santral listelerini yönet.</small>
+ </div>
+ </div>
 
-      <div class="settings-grid">
-        <div class="settings-box">
-          <h3>🏢 Firmalar</h3>
-          <div class="settings-body">
-            <div class="settings-add">
-              <div><label>Yeni firma adı</label><input id="newCompanyName" placeholder="Örn. AAA İnşaat"></div>
-              <button id="addCompanyBtn" type="button" class="btn btn-primary">Ekle</button>
-            </div>
-            <div id="settingsCompanyList" class="settings-list"></div>
-          </div>
-        </div>
+ <div class="settings-grid">
+ <div class="settings-box">
+ <h3>🏢 Firmalar</h3>
+ <div class="settings-body">
+ <div class="settings-add">
+ <div><label>Yeni firma adı</label><input id="newCompanyName" placeholder="Örn. AAA İnşaat"></div>
+ <button id="addCompanyBtn" type="button" class="btn btn-primary">Ekle</button>
+ </div>
+ <div id="settingsCompanyList" class="settings-list"></div>
+ </div>
+ </div>
 
-        <div class="settings-box">
-          <h3>🏭 Santraller</h3>
-          <div class="settings-body">
-            <div class="settings-add">
-              <div><label>Yeni santral adı</label><input id="newPlantName" placeholder="Örn. Bornova"></div>
-              <button id="addPlantBtn" type="button" class="btn btn-primary">Ekle</button>
-            </div>
-            <div id="settingsPlantList" class="settings-list"></div>
-          </div>
-        </div>
-      </div>
+ <div class="settings-box">
+ <h3>🏭 Santraller</h3>
+ <div class="settings-body">
+ <div class="settings-add">
+ <div><label>Yeni santral adı</label><input id="newPlantName" placeholder="Örn. Bornova"></div>
+ <button id="addPlantBtn" type="button" class="btn btn-primary">Ekle</button>
+ </div>
+ <div id="settingsPlantList" class="settings-list"></div>
+ </div>
+ </div>
+ </div>
 
-      <div class="settings-note">
+ <div class="settings-note">
         Eklediğin firma ve santraller sevkiyat formuna otomatik yansır. Kullanılmış bir kayıt silinse bile eski sevkiyat kayıtları değişmez.
-      </div>
-    </section>
-  </main>
+ </div>
+ </section>
+ </main>
 </div>
 
 <script>
@@ -1434,223 +1433,129 @@ function downloadTomorrowExcel(){
   XLSX.writeFile(wb,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.xlsx`);
 }
 
-async function saveHtmlElementAsPdf(element,fileName){
-  if(!window.jspdf||!window.html2canvas){
-    throw new Error("PDF modülü yüklenemedi.");
+function createCanvasPdfDocument(){
+  if(!window.jspdf)throw new Error("PDF modülü yüklenemedi.");
+  const {jsPDF}=window.jspdf;
+  return new jsPDF({orientation:"landscape",unit:"mm",format:"a4",compress:true});
+}
+function canvasPdfPage(){
+  const canvas=document.createElement("canvas");
+  canvas.width=1600;canvas.height=1131;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.textBaseline="top";
+  return {canvas,ctx};
+}
+function canvasWrapText(ctx,text,maxWidth){
+  const value=String(text??"");
+  if(!value)return [""];
+  const words=value.split(/\s+/);
+  const lines=[];let line="";
+  words.forEach(word=>{
+    const test=line?line+" "+word:word;
+    if(ctx.measureText(test).width<=maxWidth||!line)line=test;
+    else{lines.push(line);line=word}
+  });
+  if(line)lines.push(line);
+  return lines.length?lines:[""];
+}
+function canvasDrawText(ctx,text,x,y,maxWidth,lineHeight,maxLines=2,align="left"){
+  const lines=canvasWrapText(ctx,text,maxWidth).slice(0,maxLines);
+  lines.forEach((line,index)=>{
+    let tx=x;
+    if(align==="right")tx=x+maxWidth-ctx.measureText(line).width;
+    else if(align==="center")tx=x+(maxWidth-ctx.measureText(line).width)/2;
+    ctx.fillText(line,tx,y+index*lineHeight);
+  });
+  return lines.length;
+}
+function canvasPdfAddPage(doc,canvas,isFirst){
+  if(!isFirst)doc.addPage();
+  doc.addImage(canvas.toDataURL("image/jpeg",0.96),"JPEG",0,0,297,210,undefined,"FAST");
+}
+function canvasDrawHeader(ctx,title,subtitle,badge){
+  ctx.fillStyle="#4f268f";ctx.font="700 34px Arial";
+  ctx.fillText(title,60,45);
+  ctx.fillStyle="#667085";ctx.font="22px Arial";
+  ctx.fillText(subtitle||"",60,92);
+  if(badge){
+    const bw=Math.max(150,ctx.measureText(badge).width+40);
+    ctx.fillStyle="#eee6fb";ctx.beginPath();ctx.roundRect(1600-60-bw,46,bw,48,14);ctx.fill();
+    ctx.fillStyle="#5d2eae";ctx.font="700 21px Arial";ctx.fillText(badge,1600-60-bw+20,59);
   }
-
-  document.body.appendChild(element);
-  try{
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-
-    const canvas=await html2canvas(element,{
-      scale:2,
-      backgroundColor:"#ffffff",
-      useCORS:true,
-      logging:false,
-      windowWidth:1120
-    });
-
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF({
-      orientation:"landscape",
-      unit:"mm",
-      format:"a4",
-      compress:true
-    });
-
-    const margin=8;
-    const pageWidth=doc.internal.pageSize.getWidth();
-    const pageHeight=doc.internal.pageSize.getHeight();
-    const usableWidth=pageWidth-margin*2;
-    const usableHeight=pageHeight-margin*2;
-    const pagePixelHeight=Math.floor(canvas.width*usableHeight/usableWidth);
-
-    let sourceY=0;
-    let pageIndex=0;
-
-    while(sourceY<canvas.height){
-      const sliceHeight=Math.min(pagePixelHeight,canvas.height-sourceY);
-      const slice=document.createElement("canvas");
-      slice.width=canvas.width;
-      slice.height=sliceHeight;
-
-      const ctx=slice.getContext("2d");
-      ctx.fillStyle="#ffffff";
-      ctx.fillRect(0,0,slice.width,slice.height);
-      ctx.drawImage(
-        canvas,
-        0,sourceY,canvas.width,sliceHeight,
-        0,0,canvas.width,sliceHeight
-      );
-
-      if(pageIndex>0)doc.addPage();
-
-      const imageHeight=sliceHeight*usableWidth/canvas.width;
-      doc.addImage(
-        slice.toDataURL("image/jpeg",0.96),
-        "JPEG",
-        margin,
-        margin,
-        usableWidth,
-        imageHeight,
-        undefined,
-        "FAST"
-      );
-
-      sourceY+=sliceHeight;
-      pageIndex++;
-    }
-
-    doc.save(fileName);
-  }finally{
-    element.remove();
-  }
+  ctx.fillStyle="#6f42c1";ctx.fillRect(60,135,1480,5);
+  return 168;
+}
+function canvasDrawTableHeader(ctx,headers,widths,y){
+  let x=60;ctx.font="700 17px Arial";
+  headers.forEach((header,i)=>{
+    ctx.fillStyle="#6f42c1";ctx.fillRect(x,y,widths[i],44);
+    ctx.strokeStyle="#7e56c6";ctx.strokeRect(x,y,widths[i],44);
+    ctx.fillStyle="#ffffff";canvasDrawText(ctx,header,x+7,y+11,widths[i]-14,18,2,"left");
+    x+=widths[i];
+  });
+  return y+44;
+}
+function canvasDrawTableRow(ctx,row,widths,y,rowIndex){
+  ctx.font="16px Arial";
+  const lineHeight=20;
+  const lines=row.map((value,i)=>canvasWrapText(ctx,String(value??""),widths[i]-14).slice(0,2));
+  const rowHeight=Math.max(42,Math.max(...lines.map(v=>v.length))*lineHeight+16);
+  let x=60;
+  row.forEach((value,i)=>{
+    ctx.fillStyle=rowIndex%2===0?"#ffffff":"#f7f7f9";ctx.fillRect(x,y,widths[i],rowHeight);
+    ctx.strokeStyle="#d9dde5";ctx.strokeRect(x,y,widths[i],rowHeight);
+    ctx.fillStyle=i===row.length-1?"#273142":"#273142";
+    canvasDrawText(ctx,value,x+7,y+8,widths[i]-14,lineHeight,2,"left");
+    x+=widths[i];
+  });
+  return y+rowHeight;
+}
+function canvasDrawTotal(ctx,label,value,y){
+  ctx.fillStyle="#5a2ca7";ctx.beginPath();ctx.roundRect(60,y,1480,62,13);ctx.fill();
+  ctx.fillStyle="#ffffff";ctx.font="700 27px Arial";ctx.fillText(label,82,y+16);
+  const w=ctx.measureText(value).width;ctx.fillText(value,1515-w,y+16);
+}
+function saveCanvasPages(doc,pages,fileName){
+  pages.forEach((page,index)=>canvasPdfAddPage(doc,page,index===0));
+  doc.save(fileName);
 }
 
-function pdfReportShell(title,subtitle,badge,content,totalLabel,totalValue){
-  const container=document.createElement("div");
-  container.style.cssText=[
-    "position:fixed",
-    "left:-100000px",
-    "top:0",
-    "width:1120px",
-    "padding:38px 42px",
-    "background:#ffffff",
-    "color:#202633",
-    "font-family:Arial,Helvetica,sans-serif",
-    "font-size:14px",
-    "line-height:1.35"
-  ].join(";");
-
-  container.innerHTML=`
-    <style>
-      *{box-sizing:border-box}
-      .pdf-header{
-        display:flex;align-items:flex-start;justify-content:space-between;
-        gap:20px;margin-bottom:22px;padding-bottom:16px;
-        border-bottom:3px solid #6f42c1
-      }
-      .pdf-header h1{
-        margin:0;color:#4f268f;font-size:26px;letter-spacing:0
-      }
-      .pdf-header p{
-        margin:6px 0 0;color:#667085;font-size:14px
-      }
-      .pdf-badge{
-        flex:0 0 auto;padding:10px 14px;border-radius:12px;
-        color:#5d2eae;background:#eee6fb;font-size:13px;font-weight:800
-      }
-      .pdf-section{
-        margin:0 0 22px;break-inside:avoid;page-break-inside:avoid
-      }
-      .pdf-section-title{
-        display:flex;align-items:center;justify-content:space-between;gap:14px;
-        padding:12px 14px;color:#4f268f;background:#f2ecfb;
-        border:1px solid #dfd2f3;border-bottom:0;
-        border-radius:11px 11px 0 0;font-size:16px
-      }
-      .pdf-section-title span{
-        white-space:nowrap;font-weight:800;color:#6f42c1
-      }
-      table{
-        width:100%;border-collapse:collapse;table-layout:fixed;
-        border:1px solid #d8dbe3
-      }
-      th{
-        padding:9px 7px;color:#fff;background:#6f42c1;
-        border:1px solid #7950c5;font-size:11px;text-align:left
-      }
-      td{
-        padding:9px 7px;border:1px solid #dde0e7;
-        color:#273142;font-size:11px;overflow-wrap:anywhere;vertical-align:top
-      }
-      tbody tr:nth-child(even) td{background:#f7f7f9}
-      .pdf-number{white-space:nowrap;font-weight:800;color:#5d2eae}
-      .pdf-total{
-        display:flex;align-items:center;justify-content:space-between;gap:20px;
-        margin-top:8px;padding:15px 18px;border-radius:12px;color:#fff;
-        background:linear-gradient(90deg,#5a2ca7,#7544ca);
-        font-size:20px;font-weight:900
-      }
-      .pdf-footer{
-        margin-top:18px;color:#7a8190;font-size:10px;text-align:center
-      }
-    </style>
-    <header class="pdf-header">
-      <div><h1>${title}</h1><p>${subtitle}</p></div>
-      ${badge?`<div class="pdf-badge">${badge}</div>`:""}
-    </header>
-    ${content}
-    ${totalLabel?`<div class="pdf-total"><span>${totalLabel}</span><strong>${totalValue}</strong></div>`:""}
-    <div class="pdf-footer">Betonexa Hazır Beton Sevkiyat Yönetimi</div>
-  `;
-  return container;
-}
-
-async function downloadTomorrowPdf(){
+function downloadTomorrowPdf(){
   const groups=groupTomorrow();
   if(!groups.length){alert("Yarın için sevkiyat yok.");return}
-
-  const button=$("tomorrowPdfBtn");
-  const oldText=button.textContent;
-  button.disabled=true;
-  button.textContent="PDF hazırlanıyor…";
-
+  const button=$("tomorrowPdfBtn"),oldText=button.textContent;
+  button.disabled=true;button.textContent="PDF hazırlanıyor…";
   try{
+    const doc=createCanvasPdfDocument();
+    const pages=[];
+    const headers=["Saat","Santral","Şantiye","Beton","Özellik","Pompa","Metraj","Sorumlu","Telefon"];
+    const widths=[88,135,190,105,165,120,105,155,142];
+    let page=canvasPdfPage(),ctx=page.ctx;
+    let y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`);
     let grand=0;
-
-    const sections=groups.map(([company,items])=>{
-      const subtotal=items.reduce((sum,row)=>sum+Number(row.metraj||0),0);
-      grand+=subtotal;
-
-      const rows=items.map(row=>`<tr>
-        <td>${esc((row.saat||"").slice(0,5))}</td>
-        <td>${esc(row.santral||"")}</td>
-        <td>${esc(row.santiye||"")}</td>
-        <td>${esc(row.beton_sinifi||"")}</td>
-        <td>${esc(row.beton_ozelligi||"")}</td>
-        <td>${row.pompa_var_mi?esc(row.pompa_tipi||"Pompalı"):"Pompasız"}</td>
-        <td class="pdf-number">${m3(row.metraj)} m³</td>
-        <td>${esc(row.sorumlu_kisi||"")}</td>
-        <td>${esc(row.telefon||"")}</td>
-      </tr>`).join("");
-
-      return `<section class="pdf-section">
-        <div class="pdf-section-title">
-          <strong>🏢 ${esc(company)}</strong>
-          <span>Firma Toplamı: ${m3(subtotal)} m³</span>
-        </div>
-        <table>
-          <thead><tr>
-            <th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th>
-            <th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </section>`;
-    }).join("");
-
-    const report=pdfReportShell(
-      "Betonexa - Yarınki Sevkiyatlar",
-      trDate(tomorrowDateString()),
-      `${groups.length} firma`,
-      sections,
-      "GENEL TOPLAM",
-      `${m3(grand)} m³`
-    );
-
-    await saveHtmlElementAsPdf(
-      report,
-      `Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`
-    );
-  }catch(error){
-    console.error(error);
-    alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"));
-  }finally{
-    button.disabled=false;
-    button.textContent=oldText;
-  }
+    groups.forEach(([company,items])=>{
+      const subtotal=items.reduce((sum,row)=>sum+Number(row.metraj||0),0);grand+=subtotal;
+      const needed=72+44+Math.min(items.length,2)*58;
+      if(y+needed>1040){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`)}
+      ctx.fillStyle="#f2ecfb";ctx.beginPath();ctx.roundRect(60,y,1480,55,11);ctx.fill();
+      ctx.fillStyle="#4f268f";ctx.font="700 23px Arial";ctx.fillText(company,78,y+15);
+      const totalText=`Firma Toplamı: ${m3(subtotal)} m³`;ctx.fillStyle="#6f42c1";ctx.font="700 20px Arial";
+      ctx.fillText(totalText,1518-ctx.measureText(totalText).width,y+17);y+=55;
+      y=canvasDrawTableHeader(ctx,headers,widths,y);
+      items.forEach((r,index)=>{
+        const row=[(r.saat||"").slice(0,5),r.santral||"",r.santiye||"",r.beton_sinifi||"",r.beton_ozelligi||"",r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",`${m3(r.metraj)} m³`,r.sorumlu_kisi||"",r.telefon||""];
+        ctx.font="16px Arial";const estimated=Math.max(42,Math.max(...row.map((v,i)=>canvasWrapText(ctx,String(v),widths[i]-14).slice(0,2).length))*20+16);
+        if(y+estimated>1040){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`);y=canvasDrawTableHeader(ctx,headers,widths,y)}
+        y=canvasDrawTableRow(ctx,row,widths,y,index);
+      });
+      y+=25;
+    });
+    if(y+75>1070){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Yarınki Sevkiyatlar",trDate(tomorrowDateString()),`${groups.length} firma`)}
+    canvasDrawTotal(ctx,"GENEL TOPLAM",`${m3(grand)} m³`,y);pages.push(page.canvas);
+    saveCanvasPages(doc,pages,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowDateString()}.pdf`);
+  }catch(error){console.error(error);alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"))}
+  finally{button.disabled=false;button.textContent=oldText}
 }
 
 function printTomorrow(){
@@ -2089,60 +1994,30 @@ function downloadExcel(){
   const ws=XLSX.utils.json_to_sheet(rows);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Sevkiyat Planı");
   XLSX.writeFile(wb,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.xlsx`);
 }
-async function downloadPdf(){
+function downloadPdf(){
   const rows=exportRows();
   if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
-
-  const button=$("pdfBtn");
-  const oldText=button.textContent;
-  button.disabled=true;
-  button.textContent="PDF hazırlanıyor…";
-
+  const button=$("pdfBtn"),oldText=button.textContent;
+  button.disabled=true;button.textContent="PDF hazırlanıyor…";
   try{
+    const doc=createCanvasPdfDocument();
+    const pages=[];
     const headers=Object.keys(rows[0]);
-
-    const tableRows=rows.map(row=>`<tr>
-      ${headers.map(header=>{
-        const value=row[header]??"";
-        const numeric=header==="Metraj (m³)";
-        return `<td${numeric?' class="pdf-number"':""}>${esc(value)}</td>`;
-      }).join("")}
-    </tr>`).join("");
-
-    const table=`<section class="pdf-section">
-      <table>
-        <thead><tr>${headers.map(header=>`<th>${esc(header)}</th>`).join("")}</tr></thead>
-        <tbody>${tableRows}</tbody>
-      </table>
-    </section>`;
-
-    const rangeLabels={
-      daily:"Günlük plan",
-      weekly:"Haftalık plan",
-      monthly:"Aylık plan",
-      all:"Tüm kayıtlar"
-    };
-
-    const report=pdfReportShell(
-      "Betonexa - Sevkiyat Planı",
-      `${rangeLabels[$("exportRange").value]||"Sevkiyat planı"} - ${trDate($("exportDate").value)}`,
-      `${rows.length} sevkiyat`,
-      table,
-      "",
-      ""
-    );
-
-    await saveHtmlElementAsPdf(
-      report,
-      `Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`
-    );
-  }catch(error){
-    console.error(error);
-    alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"));
-  }finally{
-    button.disabled=false;
-    button.textContent=oldText;
-  }
+    const widths=[55,95,70,105,135,155,150,105,100,110,140,160];
+    const rangeLabels={daily:"Günlük plan",weekly:"Haftalık plan",monthly:"Aylık plan",all:"Tüm kayıtlar"};
+    let page=canvasPdfPage(),ctx=page.ctx;
+    let y=canvasDrawHeader(ctx,"Betonexa - Sevkiyat Planı",`${rangeLabels[$("exportRange").value]||"Sevkiyat planı"} - ${trDate($("exportDate").value)}`,`${rows.length} sevkiyat`);
+    y=canvasDrawTableHeader(ctx,headers,widths,y);
+    rows.forEach((record,index)=>{
+      const row=headers.map(header=>header==="Metraj (m³)"?`${m3(record[header])} m³`:String(record[header]??""));
+      ctx.font="15px Arial";const estimated=Math.max(42,Math.max(...row.map((v,i)=>canvasWrapText(ctx,v,widths[i]-14).slice(0,2).length))*20+16);
+      if(y+estimated>1050){pages.push(page.canvas);page=canvasPdfPage();ctx=page.ctx;y=canvasDrawHeader(ctx,"Betonexa - Sevkiyat Planı",`${rangeLabels[$("exportRange").value]||"Sevkiyat planı"} - ${trDate($("exportDate").value)}`,`${rows.length} sevkiyat`);y=canvasDrawTableHeader(ctx,headers,widths,y)}
+      y=canvasDrawTableRow(ctx,row,widths,y,index);
+    });
+    pages.push(page.canvas);
+    saveCanvasPages(doc,pages,`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
+  }catch(error){console.error(error);alert("PDF hazırlanırken hata oluştu: "+(error.message||"Bilinmeyen hata"))}
+  finally{button.disabled=false;button.textContent=oldText}
 }
 
 function printPlan(){
@@ -2179,4 +2054,38 @@ $("shipmentForm").addEventListener("submit",saveShipment);
 $("pdfBtn").addEventListener("click",downloadPdf);
 $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
-$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("clic
+$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+$("themeBtn").addEventListener("click",()=>{
+  document.body.classList.toggle("dark-app");
+  localStorage.setItem("betonexa_theme",document.body.classList.contains("dark-app")?"dark":"light");
+  $("themeBtn").textContent=document.body.classList.contains("dark-app")?"☀️":"🌙";
+});
+$("tomorrowPdfBtn").addEventListener("click",downloadTomorrowPdf);
+$("tomorrowExcelBtn").addEventListener("click",downloadTomorrowExcel);
+$("tomorrowPrintBtn").addEventListener("click",printTomorrow);
+$("betonOzellikToggle").addEventListener("click",e=>{
+  e.stopPropagation();
+  const box=$("betonOzellikSelect");
+  const open=!box.classList.contains("open");
+  box.classList.toggle("open",open);
+  $("betonOzellikToggle").setAttribute("aria-expanded",String(open));
+});
+document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>{
+  cb.addEventListener("change",updateConcretePropertySummary);
+});
+document.addEventListener("click",e=>{
+  if(!$("betonOzellikSelect").contains(e.target)){
+    $("betonOzellikSelect").classList.remove("open");
+    $("betonOzellikToggle").setAttribute("aria-expanded","false");
+  }
+});
+$("dashboardRefresh").addEventListener("click",loadRecords);
+$("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
+$("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
+$("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
+$("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
+$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
+$("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
+$("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>s
