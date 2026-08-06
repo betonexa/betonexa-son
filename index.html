@@ -858,6 +858,41 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
   }
 }
 
+
+
+/* BETONEXA MADDE 9 — AYLIK KARTI MOBİL DÜZELTMESİ */
+@media (max-width: 700px) {
+  .kpi:has(#kpiMonthPicker) {
+    overflow: hidden;
+  }
+
+  #kpiMonthPicker {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    margin: 8px 0 0 !important;
+    padding: 9px 12px !important;
+    text-align: center !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+
+  #kpiMonthPicker::-webkit-date-and-time-value {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+
+  #kpiMonthPicker::-webkit-datetime-edit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+}
+
 </style>
 </head>
 <body>
