@@ -824,8 +824,8 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <form id="shipmentForm">
  <input id="editId" type="hidden">
  <div class="shipment-fields">
- <div class="field"><label>Tarih</label><input id="tarih" type="date" required></div>
- <div class="field"><label>Saat</label><input id="saat" type="time" required></div>
+ <div class="field ios-native-field"><label>Tarih</label><input id="tarih" class="ios-native-input" type="date" required></div>
+ <div class="field ios-native-field"><label>Saat</label><input id="saat" class="ios-native-input" type="time" required></div>
  <div class="field"><label>Santral</label><select id="santral" required>
  <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
  </select></div>
@@ -2329,6 +2329,47 @@ function printPlan(){
     margin-left: 0 !important;
     margin-right: 0 !important;
     box-sizing: border-box !important;
+  }
+}
+
+
+
+/* BETONEXA MADDE 9 v4 — iPHONE TARİH/SAAT KALICI ÇÖZÜM */
+@media (max-width: 700px) {
+  #shipmentForm .ios-native-field {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  /*
+    iOS Safari date/time kontrolünü diğer inputlardan daha geniş çiziyor.
+    Bu iki gerçek HTML elemanını mobilde kontrollü olarak 24px daraltıyoruz.
+  */
+  #shipmentForm .ios-native-input {
+    display: block !important;
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+
+  #shipmentForm .ios-native-input::-webkit-date-and-time-value {
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+
+  #shipmentForm .ios-native-input::-webkit-datetime-edit {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
   }
 }
 
