@@ -1493,12 +1493,45 @@ async function downloadTomorrowPdf(){
   const pdfFont=await preparePdfFont(doc);
   const text=pdfFont.text;
 
+  const pageWidth=doc.internal.pageSize.getWidth();
+  const purple=[111,66,193];
+  const headerTop=8;
+  const headerBottom=22;
+  const tomorrowIso=tomorrowDateString();
+  const dateParts=tomorrowIso.split("-").map(Number);
+  const tomorrowDate=new Date(dateParts[0],dateParts[1]-1,dateParts[2]);
+  const monthNames=["OCAK","ŞUBAT","MART","NİSAN","MAYIS","HAZİRAN","TEMMUZ","AĞUSTOS","EYLÜL","EKİM","KASIM","ARALIK"];
+  const dayNames=["PAZAR","PAZARTESİ","SALI","ÇARŞAMBA","PERŞEMBE","CUMA","CUMARTESİ"];
+  const longDate=`${tomorrowDate.getDate()} ${monthNames[tomorrowDate.getMonth()]} ${tomorrowDate.getFullYear()} ${dayNames[tomorrowDate.getDay()]}`;
+
+  doc.setDrawColor(...purple);
+  doc.setLineWidth(0.45);
+  doc.line(14,headerTop,pageWidth-14,headerTop);
+  doc.line(14,headerBottom,pageWidth-14,headerBottom);
+
   doc.setFont(pdfFont.name,"normal");
   doc.setCharSpace(0);
-  doc.setFontSize(16);
-  doc.text(text(`YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})`),14,14);
+  doc.setTextColor(...purple);
+  doc.setFontSize(13);
+  doc.text(text(`YARINKİ SEVKİYATLAR - ${longDate}`),pageWidth/2,17,{align:"center"});
 
-  let y=20,grand=0;
+  const logoSize=5;
+  const brandText="BETONEXA";
+  doc.setFontSize(6.5);
+  const brandWidth=doc.getTextWidth(text(brandText));
+  const brandX=pageWidth-14-brandWidth;
+  const logoX=brandX-logoSize-2;
+  const logoY=headerTop-logoSize/2;
+  doc.setDrawColor(...purple);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(logoX,logoY,logoSize,logoSize,1.1,1.1);
+  doc.setFontSize(4.2);
+  doc.text("B",logoX+logoSize/2,logoY+3.7,{align:"center"});
+  doc.setFontSize(6.5);
+  doc.text(text(brandText),brandX,headerTop+1.8);
+  doc.setTextColor(0,0,0);
+
+  let y=30,grand=0;
 
   groups.forEach(([company,items])=>{
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
