@@ -2306,18 +2306,18 @@ function renderTomorrowReport(){
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
     grand+=subtotal;
     return `<section class="tomorrow-company">
-      <div class="tomorrow-company-head"><h3>🏢 ${esc(company)}</h3><strong>Firma Toplamı: ${m3(subtotal)} m³</strong></div>
+      <div class="tomorrow-company-head"><h3>🏢 ${esc(analysisDisplayName(company))}</h3><strong>Firma Toplamı: ${m3(subtotal)} m³</strong></div>
       <div class="table-wrap" style="margin-top:0;border:0;border-radius:0"><table class="tomorrow-table">
         <thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead>
         <tbody>${items.map(r=>`<tr>
           <td>${esc((r.saat||"").slice(0,5))}</td>
           <td>${esc(r.santral)}</td>
-          <td>${esc(r.santiye)}</td>
-          <td>${esc(r.beton_sinifi)}</td>
-          <td>${esc(r.beton_ozelligi)}</td>
+          <td>${esc(analysisDisplayName(r.santiye))}</td>
+          <td>${esc(analysisDisplayName(r.beton_sinifi))}</td>
+          <td>${esc(analysisDisplayName(r.beton_ozelligi))}</td>
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
           <td>${metrajDisplay(r)} m³</td>
-          <td>${esc(r.sorumlu_kisi)}</td>
+          <td>${esc(analysisDisplayName(r.sorumlu_kisi))}</td>
           <td>${esc(r.telefon)}</td>
         </tr>`).join("")}</tbody>
       </table></div>
@@ -2489,9 +2489,9 @@ async function downloadTomorrowPdf(){
       body:items.map(r=>[
         text((r.saat||"").slice(0,5)),
         text(r.santral||""),
-        text(r.santiye||""),
+        text(analysisDisplayName(r.santiye||"")),
         text(analysisDisplayName(r.beton_sinifi||"")),
-        text(r.beton_ozelligi||""),
+        text(analysisDisplayName(r.beton_ozelligi||"")),
         text(r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız"),
         text(`${metrajDisplay(r)} m³`),
         text(analysisDisplayName(r.sorumlu_kisi||"")),
