@@ -1841,7 +1841,7 @@ let selectedAnalysisPump="";
 let analysisMode="company";
 let dashboardCharts={};
 const DEFAULT_PLANTS=["Işıkkent","Torbalı","Gaziemir","Özbek","Çeşme","Çiğli","Koyundere","Aliağa","Zeytindağ","Akhisar","Aydın","Tekirdağ","Kıraç","Çorlu"];
-let appSettings={companies:[],plants:[]};
+let appSettings={companies:[],plants:[],hiddenCompanies:[]};
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -1873,8 +1873,9 @@ function loadAppSettings(){
     const saved=JSON.parse(localStorage.getItem("betonexa_settings")||"{}");
     appSettings.companies=Array.isArray(saved.companies)?saved.companies:[];
     appSettings.plants=Array.isArray(saved.plants)?saved.plants:[...DEFAULT_PLANTS];
+    appSettings.hiddenCompanies=Array.isArray(saved.hiddenCompanies)?saved.hiddenCompanies:[];
   }catch{
-    appSettings={companies:[],plants:[...DEFAULT_PLANTS]};
+    appSettings={companies:[],plants:[...DEFAULT_PLANTS],hiddenCompanies:[]};
   }
   if(!appSettings.plants.length)appSettings.plants=[...DEFAULT_PLANTS];
 }
@@ -1887,7 +1888,8 @@ function uniqueSorted(values){
   return [...new Set(values.map(x=>String(x||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
 }
 function refreshFormOptions(){
-  const recordCompanies=records.map(r=>r.firma);
+  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(x=>String(x||"").trim()));
+  const recordCompanies=records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(String(x||"").trim()));
   const companies=uniqueSorted([...appSettings.companies,...recordCompanies]);
   $("firmaList").innerHTML=companies.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
@@ -1899,7 +1901,8 @@ function refreshFormOptions(){
 }
 function renderSettings(){
   if(!$("settingsPage"))return;
-  const companies=uniqueSorted([...appSettings.companies,...records.map(r=>r.firma)]);
+  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(x=>String(x||"").trim()));
+  const companies=uniqueSorted([...appSettings.companies,...records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(String(x||"").trim()))]);
   const plants=uniqueSorted([...appSettings.plants,...records.map(r=>r.santral)]);
   $("settingsCompanyList").innerHTML=companies.length?companies.map(name=>`
     <div class="settings-item"><b>${esc(name)}</b>
@@ -1916,6 +1919,9 @@ function addSettingItem(type){
   if(!value)return;
   const key=type==="company"?"companies":"plants";
   appSettings[key]=uniqueSorted([...appSettings[key],value]);
+  if(type==="company"){
+    appSettings.hiddenCompanies=(appSettings.hiddenCompanies||[]).filter(x=>x!==value);
+  }
   input.value="";
   saveAppSettings();
 }
@@ -1927,6 +1933,11 @@ function removeSettingItem(type,encoded){
 
   const key=type==="company"?"companies":"plants";
   appSettings[key]=appSettings[key].filter(x=>x!==value);
+
+  if(type==="company"){
+    appSettings.hiddenCompanies=uniqueSorted([...(appSettings.hiddenCompanies||[]),value]);
+  }
+
   saveAppSettings();
 }
 
