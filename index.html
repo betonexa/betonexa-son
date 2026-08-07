@@ -1248,6 +1248,18 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Masaüstü koruması: mobil için eklenen özel tarih yazısı masaüstünde görünmez. */
+#exportDateDisplay {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .records-report #exportDateDisplay {
+    display: flex !important;
+  }
+}
+
 </style>
 </head>
 <body>
