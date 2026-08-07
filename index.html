@@ -1272,6 +1272,42 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Madde 12 — SADECE TELEFON: Şantiye Analizi panel/kutu yerleşimi */
+@media (max-width: 700px) {
+  /* Analiz özet kartları ve alt detay bölümleri arasında düzenli dikey ritim */
+  #analysisView .stats-grid,
+  #analysisView .analysis-stats,
+  #analysisView .analysis-summary {
+    row-gap: 16px !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* Şantiye analizi seçiliyken alt analiz kutularını üst kartlardan ayır */
+  #analysisView .analysis-lower,
+  #analysisView .analysis-results,
+  #analysisView .analysis-detail-grid,
+  #analysisView .analysis-panels {
+    margin-top: 16px !important;
+    gap: 16px !important;
+  }
+
+  #analysisView .analysis-card,
+  #analysisView .detail-card,
+  #analysisView .result-card {
+    margin-top: 0 !important;
+    margin-bottom: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  #analysisView .analysis-card:last-child,
+  #analysisView .detail-card:last-child,
+  #analysisView .result-card:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
 </style>
 </head>
 <body>
