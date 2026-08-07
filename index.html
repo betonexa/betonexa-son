@@ -1690,7 +1690,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
  </div>
 
- <div class="field"><label>Metraj (m³)</label><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 25 veya 25+" required></div>
+ <div class="field"><label>Metraj (m³)</label><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 40 veya 40+" required></div>
  <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
  <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
  </div>
@@ -1989,6 +1989,18 @@ function sentenceCaseTR(value){
   return lower.charAt(0).toLocaleUpperCase("tr-TR")+lower.slice(1);
 }
 
+
+function parseMetrajInput(value){
+  const raw=String(value??"").trim().replace(",",".");
+  const plus=raw.endsWith("+");
+  const number=Number(raw.replace(/\+$/,"").trim());
+  return {number,plus};
+}
+function metrajDisplay(record){
+  const n=Number(record?.metraj||0);
+  return `${m3(n)}${record?.metraj_plus?"+":""}`;
+}
+
 function payload(){
   return {
     tarih:$("tarih").value,
@@ -1998,7 +2010,8 @@ function payload(){
     santiye:sentenceCaseTR($("santiye").value),
     beton_sinifi:$("betonSinifi").value,
     beton_ozelligi:selectedConcreteProperties().join(", "),
-    metraj:String($("metraj").value||"").trim(),
+    metraj:parseMetrajInput($("metraj").value).number,
+    metraj_plus:parseMetrajInput($("metraj").value).plus,
     pompa_var_mi:$("pompaVar").value==="true",
     pompa_tipi:$("pompaVar").value==="true"?sentenceCaseTR($("pompaTipi").value):null,
     sorumlu_kisi:sentenceCaseTR($("sorumluKisi").value),
@@ -2020,7 +2033,7 @@ async function saveShipment(e){
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=r.metraj??"";$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -2033,7 +2046,7 @@ function renderTable(){
   const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
   $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
     <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(sentenceCaseTR(r.santral))}</td><td>${esc(sentenceCaseTR(r.firma))}</td><td>${esc(sentenceCaseTR(r.santiye))}</td>
-    <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${String(r.metraj??"").includes("+")?esc(String(r.metraj))+" m³":m3(r.metraj)+" m³"}</td>
+    <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${metrajDisplay(r)} m³</td>
     <td>${r.pompa_var_mi?esc(sentenceCaseTR(r.pompa_tipi||"Pompalı")):"Pompasız"}</td><td>${esc(sentenceCaseTR(r.sorumlu_kisi))}</td><td>${esc(r.telefon)}</td>
     <td><div class="row-actions">
       <button type="button" class="icon-action edit" title="Düzenle" aria-label="Düzenle" onclick="event.stopPropagation();editRecord(${Number(r.id)})">✏️</button>
@@ -2167,7 +2180,7 @@ function renderDashboardAlerts(todayRecords){
     }
 
     if(Number(r.metraj||0)>=500){
-      pushDashboardAlert(alerts,"info","📌","Yüksek hacimli sevkiyat",`${r.firma||"Firma belirtilmemiş"} için ${m3(r.metraj)} m³ tek sevkiyat planlanmış.`);
+      pushDashboardAlert(alerts,"info","📌","Yüksek hacimli sevkiyat",`${r.firma||"Firma belirtilmemiş"} için ${metrajDisplay(r)} m³ tek sevkiyat planlanmış.`);
     }
   });
 
@@ -2274,7 +2287,7 @@ function renderTomorrowReport(){
           <td>${esc(r.beton_sinifi)}</td>
           <td>${esc(r.beton_ozelligi)}</td>
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
-          <td>${m3(r.metraj)} m³</td>
+          <td>${metrajDisplay(r)} m³</td>
           <td>${esc(r.sorumlu_kisi)}</td>
           <td>${esc(r.telefon)}</td>
         </tr>`).join("")}</tbody>
@@ -2293,7 +2306,7 @@ function tomorrowExportRows(){
       "Beton sınıfı":r.beton_sinifi||"",
       Özellik:r.beton_ozelligi||"",
       Pompa:r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
-      "Metraj (m³)":String(r.metraj??""),
+      "Metraj (m³)":`${m3(r.metraj)}${r.metraj_plus?"+":""}`,
       Sorumlu:r.sorumlu_kisi||"",
       Telefon:r.telefon||""
     }));
@@ -2451,7 +2464,7 @@ async function downloadTomorrowPdf(){
         text(r.beton_sinifi||""),
         text(r.beton_ozelligi||""),
         text(r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız"),
-        text(`${m3(r.metraj)} m³`),
+        text(`${metrajDisplay(r)} m³`),
         text(r.sorumlu_kisi||""),
         text(r.telefon||"")
       ]),
@@ -2498,7 +2511,7 @@ function printTomorrow(){
   const w=window.open("","_blank");
   const sections=groups.map(([company,items])=>{
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
-    return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${m3(r.metraj)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
+    return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${metrajDisplay(r)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
   }).join("");
   w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
@@ -2547,7 +2560,7 @@ function renderCalendar(){
     for(let i=0;i<7;i++){
       const date=iso(addDays(weekStart,i));
       const items=records.filter(r=>r.tarih===date&&Number((r.saat||"00").slice(0,2))===h);
-      grid.insertAdjacentHTML("beforeend",`<div class="cell" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${m3(r.metraj)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
+      grid.insertAdjacentHTML("beforeend",`<div class="cell" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${metrajDisplay(r)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
     }
   }
 }
@@ -2735,7 +2748,7 @@ function renderAnalysisCompanyDetail(company){
         <thead><tr><th>Tarih</th><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th></tr></thead>
         <tbody>${companyRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
           <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td>
-          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${metrajDisplay(r)} m³</td>
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
         </tr>`).join("")}</tbody>
       </table></div>
@@ -2780,7 +2793,7 @@ function renderAnalysisPlantDetail(plant){
         <thead><tr><th>Tarih</th><th>Saat</th><th>Firma</th><th>Şantiye</th><th>Beton</th><th>Metraj</th><th>Pompa</th></tr></thead>
         <tbody>${plantRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
           <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
-          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${metrajDisplay(r)} m³</td>
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
         </tr>`).join("")}</tbody>
       </table></div>
@@ -2830,7 +2843,7 @@ function renderAnalysisSiteDetail(site){
         <thead><tr><th>Tarih</th><th>Saat</th><th>Firma</th><th>Santral</th><th>Beton</th><th>Metraj</th><th>Pompa</th></tr></thead>
         <tbody>${siteRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
           <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.firma)}</td><td>${esc(r.santral)}</td>
-          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+          <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${metrajDisplay(r)} m³</td>
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
         </tr>`).join("")}</tbody>
       </table></div>
@@ -2882,7 +2895,7 @@ function renderAnalysisPumpDetail(pump){
         <thead><tr><th>Tarih</th><th>Saat</th><th>Firma</th><th>Şantiye</th><th>Santral</th><th>Beton</th><th>Metraj</th></tr></thead>
         <tbody>${pumpRecords.map(r=>`<tr onclick="openInCalendar(${Number(r.id)})">
           <td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
-          <td>${esc(r.santral)}</td><td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
+          <td>${esc(r.santral)}</td><td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${metrajDisplay(r)} m³</td>
         </tr>`).join("")}</tbody>
       </table></div>
     </div>`;
@@ -2917,7 +2930,7 @@ function exportRows(){
   return exportRecords().map((r,i)=>({
     No:i+1,Tarih:trDate(r.tarih),Saat:(r.saat||"").slice(0,5),Santral:sentenceCaseTR(r.santral||""),Firma:sentenceCaseTR(r.firma||""),
     Şantiye:sentenceCaseTR(r.santiye||""),"Beton sınıfı":sentenceCaseTR(r.beton_sinifi||""),"Beton özelliği":sentenceCaseTR(r.beton_ozelligi||""),
-    "Metraj (m³)":Number(r.metraj||0),Pompa:r.pompa_var_mi?sentenceCaseTR(r.pompa_tipi||"Pompalı"):"Pompasız",
+    "Metraj (m³)":`${m3(r.metraj)}${r.metraj_plus?"+":""}`,Pompa:r.pompa_var_mi?sentenceCaseTR(r.pompa_tipi||"Pompalı"):"Pompasız",
     "Sorumlu kişi":sentenceCaseTR(r.sorumlu_kisi||""),Telefon:r.telefon||""
   }));
 }
