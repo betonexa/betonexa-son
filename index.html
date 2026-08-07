@@ -1494,6 +1494,29 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 }
 </style>
 
+
+<style>
+/* Madde 2 — sadece telefon/tablet dokunmatik takvim sürükle-bırak */
+@media (max-width: 700px){
+  #calendarPage .event{
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  #calendarPage .event.touch-dragging{
+    opacity:.72;
+    transform:scale(.98);
+    box-shadow:0 8px 22px rgba(103,52,189,.28);
+    outline:2px solid rgba(103,52,189,.5);
+  }
+  #calendarPage .cell.touch-drag-over{
+    background:rgba(232,220,250,.82) !important;
+    outline:2px dashed var(--purple);
+    outline-offset:-3px;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="loading" class="loading hidden">Yükleniyor…</div>
@@ -2550,6 +2573,115 @@ async function dropShipment(e,date,hour){
   if(error){setStatus("Takvimde taşıma başarısız: "+error.message,true);return}
   setStatus("Sevkiyatın gün ve saati güncellendi.");await loadRecords();
 }
+
+async function moveShipmentToCell(id,date,hour){
+  const r=records.find(x=>String(x.id)===String(id));
+  if(!r)return false;
+  const mins=(r.saat||"00:00").slice(3,5)||"00";
+  const newTime=`${String(hour).padStart(2,"0")}:${mins}`;
+  setLoading(true);
+  const {error}=await ensureDb().from(TABLE).update({tarih:date,saat:newTime}).eq("id",id);
+  setLoading(false);
+  if(error){
+    setStatus("Takvimde taşıma başarısız: "+error.message,true);
+    return false;
+  }
+  setStatus("Sevkiyatın gün ve saati güncellendi.");
+  await loadRecords();
+  return true;
+}
+
+/* Mobil sürükle-bırak:
+   Masaüstündeki HTML5 drag/drop aynen kalır.
+   Bu kod sadece touch/pen pointer'larında devreye girer. */
+(function initMobileCalendarDrag(){
+  let state=null;
+
+  function clearTarget(){
+    document.querySelectorAll("#calendarPage .cell.touch-drag-over")
+      .forEach(el=>el.classList.remove("touch-drag-over"));
+  }
+
+  function cancel(){
+    clearTarget();
+    if(state?.eventEl) state.eventEl.classList.remove("touch-dragging");
+    state=null;
+  }
+
+  document.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse")return;
+    const eventEl=e.target.closest("#calendarPage .event");
+    if(!eventEl)return;
+
+    state={
+      pointerId:e.pointerId,
+      eventEl,
+      id:eventEl.dataset.id,
+      startX:e.clientX,
+      startY:e.clientY,
+      dragging:false,
+      target:null
+    };
+    try{eventEl.setPointerCapture(e.pointerId)}catch(_){}
+  },{passive:true});
+
+  document.addEventListener("pointermove",e=>{
+    if(!state || e.pointerId!==state.pointerId)return;
+
+    const dx=e.clientX-state.startX;
+    const dy=e.clientY-state.startY;
+
+    if(!state.dragging && Math.hypot(dx,dy)>8){
+      state.dragging=true;
+      state.eventEl.classList.add("touch-dragging");
+    }
+    if(!state.dragging)return;
+
+    e.preventDefault();
+    clearTarget();
+
+    const hit=document.elementFromPoint(e.clientX,e.clientY);
+    const cell=hit?.closest?.("#calendarPage .cell[data-drop-date][data-drop-hour]");
+    state.target=cell||null;
+    if(cell)cell.classList.add("touch-drag-over");
+  },{passive:false});
+
+  document.addEventListener("pointerup",async e=>{
+    if(!state || e.pointerId!==state.pointerId)return;
+
+    const current=state;
+    const wasDragging=current.dragging;
+    const target=current.target;
+    cancel();
+
+    if(!wasDragging)return; // normal tap still opens edit screen
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if(!target)return;
+
+    const date=target.dataset.dropDate;
+    const hour=Number(target.dataset.dropHour);
+    if(!date || !Number.isFinite(hour))return;
+
+    await moveShipmentToCell(current.id,date,hour);
+  },true);
+
+  document.addEventListener("pointercancel",e=>{
+    if(state && e.pointerId===state.pointerId)cancel();
+  },true);
+
+  /* Drag sonrası oluşabilecek click edit olayını engelle */
+  document.addEventListener("click",e=>{
+    const eventEl=e.target.closest("#calendarPage .event");
+    if(eventEl && eventEl.classList.contains("touch-dragging")){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  },true);
+})();
+
 function renderCalendar(){
   const days=["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"],grid=$("weekGrid");grid.innerHTML="";
   const end=addDays(weekStart,6);$("weekTitle").textContent=`${trDate(iso(weekStart))} – ${trDate(iso(end))}`;
@@ -2560,7 +2692,7 @@ function renderCalendar(){
     for(let i=0;i<7;i++){
       const date=iso(addDays(weekStart,i));
       const items=records.filter(r=>r.tarih===date&&Number((r.saat||"00").slice(0,2))===h);
-      grid.insertAdjacentHTML("beforeend",`<div class="cell" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${metrajDisplay(r)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
+      grid.insertAdjacentHTML("beforeend",`<div class="cell" data-drop-date="${date}" data-drop-hour="${h}" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropShipment(event,'${date}',${h})">${items.map(r=>`<button class="event" draggable="true" data-id="${Number(r.id)}" ondragstart="dragStart(${Number(r.id)})" onclick="editRecord(${Number(r.id)});showPage('records')"><b>${esc((r.saat||"").slice(0,5))}</b> ${esc(r.firma||"Firma")}<br>${esc(r.santiye||"")} • ${metrajDisplay(r)} m³<br>${r.pompa_var_mi?esc(r.pompa_tipi):"Pompasız"}</button>`).join("")}</div>`)
     }
   }
 }
