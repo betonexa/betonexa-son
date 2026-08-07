@@ -1260,6 +1260,18 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Masaüstü koruması 2: mobil için eklenen AĞUSTOS 2026 katmanı masaüstünde görünmez. */
+#kpiMonthPickerLabel {
+  display: none !important;
+}
+
+@media (max-width: 700px) {
+  #kpiMonthPickerLabel {
+    display: flex !important;
+  }
+}
+
 </style>
 </head>
 <body>
