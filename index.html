@@ -1484,139 +1484,6 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
-
-/* Madde 16 — yalnızca giriş ekranı */
-#loginView input[type="text"],
-#loginView input[type="password"],
-.login-card input[type="text"],
-.login-card input[type="password"]{
-  text-transform:none !important;
-}
-
-.login-remember-row{
-  margin-top:12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-  text-transform:none !important;
-}
-
-.login-remember-label{
-  display:inline-flex !important;
-  align-items:center;
-  gap:8px;
-  margin:0 !important;
-  cursor:pointer;
-  font-weight:700;
-  text-transform:none !important;
-}
-
-.login-remember-label input{
-  width:18px !important;
-  height:18px !important;
-  min-height:0 !important;
-  margin:0 !important;
-  accent-color:#6f32c9;
-}
-
-.login-remember-row small{
-  color:#667085;
-  font-size:12px;
-  text-transform:none !important;
-}
-
-@media(max-width:700px){
-  .login-remember-row{
-    align-items:flex-start;
-    flex-direction:column;
-    gap:5px;
-  }
-}
-
-
-/* Madde 16 v2 — giriş ekranı yerleşimini koru */
-#loginView,
-.login-screen,
-.login-page {
-  overflow-x: hidden !important;
-}
-
-#loginView .login-card,
-.login-screen .login-card,
-.login-card {
-  box-sizing: border-box !important;
-}
-
-.login-remember-row{
-  width:100% !important;
-  box-sizing:border-box !important;
-  margin:10px 0 12px !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:10px !important;
-  flex-wrap:nowrap !important;
-}
-
-.login-remember-label{
-  display:inline-flex !important;
-  align-items:center !important;
-  gap:8px !important;
-  margin:0 !important;
-  padding:0 !important;
-  font-weight:700 !important;
-  white-space:nowrap !important;
-  text-transform:none !important;
-}
-
-.login-remember-label input{
-  width:18px !important;
-  height:18px !important;
-  min-width:18px !important;
-  min-height:18px !important;
-  padding:0 !important;
-  margin:0 !important;
-  flex:0 0 18px !important;
-  accent-color:#6f32c9;
-}
-
-.login-remember-row small{
-  margin:0 !important;
-  padding:0 !important;
-  color:#667085 !important;
-  font-size:12px !important;
-  line-height:1.2 !important;
-  text-align:right !important;
-  text-transform:none !important;
-}
-
-/* Sadece girişte yazılan karakterin görünümünü bozma */
-#loginUser,
-#loginPass{
-  text-transform:none !important;
-  font-variant:normal !important;
-  letter-spacing:normal !important;
-}
-
-/* iPhone/Android klavyede otomatik büyük harf engeli için görsel ek güvence */
-#loginUser{
-  -webkit-text-security:none;
-}
-
-@media(max-width:700px){
-  .login-remember-row{
-    flex-wrap:wrap !important;
-    align-items:center !important;
-  }
-  .login-remember-row small{
-    flex:1 1 100% !important;
-    text-align:left !important;
-    padding-left:26px !important;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -1624,18 +1491,18 @@ input, textarea, select, .multi-select-toggle{
 <section id="login" class="login">
  <div class="login-card">
  <div class="brand"><img src="./icon-192.png" alt=""><div><h1>Betonexa</h1><small>Hazır Beton Sevkiyat Yönetimi</small></div></div>
- <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem" autocapitalize="none" autocorrect="off" spellcheck="false">
+ <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
  <label for="loginPass">Şifre</label>
  <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
-<button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
+ <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
  
-<div class="login-remember-row">
-  <label class="login-remember-label" for="rememberUsername">
-    <input id="rememberUsername" type="checkbox">
-    <span>Beni hatırla</span>
-  </label>
-  <small>Kullanıcı adım bu cihazda görünsün</small>
-</div>
+ <div class="login-remember-row">
+   <label class="login-remember-label" for="rememberUsername">
+     <input id="rememberUsername" type="checkbox">
+     <span>Beni hatırla</span>
+   </label>
+   <small>Kullanıcı adım bu cihazda görünsün</small>
+ </div>
 <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
  <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
  <div id="forgotPanel" class="forgot-panel hidden">
@@ -2604,50 +2471,7 @@ function printTomorrow(){
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
     return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${m3(r.metraj)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
   }).join("");
-  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div><script>
-
-
-
-</script>
-<script>
-
-/* Madde 16 v2 — kullanıcı adı hatırlama; şifre saklanmaz. */
-(function(){
-  const user=document.getElementById("loginUser");
-  const pass=document.getElementById("loginPass");
-  const remember=document.getElementById("rememberUsername");
-  if(!user||!pass||!remember) return;
-
-  /* Kullanıcının yazdığı harf büyüklüğünü aynen koru */
-  user.setAttribute("autocapitalize","none");
-  user.setAttribute("autocorrect","off");
-  user.setAttribute("spellcheck","false");
-  pass.setAttribute("autocapitalize","none");
-  pass.setAttribute("autocorrect","off");
-  pass.setAttribute("spellcheck","false");
-
-  const key="betonexaRememberedUsername";
-  try{
-    const saved=localStorage.getItem(key);
-    if(saved!==null){
-      user.value=saved;
-      remember.checked=true;
-    }
-  }catch(e){}
-
-  const saveUser=()=>{
-    try{
-      if(remember.checked) localStorage.setItem(key,user.value);
-      else localStorage.removeItem(key);
-    }catch(e){}
-  };
-
-  remember.addEventListener("change",saveUser);
-  user.addEventListener("input",saveUser);
-})();
-
-</script>
-</body></html>`);
+  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 
@@ -3136,13 +2960,53 @@ function showPage(p){
   if(p==="settings")renderSettings();
 }
 function login(){
-  if($("loginUser").value.trim()===LOGIN_USER&&$("loginPass").value===LOGIN_PASS){sessionStorage.setItem("betonexa_login","1");$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
-  else $("loginError").textContent="Kullanıcı adı veya şifre hatalı."
+  const typedUser=$("loginUser").value.trim();
+  const typedPass=$("loginPass").value;
+  const userOk=typedUser.toLocaleLowerCase("tr-TR")===LOGIN_USER.toLocaleLowerCase("tr-TR");
+  const passOk=typedPass===LOGIN_PASS;
+
+  if(userOk&&passOk){
+    try{
+      if($("rememberUsername")&&$("rememberUsername").checked){
+        localStorage.setItem("betonexaRememberedUsername",typedUser);
+      }else{
+        localStorage.removeItem("betonexaRememberedUsername");
+      }
+    }catch(e){}
+
+    sessionStorage.setItem("betonexa_login","1");
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    showPage("records");
+    loadRecords();
+  }else{
+    $("loginError").textContent="Kullanıcı adı veya şifre hatalı.";
+  }
 }
 $("togglePass").addEventListener("click",()=>{
   const p=$("loginPass");p.type=p.type==="password"?"text":"password";
   $("togglePass").textContent=p.type==="password"?"👁️":"🙈";
 });
+
+(function initRememberUsername(){
+  const user=$("loginUser");
+  const remember=$("rememberUsername");
+  if(!user||!remember)return;
+  try{
+    const saved=localStorage.getItem("betonexaRememberedUsername");
+    if(saved!==null && saved!==""){
+      user.value=saved;
+      remember.checked=true;
+    }else{
+      user.value="";
+      remember.checked=false;
+    }
+  }catch(e){
+    user.value="";
+    remember.checked=false;
+  }
+})();
+
 $("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
 $("logoutBtn").addEventListener("click",()=>{sessionStorage.removeItem("betonexa_login");location.reload()});
 $("shipmentForm").addEventListener("submit",saveShipment);
@@ -3319,4 +3183,71 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
     box-sizing: border-box;
   }
 }
+</style>
+
+<style>
+
+/* MADDE 16 — sadece giriş ekranı */
+#login #loginUser,
+#login #loginPass{
+  text-transform:none !important;
+  letter-spacing:normal !important;
+}
+
+#login .login-remember-row{
+  width:100%;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:10px 0 2px;
+  text-transform:none !important;
+}
+
+#login .login-remember-label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin:0;
+  padding:0;
+  font-weight:700;
+  white-space:nowrap;
+  text-transform:none !important;
+  cursor:pointer;
+}
+
+#login .login-remember-label input{
+  width:18px !important;
+  height:18px !important;
+  min-width:18px !important;
+  min-height:18px !important;
+  margin:0 !important;
+  padding:0 !important;
+  flex:0 0 18px;
+  accent-color:#6f32c9;
+}
+
+#login .login-remember-row small{
+  margin:0;
+  color:#667085;
+  font-size:12px;
+  line-height:1.25;
+  text-align:right;
+  text-transform:none !important;
+}
+
+@media(max-width:700px){
+  #login .login-remember-row{
+    flex-wrap:wrap;
+    align-items:flex-start;
+    margin-top:9px;
+  }
+  #login .login-remember-row small{
+    flex:1 1 100%;
+    padding-left:26px;
+    text-align:left;
+  }
+}
+
 </style>
