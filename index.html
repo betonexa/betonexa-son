@@ -1039,6 +1039,70 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* BETONEXA MADDE 15 v2 — MOBİL AY SEÇİCİ: TARİH KUTUSUYLA AYNI ORAN */
+@media (max-width: 700px) {
+  .kpi:has(#kpiMonthPicker) {
+    min-height: 0 !important;
+    padding: 15px 16px !important;
+    overflow: visible !important;
+  }
+
+  .kpi-month-shell {
+    position: relative !important;
+    width: 100% !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    margin: 8px 0 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgba(188, 195, 208, .82) !important;
+    border-radius: 10px !important;
+    background: rgba(255,255,255,.91) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  #kpiMonthPickerLabel {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    color: #202633 !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+  }
+
+  #kpiMonthPicker {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    -webkit-appearance: auto !important;
+    appearance: auto !important;
+  }
+
+  .kpi:has(#kpiMonthPicker) #kpiMonth {
+    margin-top: 10px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1077,7 +1141,10 @@ input, textarea, select, .multi-select-toggle{
  <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
  <div class="kpi">
  <small>AYLIK m³</small>
+ <div class="kpi-month-shell">
+ <span id="kpiMonthPickerLabel" aria-hidden="true">AĞUSTOS 2026</span>
  <input id="kpiMonthPicker" type="month" aria-label="Aylık m³ için ay seç">
+ </div>
  <strong id="kpiMonth">0,00</strong>
  </div>
  </section>
@@ -2499,7 +2566,20 @@ $("shipmentForm").addEventListener("submit",saveShipment);
 $("pdfBtn").addEventListener("click",downloadPdf);
 $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
-$("kpiMonthPicker").addEventListener("change",renderKpis);$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+
+function updateKpiMonthPickerLabel(){
+  const picker=document.getElementById("kpiMonthPicker");
+  const label=document.getElementById("kpiMonthPickerLabel");
+  if(!picker||!label)return;
+  const value=picker.value;
+  if(!value){ label.textContent="AY SEÇİN"; return; }
+  const parts=value.split("-");
+  const y=Number(parts[0]), m=Number(parts[1]);
+  const months=["OCAK","ŞUBAT","MART","NİSAN","MAYIS","HAZİRAN","TEMMUZ","AĞUSTOS","EYLÜL","EKİM","KASIM","ARALIK"];
+  label.textContent=(months[m-1]||"")+" "+y;
+}
+
+$("kpiMonthPicker").addEventListener("change",()=>{updateKpiMonthPickerLabel();renderKpis();});$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
 $("themeBtn").addEventListener("click",()=>{
   document.body.classList.toggle("dark-app");
   localStorage.setItem("betonexa_theme",document.body.classList.contains("dark-app")?"dark":"light");
@@ -2540,7 +2620,7 @@ window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=sh
 loadAppSettings();refreshFormOptions();
 updateConcretePropertySummary();
 document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
-$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);
+$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);updateKpiMonthPickerLabel();
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
 if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
