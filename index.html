@@ -1359,6 +1359,180 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Madde 12 — yeni Analiz görünümü
+   Amaç: dört analiz seçeneği aynı ölçü/oranda; masaüstü ve telefon ayrı responsive düzen. */
+#analysisPage .analysis-mode-tabs{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:14px !important;
+  margin:0 0 18px !important;
+}
+
+#analysisPage .analysis-mode-tabs .btn{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:142px !important;
+  margin:0 !important;
+  padding:18px 12px !important;
+  border-radius:16px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:12px !important;
+  text-align:center !important;
+  white-space:normal !important;
+  box-sizing:border-box !important;
+  background:rgba(255,255,255,.82) !important;
+  color:#273142 !important;
+  border:1px solid rgba(255,255,255,.78) !important;
+  box-shadow:0 10px 24px rgba(54,39,57,.08) !important;
+}
+
+#analysisPage .analysis-mode-tabs .btn.active{
+  color:#fff !important;
+  background:linear-gradient(135deg,#7a42d2,#5b25b7) !important;
+  box-shadow:0 12px 28px rgba(103,52,189,.24) !important;
+}
+
+#analysisPage .analysis-mode-icon{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:54px !important;
+  height:54px !important;
+  font-size:40px !important;
+  line-height:1 !important;
+}
+
+#analysisPage .analysis-mode-text{
+  display:block !important;
+  font-size:17px !important;
+  line-height:1.2 !important;
+  font-weight:850 !important;
+}
+
+#analysisPage .analysis-toolbar{
+  gap:12px !important;
+  margin-bottom:18px !important;
+}
+
+#analysisPage .analysis-summary{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:14px !important;
+  margin:0 0 18px !important;
+}
+
+#analysisPage .analysis-summary .analysis-card{
+  min-width:0 !important;
+  min-height:142px !important;
+  padding:18px !important;
+  margin:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:14px !important;
+  box-sizing:border-box !important;
+}
+
+#analysisPage .analysis-kpi-icon{
+  flex:0 0 52px !important;
+  width:52px !important;
+  height:52px !important;
+  border-radius:50% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:26px !important;
+  background:rgba(112,57,198,.09) !important;
+}
+
+#analysisPage .analysis-kpi-copy{
+  min-width:0 !important;
+}
+
+#analysisPage .analysis-kpi-copy small{
+  margin:0 0 7px !important;
+}
+
+#analysisPage .analysis-layout{
+  margin-top:0 !important;
+}
+
+/* Telefon — sadece telefon görünümünü değiştirir, masaüstü kuralları yukarıda ayrı tutulur. */
+@media (max-width:700px){
+  #analysisPage .analysis-mode-tabs{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:12px !important;
+    margin-bottom:18px !important;
+  }
+
+  #analysisPage .analysis-mode-tabs .btn{
+    min-height:132px !important;
+    padding:14px 8px !important;
+    gap:10px !important;
+    border-radius:15px !important;
+  }
+
+  #analysisPage .analysis-mode-icon{
+    width:50px !important;
+    height:50px !important;
+    font-size:37px !important;
+  }
+
+  #analysisPage .analysis-mode-text{
+    font-size:16px !important;
+  }
+
+  #analysisPage .analysis-toolbar{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:10px !important;
+    align-items:end !important;
+  }
+
+  #analysisPage .analysis-toolbar > div:first-child{
+    min-width:0 !important;
+    width:100% !important;
+  }
+
+  #analysisPage #analysisRange{
+    width:100% !important;
+  }
+
+  #analysisPage #analysisRefresh{
+    min-height:48px !important;
+    align-self:end !important;
+    white-space:nowrap !important;
+  }
+
+  #analysisPage .analysis-summary{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    margin-bottom:18px !important;
+  }
+
+  #analysisPage .analysis-summary .analysis-card{
+    min-height:112px !important;
+    padding:14px 16px !important;
+    gap:14px !important;
+  }
+
+  #analysisPage .analysis-kpi-icon{
+    flex-basis:50px !important;
+    width:50px !important;
+    height:50px !important;
+    font-size:25px !important;
+  }
+
+  #analysisPage .analysis-layout{
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+    margin-top:0 !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1596,10 +1770,10 @@ input, textarea, select, .multi-select-toggle{
 
  <section id="analysisPage" class="panel hidden">
  <div class="analysis-mode-tabs">
- <button type="button" class="btn btn-light active" data-analysis-mode="company">🏢 Firma Analizi</button>
- <button type="button" class="btn btn-light" data-analysis-mode="plant">🏭 Santral Analizi</button>
- <button type="button" class="btn btn-light" data-analysis-mode="site">🏗️ Şantiye Analizi</button>
- <button type="button" class="btn btn-light" data-analysis-mode="pump">🚛 Pompa Analizi</button>
+ <button type="button" class="btn btn-light active" data-analysis-mode="company"><span class="analysis-mode-icon">🏢</span><span class="analysis-mode-text">Firma Analizi</span></button>
+ <button type="button" class="btn btn-light" data-analysis-mode="plant"><span class="analysis-mode-icon">🏭</span><span class="analysis-mode-text">Santral Analizi</span></button>
+ <button type="button" class="btn btn-light" data-analysis-mode="site"><span class="analysis-mode-icon">🏗️</span><span class="analysis-mode-text">Şantiye Analizi</span></button>
+ <button type="button" class="btn btn-light" data-analysis-mode="pump"><span class="analysis-mode-icon">🚛</span><span class="analysis-mode-text">Pompa Analizi</span></button>
  </div>
  <div class="analysis-toolbar">
  <div><label>Analiz dönemi</label><select id="analysisRange">
@@ -1615,10 +1789,10 @@ input, textarea, select, .multi-select-toggle{
  </div>
 
  <div class="analysis-summary">
- <div class="analysis-card"><small id="analysisEntityLabel">FİRMA SAYISI</small><strong id="analysisCompanyCount">0</strong></div>
- <div class="analysis-card"><small>TOPLAM SEVKİYAT</small><strong id="analysisShipmentCount">0</strong></div>
- <div class="analysis-card"><small>TOPLAM BETON</small><strong id="analysisTotalM3">0,00 m³</strong></div>
- <div class="analysis-card"><small>ORTALAMA SEVKİYAT</small><strong id="analysisAverageM3">0,00 m³</strong></div>
+ <div class="analysis-card"><span class="analysis-kpi-icon">👥</span><div class="analysis-kpi-copy"><small id="analysisEntityLabel">FİRMA SAYISI</small><strong id="analysisCompanyCount">0</strong></div></div>
+ <div class="analysis-card"><span class="analysis-kpi-icon">📋</span><div class="analysis-kpi-copy"><small>TOPLAM SEVKİYAT</small><strong id="analysisShipmentCount">0</strong></div></div>
+ <div class="analysis-card"><span class="analysis-kpi-icon">🚛</span><div class="analysis-kpi-copy"><small>TOPLAM BETON</small><strong id="analysisTotalM3">0,00 m³</strong></div></div>
+ <div class="analysis-card"><span class="analysis-kpi-icon">📊</span><div class="analysis-kpi-copy"><small>ORTALAMA SEVKİYAT</small><strong id="analysisAverageM3">0,00 m³</strong></div></div>
  </div>
 
  <div class="analysis-layout">
@@ -2880,7 +3054,7 @@ document.addEventListener("click",e=>{
 });
 $("dashboardRefresh").addEventListener("click",loadRecords);
 $("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
-$("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
+$("addPlantBtn").addEventLAistener("click",()=>addSettingItem("plant"));
 $("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
 $("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
