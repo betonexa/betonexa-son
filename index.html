@@ -1308,6 +1308,57 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Madde 12 v2 — SADECE TELEFON / gerçek Analiz bölümü */
+@media (max-width: 700px) {
+  /* Dört özet kartı: eşit ve birbirine yapışmadan */
+  #analysisPage .analysis-summary {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    margin: 0 0 16px 0 !important;
+  }
+
+  #analysisPage .analysis-summary .analysis-card {
+    width: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Şantiye/Firma/Santral/Pompa liste + ayrıntı panelleri:
+     mobilde tek kolon, üst özet kartlarına yapışmaz */
+  #analysisPage .analysis-layout {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    align-items: start !important;
+    width: 100% !important;
+    margin: 16px 0 0 0 !important;
+  }
+
+  #analysisPage .analysis-box {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  #analysisPage .analysis-box + .analysis-box {
+    margin-top: 0 !important;
+  }
+
+  #analysisPage .analysis-list,
+  #analysisPage .analysis-detail {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #analysisPage .analysis-detail {
+    min-height: 220px !important;
+  }
+}
+
 </style>
 </head>
 <body>
