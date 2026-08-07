@@ -2726,14 +2726,57 @@ function analysisRecords(){
     return true;
   });
 }
+function analysisCanonicalKey(value){
+  return String(value || "Belirtilmemiş")
+    .trim()
+    .replace(/\s+/g," ")
+    .toLocaleLowerCase("tr-TR")
+    // Analiz eşleştirmesinde noktalama/yazım farklarını yok say:
+    // "İlk gün inş.", "İLKGÜN İNŞ." gibi kayıtlar tek kalem olsun.
+    .replace(/[’'`´]/g,"")
+    .replace(/[.\-_/\\(),:;]+/g," ")
+    .replace(/\s+/g," ")
+    .trim()
+    // Kelimeler arasındaki boşluk farkını da eşleştirmede yok say.
+    .replace(/\s/g,"");
+}
+
+function analysisDisplayName(value){
+  const clean=String(value || "Belirtilmemiş")
+    .trim()
+    .replace(/\s+/g," ");
+
+  // Firma/şantiye adlarını okunaklı başlık biçiminde göster.
+  // Örn. "ŞEN BETON" => "Şen Beton"
+  return clean
+    .toLocaleLowerCase("tr-TR")
+    .replace(/(^|[\s\-\/])([\p{L}])/gu,(m,sep,ch)=>sep+ch.toLocaleUpperCase("tr-TR"));
+}
+
 function groupAnalysis(items,keyFn){
   const map=new Map();
+
   items.forEach(r=>{
-    const key=String(keyFn(r)||"Belirtilmemiş").trim()||"Belirtilmemiş";
-    if(!map.has(key))map.set(key,{name:key,count:0,total:0,records:[]});
-    const x=map.get(key);x.count++;x.total+=Number(r.metraj||0);x.records.push(r);
+    const raw=String(keyFn(r)||"Belirtilmemiş").trim()||"Belirtilmemiş";
+    const normalized=analysisCanonicalKey(raw);
+
+    if(!map.has(normalized)){
+      map.set(normalized,{
+        name:analysisDisplayName(raw),
+        count:0,
+        total:0,
+        records:[]
+      });
+    }
+
+    const x=map.get(normalized);
+    x.count++;
+    x.total+=Number(r.metraj||0);
+    x.records.push(r);
   });
-  return [...map.values()].sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,"tr"));
+
+  return [...map.values()]
+    .sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,"tr"));
 }
 function analysisDateRangeText(items){
   if(!items.length)return "-";
