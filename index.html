@@ -1485,17 +1485,6 @@ input, textarea, select, .multi-select-toggle{
 }
 
 </style>
-
-<style>
-/* Madde 4 — kullanıcı içerikleri zorla büyük harfe çevrilmesin */
-#app input:not([type="date"]):not([type="time"]):not([type="number"]),
-#app textarea,
-#app select,
-#app option {
-  text-transform:none !important;
-}
-</style>
-
 </head>
 <body>
 <div id="loading" class="loading hidden">Yükleniyor…</div>
@@ -2482,79 +2471,7 @@ function printTomorrow(){
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
     return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${m3(r.metraj)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
   }).join("");
-  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div>
-<script>
-/* Madde 4 — uygulama + PDF metin standardı:
-   ilk harf büyük, devamı küçük. Giriş kullanıcı adı/şifre alanları HARİÇ. */
-(function(){
-  const trLower = s => String(s ?? "").toLocaleLowerCase("tr-TR");
-  const firstUpper = s => {
-    const v = trLower(s).trim();
-    return v ? v.charAt(0).toLocaleUpperCase("tr-TR") + v.slice(1) : "";
-  };
-
-  window.betonexaSentenceCase = firstUpper;
-
-  function formatInput(el){
-    if(!el || el.id==="loginUser" || el.id==="loginPass") return;
-    if(el.type==="password" || el.type==="email" || el.type==="tel" ||
-       el.type==="number" || el.type==="date" || el.type==="time") return;
-    if(el.tagName==="INPUT" || el.tagName==="TEXTAREA"){
-      if(el.value && /[A-Za-zÇĞİIÖŞÜçğıöşü]/.test(el.value)){
-        el.value = firstUpper(el.value);
-      }
-    }
-  }
-
-  document.addEventListener("blur", function(e){
-    if(e.target && (e.target.matches("input") || e.target.matches("textarea"))){
-      formatInput(e.target);
-    }
-  }, true);
-
-  /* Seçeneklerde görünen metinleri de aynı standarda getir.
-     Teknik value değerlerine dokunulmaz. */
-  function formatOptions(root=document){
-    root.querySelectorAll("select option").forEach(opt=>{
-      const t=(opt.textContent||"").trim();
-      if(t && /[A-Za-zÇĞİIÖŞÜçğıöşü]/.test(t) &&
-         !/^(S\d|C\s*\d|\d)/i.test(t)){
-        opt.textContent=firstUpper(t);
-      }
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded",()=>formatOptions());
-
-  /* Dinamik eklenen seçenekler için */
-  const obs=new MutationObserver(()=>formatOptions());
-  document.addEventListener("DOMContentLoaded",()=>{
-    if(document.body) obs.observe(document.body,{childList:true,subtree:true});
-  });
-
-  /* PDF/Excel/export fonksiyonlarının kullandığı kayıtları görünüm için dönüştür.
-     Tarih, saat, telefon ve sayısal alanlar korunur. */
-  const originalExportRecords = window.exportRecords;
-  if(typeof originalExportRecords==="function"){
-    window.exportRecords=function(){
-      const rows=originalExportRecords.apply(this,arguments);
-      const textKeys=[
-        "santral","firma","santiye","beton_sinifi","beton_ozelligi",
-        "pompa_tipi","sorumlu_kisi"
-      ];
-      return rows.map(r=>{
-        const x={...r};
-        textKeys.forEach(k=>{
-          if(typeof x[k]==="string" && x[k].trim()) x[k]=firstUpper(x[k]);
-        });
-        return x;
-      });
-    };
-  }
-})();
-</script>
-
-</body></html>`);
+  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 
@@ -2983,135 +2900,42 @@ function downloadExcel(){
 }
 async function downloadPdf(){
   if(!window.jspdf){alert("PDF modülü yüklenemedi. Sayfayı yenileyip tekrar deneyin.");return}
-
-  const records=exportRecords();
-  if(!records.length){alert("Seçilen dönemde sevkiyat yok.");return}
+  const rows=exportRows();
+  if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
 
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:"landscape"});
   const pdfFont=await preparePdfFont(doc);
   const text=pdfFont.text;
 
-  const purple=[111,66,193];
-  const pageWidth=doc.internal.pageSize.getWidth();
-  const marginLeft=14;
-  const marginRight=14;
-
-  const monthNames=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-  const dayNames=["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
-
-  function planTitle(){
-    const range=$("exportRange").value;
-    const refStr=$("exportDate").value || iso(new Date());
-    const p=refStr.split("-").map(Number);
-    const d=new Date(p[0],p[1]-1,p[2]);
-
-    if(range==="daily"){
-      const dd=String(d.getDate()).padStart(2,"0");
-      return `${dd} ${monthNames[d.getMonth()]} ${dayNames[d.getDay()]} Beton Sevkiyat Planı`;
-    }
-    if(range==="weekly") return "Haftalık Beton Sevkiyat Planı";
-    if(range==="monthly") return `${monthNames[d.getMonth()]} ${d.getFullYear()} Beton Sevkiyat Planı`;
-    return "Beton Sevkiyat Planı";
-  }
-
   doc.setFont(pdfFont.name,"normal");
   doc.setCharSpace(0);
-  doc.setFontSize(15);
-  doc.setTextColor(...purple);
-  doc.text(text(planTitle()),marginLeft,14);
+  doc.setFontSize(16);
+  doc.text(text("Betonexa Sevkiyat Planı"),14,14);
 
-  doc.setDrawColor(...purple);
-  doc.setLineWidth(0.4);
-  doc.line(marginLeft,18,pageWidth-marginRight,18);
+  const headers=Object.keys(rows[0]);
+  const body=rows.map(row=>headers.map(header=>text(String(row[header]??""))));
 
-  const grouped=new Map();
-  records.forEach(r=>{
-    const company=(r.firma||"FİRMA BELİRTİLMEDİ").trim() || "FİRMA BELİRTİLMEDİ";
-    if(!grouped.has(company)) grouped.set(company,[]);
-    grouped.get(company).push(r);
+  doc.autoTable({
+    head:[headers.map(text)],
+    body,
+    startY:20,
+    styles:{
+      font:pdfFont.name,
+      fontStyle:"normal",
+      fontSize:7,
+      charSpace:0
+    },
+    headStyles:{
+      font:pdfFont.name,
+      fontStyle:"normal",
+      fillColor:[111,66,193]
+    }
   });
 
-  let y=26;
-  let grand=0;
-
-  const headers=[
-    "No","Tarih","Saat","Santral","Şantiye","Beton sınıfı",
-    "Beton özelliği","Metraj (m³)","Pompa","Sorumlu kişi","Telefon"
-  ];
-
-  let globalNo=1;
-
-  for(const [company,items] of grouped.entries()){
-    const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
-    grand+=subtotal;
-
-    if(y>180){
-      doc.addPage();
-      y=18;
-    }
-
-    doc.setFont(pdfFont.name,"normal");
-    doc.setFontSize(10.5);
-    doc.setTextColor(...purple);
-    doc.text(text(`${company} — Firma Toplamı: ${m3(subtotal)} m³`),marginLeft,y);
-
-    const body=items.map(r=>[
-      String(globalNo++),
-      trDate(r.tarih),
-      (r.saat||"").slice(0,5),
-      r.santral||"",
-      r.santiye||"",
-      r.beton_sinifi||"",
-      r.beton_ozelligi||"",
-      m3(Number(r.metraj||0)),
-      r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
-      r.sorumlu_kisi||"",
-      r.telefon||""
-    ].map(v=>text(String(v??""))));
-
-    doc.autoTable({
-      head:[headers.map(text)],
-      body,
-      startY:y+4,
-      margin:{left:marginLeft,right:marginRight},
-      styles:{
-        font:pdfFont.name,
-        fontStyle:"normal",
-        fontSize:7,
-        charSpace:0,
-        cellPadding:1.6
-      },
-      headStyles:{
-        font:pdfFont.name,
-        fontStyle:"normal",
-        fillColor:purple,
-        textColor:[255,255,255]
-      },
-      alternateRowStyles:{fillColor:[248,245,252]}
-    });
-
-    y=doc.lastAutoTable.finalY+10;
-  }
-
-  if(y>190){
-    doc.addPage();
-    y=20;
-  }
-
-  doc.setFillColor(...purple);
-  doc.roundedRect(pageWidth-marginRight-82,y-6,82,12,2,2,"F");
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(11);
-  doc.text(text(`GENEL TOPLAM: ${m3(grand)} m³`),pageWidth-marginRight-4,y+1,{align:"right"});
-
-  const safeTitle=planTitle()
-    .replace(/[çÇ]/g,"c").replace(/[ğĞ]/g,"g").replace(/[ıİ]/g,"i")
-    .replace(/[öÖ]/g,"o").replace(/[şŞ]/g,"s").replace(/[üÜ]/g,"u")
-    .replace(/\s+/g,"-");
-
-  doc.save(`${safeTitle}.pdf`);
+  doc.save(`Betonexa-Sevkiyat-Plani-${$("exportRange").value}.pdf`);
 }
+
 function printPlan(){
   const rows=exportRows();if(!rows.length){alert("Seçilen dönemde sevkiyat yok.");return}
   const headers=Object.keys(rows[0]);
