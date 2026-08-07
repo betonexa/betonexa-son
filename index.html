@@ -1535,6 +1535,88 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Madde 16 v2 — giriş ekranı yerleşimini koru */
+#loginView,
+.login-screen,
+.login-page {
+  overflow-x: hidden !important;
+}
+
+#loginView .login-card,
+.login-screen .login-card,
+.login-card {
+  box-sizing: border-box !important;
+}
+
+.login-remember-row{
+  width:100% !important;
+  box-sizing:border-box !important;
+  margin:10px 0 12px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  flex-wrap:nowrap !important;
+}
+
+.login-remember-label{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  margin:0 !important;
+  padding:0 !important;
+  font-weight:700 !important;
+  white-space:nowrap !important;
+  text-transform:none !important;
+}
+
+.login-remember-label input{
+  width:18px !important;
+  height:18px !important;
+  min-width:18px !important;
+  min-height:18px !important;
+  padding:0 !important;
+  margin:0 !important;
+  flex:0 0 18px !important;
+  accent-color:#6f32c9;
+}
+
+.login-remember-row small{
+  margin:0 !important;
+  padding:0 !important;
+  color:#667085 !important;
+  font-size:12px !important;
+  line-height:1.2 !important;
+  text-align:right !important;
+  text-transform:none !important;
+}
+
+/* Sadece girişte yazılan karakterin görünümünü bozma */
+#loginUser,
+#loginPass{
+  text-transform:none !important;
+  font-variant:normal !important;
+  letter-spacing:normal !important;
+}
+
+/* iPhone/Android klavyede otomatik büyük harf engeli için görsel ek güvence */
+#loginUser{
+  -webkit-text-security:none;
+}
+
+@media(max-width:700px){
+  .login-remember-row{
+    flex-wrap:wrap !important;
+    align-items:center !important;
+  }
+  .login-remember-row small{
+    flex:1 1 100% !important;
+    text-align:left !important;
+    padding-left:26px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1545,6 +1627,8 @@ input, textarea, select, .multi-select-toggle{
  <label for="loginUser">Kullanıcı adı</label><input id="loginUser" autocomplete="username" value="ozlem" autocapitalize="none" autocorrect="off" spellcheck="false">
  <label for="loginPass">Şifre</label>
  <div class="password-wrap"><input id="loginPass" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
+<button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
+ 
 <div class="login-remember-row">
   <label class="login-remember-label" for="rememberUsername">
     <input id="rememberUsername" type="checkbox">
@@ -1552,9 +1636,7 @@ input, textarea, select, .multi-select-toggle{
   </label>
   <small>Kullanıcı adım bu cihazda görünsün</small>
 </div>
-
- <button id="togglePass" type="button" class="eye-btn" aria-label="Şifreyi göster">👁️</button></div>
- <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
+<button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
  <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
  <div id="forgotPanel" class="forgot-panel hidden">
  <label for="forgotEmail">E-posta adresi</label>
@@ -2524,12 +2606,25 @@ function printTomorrow(){
   }).join("");
   w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#5d2eae}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #aaa;padding:6px}th{background:#6f42c1;color:#fff}.total{margin-top:20px;background:#6f42c1;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div><script>
 
-/* Madde 16 — kullanıcı adı hatırlama; şifre kesinlikle saklanmaz. */
+
+
+</script>
+<script>
+
+/* Madde 16 v2 — kullanıcı adı hatırlama; şifre saklanmaz. */
 (function(){
-  const user=document.getElementById('loginUser');
-  const pass=document.getElementById('loginPass');
+  const user=document.getElementById("loginUser");
+  const pass=document.getElementById("loginPass");
   const remember=document.getElementById("rememberUsername");
-  if(!user||!pass||!remember)return;
+  if(!user||!pass||!remember) return;
+
+  /* Kullanıcının yazdığı harf büyüklüğünü aynen koru */
+  user.setAttribute("autocapitalize","none");
+  user.setAttribute("autocorrect","off");
+  user.setAttribute("spellcheck","false");
+  pass.setAttribute("autocapitalize","none");
+  pass.setAttribute("autocorrect","off");
+  pass.setAttribute("spellcheck","false");
 
   const key="betonexaRememberedUsername";
   try{
@@ -2540,22 +2635,15 @@ function printTomorrow(){
     }
   }catch(e){}
 
-  function syncRemember(){
+  const saveUser=()=>{
     try{
-      if(remember.checked){
-        localStorage.setItem(key,user.value);
-      }else{
-        localStorage.removeItem(key);
-      }
+      if(remember.checked) localStorage.setItem(key,user.value);
+      else localStorage.removeItem(key);
     }catch(e){}
-  }
+  };
 
-  remember.addEventListener("change",syncRemember);
-  user.addEventListener("input",function(){
-    if(remember.checked) syncRemember();
-  });
-
-  /* Şifre hiçbir zaman localStorage/sessionStorage'a yazılmaz. */
+  remember.addEventListener("change",saveUser);
+  user.addEventListener("input",saveUser);
 })();
 
 </script>
