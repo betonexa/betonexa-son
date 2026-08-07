@@ -1690,7 +1690,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
  </div>
 
- <div class="field"><label>Metraj (m³)</label><input id="metraj" type="number" min="0" step="0.01" required></div>
+ <div class="field"><label>Metraj (m³)</label><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 25 veya 25+" required></div>
  <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
  <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
  </div>
@@ -1998,7 +1998,7 @@ function payload(){
     santiye:sentenceCaseTR($("santiye").value),
     beton_sinifi:$("betonSinifi").value,
     beton_ozelligi:selectedConcreteProperties().join(", "),
-    metraj:Number($("metraj").value),
+    metraj:Number(String($("metraj").value||"").replace(",",".").replace("+","").trim()),metraj_plus:String($("metraj").value||"").includes("+"),
     pompa_var_mi:$("pompaVar").value==="true",
     pompa_tipi:$("pompaVar").value==="true"?sentenceCaseTR($("pompaTipi").value):null,
     sorumlu_kisi:sentenceCaseTR($("sorumluKisi").value),
@@ -2020,7 +2020,7 @@ async function saveShipment(e){
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=r.metraj??"";$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -2033,7 +2033,7 @@ function renderTable(){
   const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
   $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
     <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(sentenceCaseTR(r.santral))}</td><td>${esc(sentenceCaseTR(r.firma))}</td><td>${esc(sentenceCaseTR(r.santiye))}</td>
-    <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${m3(r.metraj)} m³</td>
+    <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${m3(r.metraj)} m³${r.metraj_plus?"+":""}</td>
     <td>${r.pompa_var_mi?esc(sentenceCaseTR(r.pompa_tipi||"Pompalı")):"Pompasız"}</td><td>${esc(sentenceCaseTR(r.sorumlu_kisi))}</td><td>${esc(r.telefon)}</td>
     <td><div class="row-actions">
       <button type="button" class="icon-action edit" title="Düzenle" aria-label="Düzenle" onclick="event.stopPropagation();editRecord(${Number(r.id)})">✏️</button>
@@ -2293,7 +2293,7 @@ function tomorrowExportRows(){
       "Beton sınıfı":r.beton_sinifi||"",
       Özellik:r.beton_ozelligi||"",
       Pompa:r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
-      "Metraj (m³)":Number(r.metraj||0),
+      "Metraj (m³)":`${Number(r.metraj||0)}${r.metraj_plus?"+":""}`,
       Sorumlu:r.sorumlu_kisi||"",
       Telefon:r.telefon||""
     }));
