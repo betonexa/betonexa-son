@@ -2477,7 +2477,7 @@ async function downloadTomorrowPdf(){
     doc.setCharSpace(0);
     doc.setFontSize(commonFontSize);
     doc.setTextColor(...purple);
-    doc.text(text(`${company} - ${m3(subtotal)} m³`),marginLeft,y);
+    doc.text(text(`${analysisDisplayName(company)} - ${m3(subtotal)} m³`),marginLeft,y);
 
     doc.autoTable({
       startY:y+4,
@@ -2489,12 +2489,12 @@ async function downloadTomorrowPdf(){
       body:items.map(r=>[
         text((r.saat||"").slice(0,5)),
         text(r.santral||""),
-        text(r.santiye||""),
-        text(r.beton_sinifi||""),
+        text(analysisDisplayName(r.santiye||"")),
+        text(analysisDisplayName(r.beton_sinifi||"")),
         text(r.beton_ozelligi||""),
         text(r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız"),
         text(`${metrajDisplay(r)} m³`),
-        text(r.sorumlu_kisi||""),
+        text(analysisDisplayName(r.sorumlu_kisi||"")),
         text(r.telefon||"")
       ]),
       styles:{
