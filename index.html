@@ -2489,7 +2489,7 @@ async function downloadTomorrowPdf(){
       body:items.map(r=>[
         text((r.saat||"").slice(0,5)),
         text(r.santral||""),
-        text(analysisDisplayName(r.santiye||"")),
+        text(r.santiye||""),
         text(analysisDisplayName(r.beton_sinifi||"")),
         text(r.beton_ozelligi||""),
         text(r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız"),
