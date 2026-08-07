@@ -2522,3 +2522,37 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 
 </body>
 </html>
+
+<!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
+<style>
+/* Özet kartları ile alt analiz panelleri birbirine yapışmasın. */
+#analysisPage .analysis-summary {
+  margin-bottom: 16px;
+}
+
+/* Alt analiz panelleri aynı satır/yükseklik düzenini korusun. */
+#analysisPage .analysis-layout {
+  gap: 16px;
+}
+
+@media (max-width: 700px) {
+  /* Mobilde tüm analiz kartları ve paneller arasında tek tip boşluk. */
+  #analysisPage .analysis-summary {
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  #analysisPage .analysis-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* Paneller üstteki kartlarla aynı iç genişliğe hizalansın. */
+  #analysisPage .analysis-card,
+  #analysisPage .analysis-box {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+</style>
