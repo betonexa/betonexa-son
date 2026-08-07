@@ -1152,6 +1152,102 @@ input, textarea, select, .multi-select-toggle{
   }
 }
 
+
+/* Madde 15 v2 — iPhone'da Plan dönemi / Referans tarihi kesin hizalama */
+@media (max-width: 700px) {
+  .records-report .export-bar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: end !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .records-report .export-filter-field {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .records-report .export-filter-field label {
+    display: block !important;
+    margin: 0 0 7px !important;
+  }
+
+  .records-report #exportRange,
+  .records-report .export-date-control {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  .records-report #exportRange {
+    display: block !important;
+    padding: 0 34px 0 12px !important;
+    line-height: 46px !important;
+  }
+
+  .records-report .export-date-control {
+    position: relative !important;
+    overflow: hidden !important;
+    border: 1px solid #cfd4dc !important;
+    background: #fff !important;
+  }
+
+  /* iOS'un geniş native date metnini görünmez yapıp,
+     aynı çalışan date inputunu tüm kutu üzerinde tıklanabilir bırakıyoruz. */
+  .records-report #exportDate {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+  }
+
+  .records-report #exportDateDisplay {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    color: #20242d !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+  }
+
+  .records-report .export-bar > .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .records-report #printBtn {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1360,11 +1456,16 @@ input, textarea, select, .multi-select-toggle{
 
  <div class="records-report">
  <div class="export-bar">
- <div><label>Plan dönemi</label><select id="exportRange">
+ <div class="export-filter-field"><label>Plan dönemi</label><select id="exportRange">
  <option value="daily">Günlük</option><option value="weekly">Haftalık</option>
  <option value="monthly">Aylık</option><option value="all">Tümü</option>
  </select></div>
- <div><label>Referans tarihi</label><input id="exportDate" type="date"></div>
+ <div class="export-filter-field export-date-field"><label>Referans tarihi</label>
+   <div class="export-date-control">
+     <input id="exportDate" type="date" aria-label="Referans tarihi">
+     <span id="exportDateDisplay" aria-hidden="true"></span>
+   </div>
+ </div>
  <button type="button" class="btn btn-light" id="pdfBtn">PDF İndir</button>
  <button type="button" class="btn btn-light" id="excelBtn">Excel İndir</button>
  <button type="button" class="btn btn-light" id="printBtn">Yazdır</button>
@@ -1493,6 +1594,19 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
 function setLoading(v){$("loading").classList.toggle("hidden",!v)}
 function setStatus(t,err=false){$("status").textContent=t;$("status").style.color=err?"var(--danger)":"var(--ok)"}
+
+function updateExportDateDisplay(){
+  const input=document.getElementById("exportDate");
+  const label=document.getElementById("exportDateDisplay");
+  if(!input||!label)return;
+  const v=input.value;
+  if(!v){label.textContent="";return;}
+  const p=v.split("-");
+  if(p.length!==3){label.textContent=v;return;}
+  const months=["OCA","ŞUB","MAR","NİS","MAY","HAZ","TEM","AĞU","EYL","EKİ","KAS","ARA"];
+  label.textContent=`${Number(p[2])} ${months[Number(p[1])-1]||""} ${p[0]}`;
+}
+
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function monday(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
@@ -2669,7 +2783,10 @@ window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=sh
 loadAppSettings();refreshFormOptions();
 updateConcretePropertySummary();
 document.body.classList.remove("dark-app");localStorage.setItem("betonexa_theme","light");
-$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());$("kpiMonthPicker").value=iso(new Date()).slice(0,7);updateKpiMonthPickerLabel();
+$("tarih").value=iso(new Date());$("exportDate").value=iso(new Date());updateExportDateDisplay();$("kpiMonthPicker").value=iso(new Date()).slice(0,7);updateKpiMonthPickerLabel();
+$("exportDate").addEventListener("change",updateExportDateDisplay);
+$("exportDate").addEventListener("input",updateExportDateDisplay);
+
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
 if(sessionStorage.getItem("betonexa_login")==="1"){$("login").classList.add("hidden");$("app").classList.remove("hidden");showPage("records");loadRecords()}
 if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
