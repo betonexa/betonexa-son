@@ -937,6 +937,60 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 }
 
 
+/* BETONEXA MADDE 15 — MOBİL AYLIK m³ VE RAPOR FİLTRE HİZASI */
+@media (max-width: 700px) {
+  /* Aylık m³ kartındaki ay seçici, diğer panel alanlarıyla aynı iç hizaya gelir. */
+  .kpi:has(#kpiMonthPicker) {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  #kpiMonthPicker {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 10px 0 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Plan dönemi ve Referans tarihi mobilde eşit iki sütun olur;
+     sağ/sol boşluk ve aralarındaki mesafe standart panel aralığıyla eşitlenir. */
+  .records-report .export-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: 10px !important;
+    row-gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    align-items: end !important;
+  }
+
+  .records-report .export-bar > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .records-report .export-bar > div select,
+  .records-report .export-bar > div input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .records-report .export-bar > .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .records-report .export-bar > #printBtn {
+    grid-column: 1 / -1;
+  }
+}
+
+
 /* MADDE 4 hazırlığı: girişlerde büyük harf */
 input, textarea, select, .multi-select-toggle{
   text-transform: uppercase;
