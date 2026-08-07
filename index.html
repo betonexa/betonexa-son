@@ -2074,7 +2074,7 @@ async function deleteRecord(id){
 function renderTable(){
   const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
   $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
-    <td>${i+1}</td><td>${esc(trDateWithDay(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(sentenceCaseTR(r.santral))}</td><td>${esc(sentenceCaseTR(r.firma))}</td><td>${esc(sentenceCaseTR(r.santiye))}</td>
+    <td>${i+1}</td><td>${esc(trDateWithDay(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(sentenceCaseTR(r.santral))}</td><td>${esc(analysisDisplayName(r.firma))}</td><td>${esc(analysisDisplayName(r.santiye))}</td>
     <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${metrajDisplay(r)} m³</td>
     <td>${r.pompa_var_mi?esc(sentenceCaseTR(r.pompa_tipi||"Pompalı")):"Pompasız"}</td><td>${esc(sentenceCaseTR(r.sorumlu_kisi))}</td><td>${esc(r.telefon)}</td>
     <td><div class="row-actions">
