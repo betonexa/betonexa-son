@@ -991,10 +991,8 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 }
 
 
-/* MADDE 4 hazırlığı: girişlerde büyük harf */
-input, textarea, select, .multi-select-toggle{
-  text-transform: uppercase;
-}
+/* MADDE 4: genel büyük harf zorlaması kaldırıldı.
+   Giriş sistemi ve diğer işlevler değiştirilmedi. */
 
 /* BETONEXA MADDE 15 — AY SEÇİCİYİ TARİH ALANIYLA AYNI ORAN VE TAM MERKEZ */
 @media (max-width: 700px) {
@@ -1485,6 +1483,17 @@ input, textarea, select, .multi-select-toggle{
 }
 
 </style>
+
+<style>
+/* Madde 4 — sadece uygulama yazı görünümü; login alanları hariç */
+#app input:not([type="date"]):not([type="time"]):not([type="number"]):not([type="tel"]),
+#app textarea,
+#app select,
+#app .multi-select-toggle{
+  text-transform:none !important;
+}
+</style>
+
 </head>
 <body>
 <div id="loading" class="loading hidden">Yükleniyor…</div>
@@ -1960,19 +1969,28 @@ function clearConcreteProperties(){
   document.querySelectorAll('#betonOzellikleri input[type="checkbox"]').forEach(cb=>cb.checked=false);
   updateConcretePropertySummary();
 }
+
+/* MADDE 4 — yalnızca yazı biçimi */
+function sentenceCaseTR(value){
+  const raw=String(value??"").trim();
+  if(!raw)return "";
+  const lower=raw.toLocaleLowerCase("tr-TR");
+  return lower.charAt(0).toLocaleUpperCase("tr-TR")+lower.slice(1);
+}
+
 function payload(){
   return {
     tarih:$("tarih").value,
     saat:$("saat").value,
-    santral:$("santral").value,
-    firma:$("firma").value.trim(),
-    santiye:$("santiye").value.trim(),
+    santral:sentenceCaseTR($("santral").value),
+    firma:sentenceCaseTR($("firma").value),
+    santiye:sentenceCaseTR($("santiye").value),
     beton_sinifi:$("betonSinifi").value,
     beton_ozelligi:selectedConcreteProperties().join(", "),
     metraj:Number($("metraj").value),
     pompa_var_mi:$("pompaVar").value==="true",
-    pompa_tipi:$("pompaVar").value==="true"?$("pompaTipi").value:null,
-    sorumlu_kisi:$("sorumluKisi").value.trim(),
+    pompa_tipi:$("pompaVar").value==="true"?sentenceCaseTR($("pompaTipi").value):null,
+    sorumlu_kisi:sentenceCaseTR($("sorumluKisi").value),
     telefon:phoneFormat($("telefon").value)
   };
 }
@@ -2003,9 +2021,9 @@ async function deleteRecord(id){
 function renderTable(){
   const sorted=[...records].sort((a,b)=>`${a.tarih||""} ${a.saat||""}`.localeCompare(`${b.tarih||""} ${b.saat||""}`));
   $("rows").innerHTML=sorted.map((r,i)=>`<tr onclick="openInCalendar(${Number(r.id)})" title="Takvimdeki yerine git">
-    <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.firma)}</td><td>${esc(r.santiye)}</td>
-    <td>${esc([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" "))}</td><td>${m3(r.metraj)} m³</td>
-    <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td>
+    <td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(sentenceCaseTR(r.santral))}</td><td>${esc(sentenceCaseTR(r.firma))}</td><td>${esc(sentenceCaseTR(r.santiye))}</td>
+    <td>${esc(sentenceCaseTR([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(" ")))}</td><td>${m3(r.metraj)} m³</td>
+    <td>${r.pompa_var_mi?esc(sentenceCaseTR(r.pompa_tipi||"Pompalı")):"Pompasız"}</td><td>${esc(sentenceCaseTR(r.sorumlu_kisi))}</td><td>${esc(r.telefon)}</td>
     <td><div class="row-actions">
       <button type="button" class="icon-action edit" title="Düzenle" aria-label="Düzenle" onclick="event.stopPropagation();editRecord(${Number(r.id)})">✏️</button>
       <button type="button" class="icon-action delete" title="Sil" aria-label="Sil" onclick="event.stopPropagation();deleteRecord(${Number(r.id)})">🗑️</button>
@@ -2886,10 +2904,10 @@ function exportRecords(){
 }
 function exportRows(){
   return exportRecords().map((r,i)=>({
-    No:i+1,Tarih:trDate(r.tarih),Saat:(r.saat||"").slice(0,5),Santral:r.santral||"",Firma:r.firma||"",
-    Şantiye:r.santiye||"","Beton sınıfı":r.beton_sinifi||"","Beton özelliği":r.beton_ozelligi||"",
-    "Metraj (m³)":Number(r.metraj||0),Pompa:r.pompa_var_mi?(r.pompa_tipi||"Pompalı"):"Pompasız",
-    "Sorumlu kişi":r.sorumlu_kisi||"",Telefon:r.telefon||""
+    No:i+1,Tarih:trDate(r.tarih),Saat:(r.saat||"").slice(0,5),Santral:sentenceCaseTR(r.santral||""),Firma:sentenceCaseTR(r.firma||""),
+    Şantiye:sentenceCaseTR(r.santiye||""),"Beton sınıfı":sentenceCaseTR(r.beton_sinifi||""),"Beton özelliği":sentenceCaseTR(r.beton_ozelligi||""),
+    "Metraj (m³)":Number(r.metraj||0),Pompa:r.pompa_var_mi?sentenceCaseTR(r.pompa_tipi||"Pompalı"):"Pompasız",
+    "Sorumlu kişi":sentenceCaseTR(r.sorumlu_kisi||""),Telefon:r.telefon||""
   }));
 }
 function downloadExcel(){
