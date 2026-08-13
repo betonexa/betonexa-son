@@ -4221,4 +4221,92 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
     font-size:14px;
   }
 }
+/* ===== SÖZLEŞMELER - MOBİL DÜZEN ===== */
+@media (max-width:700px){
+
+  /* Sözleşmeler sayfasındaki iki ana panel alt alta */
+  #contractsPage .settings-grid{
+    display:block !important;
+  }
+
+  #contractsPage .settings-card{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+
+  /* Sol sözleşme listesi */
+  #contractsPage #contractsList{
+    width:100% !important;
+  }
+
+  /* Sözleşme Detayı paneli */
+  #contractsPage .settings-add{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px 12px !important;
+    align-items:end !important;
+  }
+
+  /* Her alan kendi sütununa düzgün otursun */
+  #contractsPage .settings-add > div{
+    width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  /* Şantiye adresi tam satır */
+  #contractsPage .settings-add > div:nth-child(3){
+    grid-column:1 / -1 !important;
+  }
+
+  /* Devir tarihi */
+  #contractsPage .settings-add > div:nth-child(9){
+    grid-column:1 / 2 !important;
+  }
+
+  /* Inputlar küçülsün */
+  #contractsPage .settings-add input,
+  #contractsPage .settings-add select{
+    width:100% !important;
+    min-width:0 !important;
+    height:44px !important;
+    padding:8px 10px !important;
+    font-size:15px !important;
+    box-sizing:border-box !important;
+  }
+
+  /* Başlıklar */
+  #contractsPage .settings-add label{
+    display:block !important;
+    margin-bottom:5px !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+  }
+
+  /* Kaydet butonu */
+  #contractsPage #saveContractBtn{
+    width:auto !important;
+    min-height:44px !important;
+  }
+}
+
+/* Çok dar telefonlarda da 2 sütunu koru */
+@media (max-width:430px){
+
+  #contractsPage .settings-add{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:9px 8px !important;
+  }
+
+  #contractsPage .settings-add input,
+  #contractsPage .settings-add select{
+    font-size:14px !important;
+    padding:7px 8px !important;
+  }
+
+  #contractsPage .settings-add label{
+    font-size:12px !important;
+  }
+}
 </style>
