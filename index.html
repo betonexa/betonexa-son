@@ -4285,7 +4285,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
   }
 
   /* Kaydet butonu */
-  #contractsPage #saveContractBtn{
+  #contractsPage #contractSaveBtn{
     width:auto !important;
     min-height:44px !important;
   }
@@ -4307,6 +4307,74 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 
   #contractsPage .settings-add label{
     font-size:12px !important;
+  }
+}
+/* ===== iPHONE SÖZLEŞME FORMU DÜZELTME ===== */
+@media (max-width:700px){
+
+  /* Alanların mobil yerleşimini netleştir */
+  #contractCompany{ grid-area:company; }
+  #contractSite{ grid-area:site; }
+  #contractAddress{ grid-area:address; }
+  #contractDate{ grid-area:date; }
+  #contractBuyPrice{ grid-area:buy; }
+  #contractSalePrice{ grid-area:sale; }
+  #contractDueDays{ grid-area:due; }
+  #contractFixedUntil{ grid-area:fixed; }
+  #contractTotalM3{ grid-area:total; }
+  #contractCarryM3{ grid-area:carry; }
+  #contractCarryDate{ grid-area:carrydate; }
+
+  /* input'u değil, onu saran div'i grid alanına yerleştir */
+  #contractCompany{ }
+  #contractCompany:where(*){ }
+
+  #contractsPage .settings-add{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  }
+
+  #contractsPage .settings-add > div:has(#contractCompany){grid-column:1;}
+  #contractsPage .settings-add > div:has(#contractSite){grid-column:2;}
+
+  #contractsPage .settings-add > div:has(#contractAddress){
+    grid-column:1 / -1;
+  }
+
+  #contractsPage .settings-add > div:has(#contractDate){grid-column:1;}
+  #contractsPage .settings-add > div:has(#contractBuyPrice){grid-column:2;}
+
+  #contractsPage .settings-add > div:has(#contractSalePrice){grid-column:1;}
+  #contractsPage .settings-add > div:has(#contractDueDays){grid-column:2;}
+
+  #contractsPage .settings-add > div:has(#contractFixedUntil){
+    grid-column:1 / -1;
+  }
+
+  #contractsPage .settings-add > div:has(#contractTotalM3){grid-column:1;}
+  #contractsPage .settings-add > div:has(#contractCarryM3){grid-column:2;}
+
+  #contractsPage .settings-add > div:has(#contractCarryDate){
+    grid-column:1 / -1;
+  }
+
+  /* iPhone tarih inputları */
+  #contractsPage input[type="date"]{
+    -webkit-appearance:none !important;
+    appearance:none !important;
+    width:100% !important;
+    height:44px !important;
+    min-height:44px !important;
+    line-height:44px !important;
+    padding:0 10px !important;
+    font-size:15px !important;
+    box-sizing:border-box !important;
+    background:#fff !important;
+  }
+
+  #contractsPage input[type="date"]::-webkit-date-and-time-value{
+    text-align:left !important;
+    min-height:44px !important;
+    line-height:44px !important;
   }
 }
 </style>
