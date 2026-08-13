@@ -2124,7 +2124,9 @@ async function loadContracts(){
   }
 
   contracts=data||[];
-  renderContracts();
+selectedContractId=null;
+renderContracts();
+clearContractForm();
 }
 
 function renderContracts(){
