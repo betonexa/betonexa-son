@@ -2197,29 +2197,43 @@ function renderContracts(){
     const status=contractFixedStatus(c);
 
     return `
-      <button type="button"
-        class="settings-item"
-        style="width:100%;text-align:left;cursor:pointer"
-        onclick="selectContract(${Number(c.id)})">
+  <button type="button"
+    class="contract-card"
+    onclick="selectContract(${Number(c.id)})">
 
-        <div>
-          <b>${esc(analysisDisplayName(c.santiye))}</b>
-          <div style="font-size:12px;margin-top:4px">
-            ${esc(analysisDisplayName(c.firma))}
-          </div>
-          <div style="font-size:12px;margin-top:4px">
-            ${esc(status.text)}
-          </div>
+    <div class="contract-card-main">
+
+      <div class="contract-card-left">
+        <div class="contract-card-title">
+          ${esc(analysisDisplayName(c.santiye))}
         </div>
 
-        <div style="text-align:right">
-          <b>${contractM3(progress.remaining)} kalan</b>
-          <div style="font-size:12px;margin-top:4px">
-            ${contractMoney(c.satis_fiyati)} / m³
-          </div>
+        <div class="contract-card-company">
+          📍 ${esc(analysisDisplayName(c.firma))}
         </div>
-      </button>
-    `;
+
+        <div class="contract-card-status ${status.level||""}">
+          ${esc(status.text)}
+        </div>
+      </div>
+
+      <div class="contract-card-right">
+        <div class="contract-card-remaining">
+          ${contractM3(progress.remaining)} kalan
+        </div>
+
+        <div class="contract-card-price">
+          ${contractMoney(c.satis_fiyati)} / m³
+        </div>
+
+        <div class="contract-card-arrow">
+          ›
+        </div>
+      </div>
+
+    </div>
+  </button>
+`;
   }).join("");
 
   if(selectedContractId){
@@ -4034,5 +4048,115 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
     text-align:left;
   }
 }
+/* SÖZLEŞMELER - SOL LİSTE KART DÜZENİ */
 
+#contractList{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* Her sözleşmeyi ayrı ve belirgin bir kart yap */
+#contractList .settings-item{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid rgba(103,52,189,.14);
+  border-radius:14px;
+  background:rgba(255,255,255,.58);
+  padding:14px 16px;
+  margin:0;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+/* Fare üzerine geldiğinde */
+#contractList .settings-item:hover{
+  background:rgba(238,229,255,.82);
+  border-color:rgba(103,52,189,.35);
+  box-shadow:0 7px 18px rgba(103,52,189,.12);
+  transform:translateY(-1px);
+}
+
+/* Kartın iç yapısı */
+#contractList .settings-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+/* Sol taraf */
+.contract-card-left{
+  flex:1;
+  min-width:0;
+}
+
+/* Şantiye adı */
+.contract-card-left > b{
+  display:block;
+  font-size:16px;
+  line-height:1.25;
+  margin-bottom:4px;
+  color:#202633;
+}
+
+/* Firma adı */
+.contract-card-company{
+  font-size:12px;
+  color:#687181;
+  margin-bottom:7px;
+}
+
+/* Sabitlik durumu daha sakin ve ayrı */
+.contract-card-status{
+  display:inline-block;
+  font-size:11px;
+  line-height:1.25;
+  padding:4px 8px;
+  border-radius:20px;
+  background:rgba(255,255,255,.55);
+  color:#687181;
+}
+
+/* Sağ taraf */
+.contract-card-right{
+  flex:0 0 auto;
+  min-width:125px;
+  text-align:right;
+  padding-left:12px;
+}
+
+/* Kalan m³ */
+.contract-card-remaining{
+  font-size:15px;
+  font-weight:800;
+  color:#202633;
+  white-space:nowrap;
+}
+
+/* Satış fiyatı */
+.contract-card-price{
+  margin-top:4px;
+  font-size:12px;
+  color:#687181;
+  white-space:nowrap;
+}
+
+/* Sağ ok */
+.contract-card-arrow{
+  margin-top:5px;
+  font-size:18px;
+  font-weight:700;
+  color:#6734bd;
+  opacity:.45;
+  transition:transform .18s ease, opacity .18s ease;
+}
+
+#contractList .settings-item:hover .contract-card-arrow{
+  opacity:1;
+  transform:translateX(3px);
+}
 </style>
