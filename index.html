@@ -1890,8 +1890,13 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
         </div>
 
         <div style="margin-top:20px">
-          <h3>💰 Fiyat Geçmişi</h3>
-         <div id="contractHistoryForm" style="margin:12px 0 16px">
+         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+  <h3 style="margin:0;">💰 Fiyat Geçmişi</h3>
+  <button id="historyToggleBtn" type="button" class="btn btn-light">
+    + Eski Fiyat Ekle
+  </button>
+</div>
+       <div id="contractHistoryForm" style="margin:12px 0 16px;display:none;">
 
   <div class="settings-add">
     <div>
@@ -3810,6 +3815,12 @@ $("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
 $("contractNewBtn").addEventListener("click",clearContractForm);
 $("contractSaveBtn").addEventListener("click",saveContract); 
 $("historySaveBtn").addEventListener("click",saveManualPriceHistory); 
+$("historyToggleBtn").addEventListener("click",()=>{
+  const form=$("contractHistoryForm");
+  const isClosed=form.style.display==="none";
+  form.style.display=isClosed?"block":"none";
+  $("historyToggleBtn").textContent=isClosed?"− Kapat":"+ Eski Fiyat Ekle";
+}); 
 $("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
 $("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
