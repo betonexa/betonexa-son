@@ -4377,4 +4377,88 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
     line-height:44px !important;
   }
 }
+/* ===== SÖZLEŞMELER MOBİL SON RÖTUŞ ===== */
+@media (max-width:700px){
+
+  /* Formu biraz daha kompakt yap */
+  #contractsPage .settings-add{
+    gap:8px 10px !important;
+  }
+
+  #contractsPage .settings-add label{
+    margin-bottom:4px !important;
+    font-size:12.5px !important;
+  }
+
+  #contractsPage .settings-add input,
+  #contractsPage .settings-add select{
+    height:42px !important;
+    min-height:42px !important;
+    padding:7px 9px !important;
+    border-radius:12px !important;
+  }
+
+  /* Tarih alanları diğer inputlarla aynı görünsün */
+  #contractsPage input[type="date"]{
+    height:42px !important;
+    min-height:42px !important;
+    line-height:42px !important;
+    padding:0 9px !important;
+    border-radius:12px !important;
+  }
+
+  #contractsPage input[type="date"]::-webkit-date-and-time-value{
+    min-height:42px !important;
+    line-height:42px !important;
+    text-align:left !important;
+  }
+
+  /* Kaydet butonunu biraz daha dengeli yap */
+  #contractsPage #contractSaveBtn{
+    min-height:42px !important;
+    padding:10px 16px !important;
+    font-size:15px !important;
+    border-radius:12px !important;
+    margin-top:2px !important;
+  }
+
+  /* Fiyat geçmişi başlık alanını toparla */
+  #contractsPage #historyToggleBtn{
+    min-height:40px !important;
+    padding:8px 12px !important;
+    font-size:13px !important;
+    border-radius:12px !important;
+    white-space:nowrap !important;
+  }
+
+  /* Fiyat Geçmişi başlığı daha kompakt */
+  #contractsPage h3{
+    line-height:1.2 !important;
+  }
+
+  #contractsPage #contractPriceHistory{
+    margin-top:8px !important;
+    font-size:13px !important;
+  }
+}
+
+@media (max-width:430px){
+
+  #contractsPage .settings-add{
+    gap:8px !important;
+  }
+
+  #contractsPage .settings-add label{
+    font-size:12px !important;
+  }
+
+  #contractsPage #contractSaveBtn{
+    font-size:14px !important;
+  }
+
+  #contractsPage #historyToggleBtn{
+    font-size:12px !important;
+    padding:8px 10px !important;
+  }
+}
 </style>
