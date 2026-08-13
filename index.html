@@ -3773,13 +3773,32 @@ $("togglePass").addEventListener("click",()=>{
 })();
 
 $("loginBtn").addEventListener("click",login);$("loginPass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-$("logoutBtn").addEventListener("click",async()=>{
-  try{
-    const client=ensureDb();
-    if(client)await client.auth.signOut();
-  }catch(e){console.warn("Çıkış sırasında hata:",e)}
+$("logoutBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  try {
+    const client = ensureDb();
+
+    if (client) {
+      const { error } = await client.auth.signOut({ scope: "local" });
+      if (error) throw error;
+    }
+  } catch (e) {
+    console.warn("Çıkış sırasında hata:", e);
+  }
+
+  // Bu cihazdaki uygulama giriş işaretini kesin olarak temizle
   sessionStorage.removeItem("betonexa_login");
-  location.reload();
+
+  // Sayfayı yenilemeden doğrudan giriş ekranına dön
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+
+  // Şifreyi kesinlikle ekranda bırakma
+  if ($("loginPass")) $("loginPass").value = "";
+
+  // Giriş ekranını en üste getir
+  window.scrollTo(0, 0);
 });
 $("shipmentForm").addEventListener("submit",saveShipment);
 $("pdfBtn").addEventListener("click",downloadPdf);
