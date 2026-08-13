@@ -4050,21 +4050,34 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 }
 /* SÖZLEŞMELER - SOL LİSTE KART DÜZENİ */
 
-#contractList{
+/* SÖZLEŞMELER - SOL LİSTE KART DÜZENİ */
+
+/* Üstteki ayrı sabitlik uyarılarını gizle */
+#contractsAlertBox{
+  display:none !important;
+}
+
+/* Kart listesi */
+#contractsList{
   display:flex;
   flex-direction:column;
   gap:10px;
 }
 
-/* Her sözleşmeyi ayrı ve belirgin bir kart yap */
-#contractList .settings-item{
+/* Her sözleşme kartı */
+#contractsList .contract-card{
   width:100%;
+  display:block;
   box-sizing:border-box;
   border:1px solid rgba(103,52,189,.14);
-  border-radius:14px;
-  background:rgba(255,255,255,.58);
-  padding:14px 16px;
+  border-radius:12px;
+  background:rgba(255,255,255,.62);
+  padding:0;
   margin:0;
+  text-align:left;
+  cursor:pointer;
+  overflow:hidden;
+  color:#202633;
   transition:
     background .18s ease,
     border-color .18s ease,
@@ -4072,74 +4085,97 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
     transform .18s ease;
 }
 
-/* Fare üzerine geldiğinde */
-#contractList .settings-item:hover{
-  background:rgba(238,229,255,.82);
+/* Fare kartın üzerindeyken */
+#contractsList .contract-card:hover{
+  background:rgba(244,238,255,.90);
   border-color:rgba(103,52,189,.35);
   box-shadow:0 7px 18px rgba(103,52,189,.12);
   transform:translateY(-1px);
 }
 
-/* Kartın iç yapısı */
-#contractList .settings-item{
+/* Kartın iç yerleşimi */
+.contract-card-main{
+  width:100%;
+  min-height:74px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:16px;
+  padding:14px 16px;
+  box-sizing:border-box;
 }
 
-/* Sol taraf */
+/* Sol bölüm */
 .contract-card-left{
-  flex:1;
+  flex:1 1 auto;
   min-width:0;
 }
 
-/* Şantiye adı */
-.contract-card-left > b{
-  display:block;
-  font-size:16px;
+/* Şantiye */
+.contract-card-title{
+  font-size:15px;
+  font-weight:800;
   line-height:1.25;
-  margin-bottom:4px;
   color:#202633;
+  margin-bottom:4px;
 }
 
-/* Firma adı */
+/* Firma */
 .contract-card-company{
   font-size:12px;
   color:#687181;
   margin-bottom:7px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-/* Sabitlik durumu daha sakin ve ayrı */
+/* Sabitlik bilgisi */
 .contract-card-status{
-  display:inline-block;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
   font-size:11px;
-  line-height:1.25;
+  line-height:1.2;
   padding:4px 8px;
-  border-radius:20px;
-  background:rgba(255,255,255,.55);
+  border-radius:999px;
+  background:rgba(255,255,255,.75);
   color:#687181;
 }
 
-/* Sağ taraf */
+/* Uyarı durumu */
+.contract-card-status.warning{
+  color:#bd7800;
+  background:rgba(255,193,7,.10);
+}
+
+/* Kritik durum */
+.contract-card-status.danger{
+  color:#c33c3c;
+  background:rgba(195,60,60,.09);
+}
+
+/* Sağ bölüm */
 .contract-card-right{
-  flex:0 0 auto;
-  min-width:125px;
+  flex:0 0 145px;
+  min-width:145px;
   text-align:right;
-  padding-left:12px;
+  position:relative;
+  padding-right:14px;
 }
 
 /* Kalan m³ */
 .contract-card-remaining{
   font-size:15px;
   font-weight:800;
+  line-height:1.2;
   color:#202633;
   white-space:nowrap;
 }
 
-/* Satış fiyatı */
+/* Fiyat */
 .contract-card-price{
-  margin-top:4px;
+  margin-top:5px;
   font-size:12px;
   color:#687181;
   white-space:nowrap;
@@ -4147,16 +4183,42 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 
 /* Sağ ok */
 .contract-card-arrow{
-  margin-top:5px;
-  font-size:18px;
+  position:absolute;
+  right:0;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:26px;
   font-weight:700;
   color:#6734bd;
-  opacity:.45;
-  transition:transform .18s ease, opacity .18s ease;
+  opacity:.55;
+  transition:
+    opacity .18s ease,
+    transform .18s ease;
 }
 
-#contractList .settings-item:hover .contract-card-arrow{
+#contractsList .contract-card:hover .contract-card-arrow{
   opacity:1;
-  transform:translateX(3px);
+  transform:translate(3px,-50%);
+}
+
+/* Mobil */
+@media(max-width:700px){
+  .contract-card-main{
+    padding:12px;
+    gap:10px;
+  }
+
+  .contract-card-right{
+    flex-basis:120px;
+    min-width:120px;
+  }
+
+  .contract-card-title{
+    font-size:14px;
+  }
+
+  .contract-card-remaining{
+    font-size:14px;
+  }
 }
 </style>
