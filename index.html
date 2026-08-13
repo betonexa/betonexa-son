@@ -2729,13 +2729,16 @@ function analysisCanonicalKey(value){
     .trim()
     .replace(/\s+/g," ")
     .toLocaleLowerCase("tr-TR")
-    // Analiz eşleştirmesinde noktalama/yazım farklarını yok say:
-    // "İlk gün inş.", "İLKGÜN İNŞ." gibi kayıtlar tek kalem olsun.
+    .replace(/ş/g,"s")
+    .replace(/ğ/g,"g")
+    .replace(/ç/g,"c")
+    .replace(/ö/g,"o")
+    .replace(/ü/g,"u")
+    .replace(/ı/g,"i")
     .replace(/[’'`´]/g,"")
     .replace(/[.\-_/\\(),:;]+/g," ")
     .replace(/\s+/g," ")
     .trim()
-    // Kelimeler arasındaki boşluk farkını da eşleştirmede yok say.
     .replace(/\s/g,"");
 }
 
