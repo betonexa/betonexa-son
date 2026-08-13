@@ -1574,6 +1574,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <button class="btn btn-light" data-page="tomorrow">📅 Yarınki Sevkiyatlar</button>
  <button class="btn btn-light" data-page="calendar">📅 Haftalık Takvim</button>
  <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
+ <button class="btn btn-light" data-page="contracts">📑 Sözleşmeler</button>
  <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
  <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
  </nav>
@@ -1799,7 +1800,115 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
  </div>
  </section>
+<section id="contractsPage" class="panel hidden">
 
+  <div class="dashboard-head">
+    <div>
+      <h2>📑 Sözleşme & Fiyat Takibi</h2>
+      <small>Firma ve şantiye sözleşmelerini, fiyatları ve sözleşme miktarlarını takip edin.</small>
+    </div>
+    <button id="contractNewBtn" type="button" class="btn btn-primary">+ Yeni Sözleşme</button>
+  </div>
+
+  <div class="settings-grid">
+
+    <div class="settings-box">
+      <h3>📋 Sözleşmeler</h3>
+      <div class="settings-body">
+        <div id="contractsAlertBox"></div>
+        <div id="contractsList" class="settings-list">
+          Henüz sözleşme kaydı bulunmuyor.
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-box">
+      <h3>🏗️ Sözleşme Detayı</h3>
+      <div class="settings-body">
+
+        <div class="settings-add">
+          <div>
+            <label>Firma</label>
+            <input id="contractCompany" type="text" placeholder="Firma adı">
+          </div>
+
+          <div>
+            <label>Şantiye</label>
+            <input id="contractSite" type="text" placeholder="Şantiye adı">
+          </div>
+
+          <div>
+            <label>Şantiye Adresi</label>
+            <input id="contractAddress" type="text" placeholder="Şantiye adresi">
+          </div>
+
+          <div>
+            <label>Sözleşme Tarihi</label>
+            <input id="contractDate" type="date">
+          </div>
+
+          <div>
+            <label>Alış Fiyatı (TL/m³)</label>
+            <input id="contractBuyPrice" type="number" step="0.01" placeholder="0,00">
+          </div>
+
+          <div>
+            <label>Satış Fiyatı (TL/m³)</label>
+            <input id="contractSalePrice" type="number" step="0.01" placeholder="0,00">
+          </div>
+
+          <div>
+            <label>Vade Günü</label>
+            <input id="contractDueDays" type="number" min="0" placeholder="Örn. 30">
+          </div>
+
+          <div>
+            <label>Fiyat Sabitlik Bitiş Tarihi</label>
+            <input id="contractFixedUntil" type="date">
+          </div>
+
+          <div>
+            <label>Toplam Sözleşme m³</label>
+            <input id="contractTotalM3" type="number" step="0.01" min="0" placeholder="0,00">
+          </div>
+
+          <div>
+            <label>Devir m³</label>
+            <input id="contractCarryM3" type="number" step="0.01" min="0" placeholder="0,00">
+          </div>
+
+          <div>
+            <label>Devir Tarihi</label>
+            <input id="contractCarryDate" type="date">
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button id="contractSaveBtn" type="button" class="btn btn-primary">
+            Sözleşmeyi Kaydet
+          </button>
+        </div>
+
+        <div style="margin-top:20px">
+          <h3>💰 Fiyat Geçmişi</h3>
+          <div id="contractPriceHistory">
+            Henüz fiyat değişikliği bulunmuyor.
+          </div>
+        </div>
+
+        <div style="margin-top:20px">
+          <h3>📊 Sözleşme Durumu</h3>
+          <div id="contractProgress">
+            <div>Gerçekleşen: <strong>0,00 m³</strong></div>
+            <div>Kalan: <strong>0,00 m³</strong></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
  <section id="settingsPage" class="panel hidden">
  <div class="dashboard-head">
  <div>
@@ -1926,7 +2035,316 @@ function refreshFormOptions(){
   $("santral").innerHTML='<option value="">Seçiniz</option>'+plants.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
   if(plants.includes(current))$("santral").value=current;
 }
-function renderSettings(){
+let contracts=[];
+let selectedContractId=null;
+
+function contractMoney(v){
+  return Number(v||0).toLocaleString("tr-TR",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  })+" TL";
+}
+
+function contractM3(v){
+  return Number(v||0).toLocaleString("tr-TR",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  })+" m³";
+}
+
+function contractShipmentTotal(contract){
+  const companyKey=analysisCanonicalKey(contract.firma);
+  const siteKey=analysisCanonicalKey(contract.santiye);
+
+  return records
+    .filter(r=>{
+      if(analysisCanonicalKey(r.firma)!==companyKey)return false;
+      if(analysisCanonicalKey(r.santiye)!==siteKey)return false;
+
+      if(contract.devir_tarihi && r.tarih){
+        return r.tarih>contract.devir_tarihi;
+      }
+
+      return true;
+    })
+    .reduce((sum,r)=>sum+Number(r.metraj||0),0);
+}
+
+function contractProgressValues(contract){
+  const carry=Number(contract.devir_m3||0);
+  const afterCarry=contractShipmentTotal(contract);
+  const realized=carry+afterCarry;
+  const total=Number(contract.toplam_sozlesme_m3||0);
+  const remaining=Math.max(0,total-realized);
+
+  return {realized,remaining};
+}
+
+function contractFixedStatus(contract){
+  if(!contract.sabitlik_bitis_tarihi){
+    return {text:"Sabitlik tarihi yok",level:""};
+  }
+
+  const today=new Date();
+  today.setHours(0,0,0,0);
+
+  const end=new Date(contract.sabitlik_bitis_tarihi+"T00:00:00");
+  const days=Math.ceil((end-today)/86400000);
+
+  if(days<0){
+    return {text:`⚠️ Sabitlik ${Math.abs(days)} gün önce bitti`,level:"danger"};
+  }
+
+  if(days<=7){
+    return {text:`🟠 Sabitliğin bitmesine ${days} gün kaldı`,level:"danger"};
+  }
+
+  if(days<=30){
+    return {text:`🟡 Sabitliğin bitmesine ${days} gün kaldı`,level:"warning"};
+  }
+
+  return {text:`🟢 Sabitlik bitişi: ${trDate(contract.sabitlik_bitis_tarihi)}`,level:""};
+}
+
+async function loadContracts(){
+  const client=ensureDb();
+  if(!client)return;
+
+  const list=$("contractsList");
+  if(list)list.innerHTML="Sözleşmeler yükleniyor…";
+
+  const {data,error}=await client
+    .from("sozlesmeler")
+    .select("*")
+    .order("created_at",{ascending:false});
+
+  if(error){
+    if(list)list.innerHTML=`Sözleşmeler yüklenemedi: ${esc(error.message)}`;
+    return;
+  }
+
+  contracts=data||[];
+  renderContracts();
+}
+
+function renderContracts(){
+  const list=$("contractsList");
+  const alertBox=$("contractsAlertBox");
+  if(!list)return;
+
+  if(!contracts.length){
+    list.innerHTML='<div class="analysis-empty">Henüz sözleşme kaydı bulunmuyor.</div>';
+    if(alertBox)alertBox.innerHTML="";
+    clearContractForm();
+    return;
+  }
+
+  const warnings=contracts
+    .map(c=>({contract:c,status:contractFixedStatus(c)}))
+    .filter(x=>x.status.level==="danger"||x.status.level==="warning");
+
+  if(alertBox){
+    alertBox.innerHTML=warnings.length
+      ?warnings.map(x=>`
+        <div class="dashboard-alert ${x.status.level}">
+          <strong>${esc(analysisDisplayName(x.contract.firma))} · ${esc(analysisDisplayName(x.contract.santiye))}</strong>
+          <span>${esc(x.status.text)}</span>
+        </div>
+      `).join("")
+      :"";
+  }
+
+  list.innerHTML=contracts.map(c=>{
+    const progress=contractProgressValues(c);
+    const status=contractFixedStatus(c);
+
+    return `
+      <button type="button"
+        class="settings-item"
+        style="width:100%;text-align:left;cursor:pointer"
+        onclick="selectContract(${Number(c.id)})">
+
+        <div>
+          <b>${esc(analysisDisplayName(c.santiye))}</b>
+          <div style="font-size:12px;margin-top:4px">
+            ${esc(analysisDisplayName(c.firma))}
+          </div>
+          <div style="font-size:12px;margin-top:4px">
+            ${esc(status.text)}
+          </div>
+        </div>
+
+        <div style="text-align:right">
+          <b>${contractM3(progress.remaining)} kalan</b>
+          <div style="font-size:12px;margin-top:4px">
+            ${contractMoney(c.satis_fiyati)} / m³
+          </div>
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  if(selectedContractId){
+    const selected=contracts.find(c=>String(c.id)===String(selectedContractId));
+    if(selected)renderContractDetail(selected);
+  }
+}
+
+async function selectContract(id){
+  selectedContractId=id;
+
+  const contract=contracts.find(c=>String(c.id)===String(id));
+  if(!contract)return;
+
+  renderContractDetail(contract);
+  await loadContractPriceHistory(id);
+}
+
+function renderContractDetail(contract){
+  $("contractCompany").value=contract.firma||"";
+  $("contractSite").value=contract.santiye||"";
+  $("contractAddress").value=contract.santiye_adresi||"";
+  $("contractDate").value=contract.sozlesme_tarihi||"";
+  $("contractBuyPrice").value=contract.alis_fiyati??"";
+  $("contractSalePrice").value=contract.satis_fiyati??"";
+  $("contractDueDays").value=contract.vade_gunu??"";
+  $("contractFixedUntil").value=contract.sabitlik_bitis_tarihi||"";
+  $("contractTotalM3").value=contract.toplam_sozlesme_m3??"";
+  $("contractCarryM3").value=contract.devir_m3??"";
+  $("contractCarryDate").value=contract.devir_tarihi||"";
+
+  const progress=contractProgressValues(contract);
+
+  $("contractProgress").innerHTML=`
+    <div><strong>Sözleşme:</strong> ${contractM3(contract.toplam_sozlesme_m3)}</div>
+    <div><strong>Devir:</strong> ${contractM3(contract.devir_m3)}</div>
+    <div><strong>Gerçekleşen:</strong> ${contractM3(progress.realized)}</div>
+    <div><strong>Kalan:</strong> ${contractM3(progress.remaining)}</div>
+    ${contract.santiye_adresi
+      ?`<div style="margin-top:10px"><strong>📍 Adres:</strong> ${esc(contract.santiye_adresi)}</div>`
+      :""
+    }
+  `;
+}
+
+async function loadContractPriceHistory(contractId){
+  const box=$("contractPriceHistory");
+  if(!box)return;
+
+  const {data,error}=await ensureDb()
+    .from("sozlesme_fiyat_gecmisi")
+    .select("*")
+    .eq("sozlesme_id",contractId)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    box.textContent="Fiyat geçmişi yüklenemedi.";
+    return;
+  }
+
+  if(!data||!data.length){
+    box.innerHTML='<div class="analysis-empty">Henüz fiyat değişikliği bulunmuyor.</div>';
+    return;
+  }
+
+  box.innerHTML=data.map(x=>`
+    <div class="settings-item">
+      <div>
+        <b>${contractMoney(x.satis_fiyati)} satış</b>
+        <div style="font-size:12px">
+          ${contractMoney(x.alis_fiyati)} alış
+        </div>
+      </div>
+      <div style="font-size:12px;text-align:right">
+        ${x.gecerlilik_baslangic_tarihi?trDate(x.gecerlilik_baslangic_tarihi):"-"}
+        ${x.gecerlilik_bitis_tarihi?" → "+trDate(x.gecerlilik_bitis_tarihi):""}
+      </div>
+    </div>
+  `).join("");
+}
+
+function clearContractForm(){
+  selectedContractId=null;
+
+  [
+    "contractCompany",
+    "contractSite",
+    "contractAddress",
+    "contractDate",
+    "contractBuyPrice",
+    "contractSalePrice",
+    "contractDueDays",
+    "contractFixedUntil",
+    "contractTotalM3",
+    "contractCarryM3",
+    "contractCarryDate"
+  ].forEach(id=>{
+    const el=$(id);
+    if(el)el.value="";
+  });
+
+  if($("contractPriceHistory"))
+    $("contractPriceHistory").innerHTML="Henüz fiyat değişikliği bulunmuyor.";
+
+  if($("contractProgress"))
+    $("contractProgress").innerHTML=`
+      <div>Gerçekleşen: <strong>0,00 m³</strong></div>
+      <div>Kalan: <strong>0,00 m³</strong></div>
+    `;
+}
+
+async function saveContract(){
+  const company=$("contractCompany").value.trim();
+  const site=$("contractSite").value.trim();
+
+  if(!company||!site){
+    alert("Firma ve şantiye bilgisi zorunludur.");
+    return;
+  }
+
+  const payload={
+    firma:company,
+    santiye:site,
+    santiye_adresi:$("contractAddress").value.trim()||null,
+    sozlesme_tarihi:$("contractDate").value||null,
+    alis_fiyati:Number($("contractBuyPrice").value||0),
+    satis_fiyati:Number($("contractSalePrice").value||0),
+    vade_gunu:Number($("contractDueDays").value||0),
+    sabitlik_bitis_tarihi:$("contractFixedUntil").value||null,
+    toplam_sozlesme_m3:Number($("contractTotalM3").value||0),
+    devir_m3:Number($("contractCarryM3").value||0),
+    devir_tarihi:$("contractCarryDate").value||null,
+    aktif:true
+  };
+
+  setLoading(true);
+
+  let result;
+
+  if(selectedContractId){
+    result=await ensureDb()
+      .from("sozlesmeler")
+      .update(payload)
+      .eq("id",selectedContractId);
+  }else{
+    result=await ensureDb()
+      .from("sozlesmeler")
+      .insert(payload);
+  }
+
+  setLoading(false);
+
+  if(result.error){
+    alert("Sözleşme kaydedilemedi: "+result.error.message);
+    return;
+  }
+
+  clearContractForm();
+  await loadContracts();
+}
+
+window.selectContract=selectContract;
+ function renderSettings(){
   if(!$("settingsPage"))return;
   const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(x=>String(x||"").trim()));
   const companies=uniqueSorted([...appSettings.companies,...records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(String(x||"").trim()))]);
@@ -3176,10 +3594,12 @@ function showPage(p){
   $("recordsPage").classList.toggle("hidden",p!=="records");
   $("calendarPage").classList.toggle("hidden",p!=="calendar");
   $("analysisPage").classList.toggle("hidden",p!=="analysis");
+ $("contractsPage").classList.toggle("hidden",p!=="contracts");
   $("settingsPage").classList.toggle("hidden",p!=="settings");
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   if(p==="dashboard")renderDashboard();
   if(p==="tomorrow")renderTomorrowReport();
+ if(p==="contracts")loadContracts();
   if(p==="analysis")renderAnalysis();
   if(p==="settings")renderSettings();
 }
@@ -3307,6 +3727,8 @@ document.addEventListener("click",e=>{
 $("dashboardRefresh").addEventListener("click",loadRecords);
 $("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
 $("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
+$("contractNewBtn").addEventListener("click",clearContractForm);
+$("contractSaveBtn").addEventListener("click",saveContract); 
 $("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
 $("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
