@@ -157,7 +157,6 @@
     byId("cementTabBtn").classList.add("active");
     loadCementShipments();
   }
-
   function setCementStatus(message,isError=false){
     const el=byId("cementStatus");
     if(!el)return;
@@ -296,7 +295,6 @@
     setCementStatus("Çimento sevkiyatı silindi.");
     await loadCementShipments();
   }
-
   async function tomorrowCementRecords(){
     const {data,error}=await fetchCementRecords();
     if(error)return [];
@@ -463,4 +461,12 @@
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
   else init();
+})();
+
+(function loadCementHistoryModule(){
+  if(document.querySelector('script[src="./cimento-history.js"]'))return;
+  const script=document.createElement("script");
+  script.src="./cimento-history.js";
+  script.defer=true;
+  document.head.appendChild(script);
 })();
