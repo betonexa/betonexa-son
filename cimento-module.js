@@ -8,10 +8,9 @@
   const byId=id=>document.getElementById(id);
   const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
   const fmtNumber=value=>Number(value||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
-  const todayIso=()=>{
-    const d=new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  };
+  const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const todayIso=()=>isoDate(new Date());
+  const tomorrowIso=()=>{const d=new Date();d.setDate(d.getDate()+1);return isoDate(d);};
   const formatDate=value=>{
     if(!value)return "";
     const d=new Date(value+"T00:00:00");
@@ -25,6 +24,7 @@
     const lower=raw.toLocaleLowerCase("tr-TR");
     return lower.charAt(0).toLocaleUpperCase("tr-TR")+lower.slice(1);
   };
+  const titleCase=value=>String(value??"").trim().replace(/\s+/g," ").toLocaleLowerCase("tr-TR").replace(/(^|[\s\-\/])([\p{L}])/gu,(m,sep,ch)=>sep+ch.toLocaleUpperCase("tr-TR"));
 
   function db(){
     if(typeof window.ensureDb==="function")return window.ensureDb();
@@ -56,6 +56,12 @@
       #cementPage .cement-row-actions{display:flex;gap:6px;white-space:nowrap}
       #cementPage .cement-status{min-height:22px;font-size:13px;font-weight:700;margin:2px 0 8px}
       #cementPage .cement-empty{padding:24px;text-align:center;color:var(--muted)}
+      #tomorrowCementSection{margin-top:22px;border-top:2px solid rgba(103,52,189,.22);padding-top:18px}
+      #tomorrowCementSection .cement-tomorrow-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+      #tomorrowCementSection .cement-tomorrow-head h3{margin:0;font-size:19px}
+      #tomorrowCementSection .cement-tomorrow-head strong{color:var(--purple-dark)}
+      #tomorrowCementSection .cement-tomorrow-total{display:flex;justify-content:flex-end;gap:24px;flex-wrap:wrap;padding:12px 14px;margin-top:10px;border-radius:12px;background:rgba(103,52,189,.09);font-weight:800}
+      #tomorrowCementSection .cement-tomorrow-total span{white-space:nowrap}
       @media(max-width:900px){#cementPage .cement-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
       @media(max-width:700px){
         #cementPage .cement-form{grid-template-columns:1fr 1fr;gap:10px}
@@ -63,6 +69,7 @@
         #cementPage .cement-summary{grid-template-columns:1fr;gap:9px}
         #cementPage .cement-summary-card{padding:12px 14px}
         #cementPage .cement-summary-card strong{font-size:20px}
+        #tomorrowCementSection .cement-tomorrow-total{justify-content:flex-start;gap:10px 18px}
       }
     `;
     document.head.appendChild(style);
@@ -124,18 +131,23 @@
     `;
     recordsPage.insertAdjacentElement("afterend",page);
 
-    button.addEventListener("click",()=>showCementPage());
+    button.addEventListener("click",showCementPage);
     nav.addEventListener("click",event=>{
       const target=event.target.closest("button[data-page]");
-      if(!target||target.dataset.page==="cement")return;
-      page.classList.add("hidden");
-      button.classList.remove("active");
+      if(!target)return;
+      if(target.dataset.page!=="cement"){
+        page.classList.add("hidden");
+        button.classList.remove("active");
+      }
+      if(target.dataset.page==="tomorrow")setTimeout(renderTomorrowCementAddon,0);
     });
 
     byId("cementSaveBtn").addEventListener("click",saveCementShipment);
     byId("cementCancelBtn").addEventListener("click",clearCementForm);
     byId("cementRefreshBtn").addEventListener("click",loadCementShipments);
     byId("cementDate").value=todayIso();
+
+    bindCombinedExports();
   }
 
   function showCementPage(){
@@ -153,21 +165,17 @@
     el.style.color=isError?"var(--danger)":"var(--success)";
   }
 
-  async function loadCementShipments(){
+  async function fetchCementRecords(){
     const client=db();
-    if(!client){
-      setCementStatus("Veritabanı bağlantısı yüklenemedi.",true);
-      return;
-    }
+    if(!client)return {data:[],error:new Error("Veritabanı bağlantısı yüklenemedi.")};
+    return client.from(CEMENT_TABLE).select("*").eq("tamamlandi",false).order("tarih",{ascending:true}).order("created_at",{ascending:true});
+  }
+
+  async function loadCementShipments(){
     setCementStatus("Yükleniyor…");
-    const {data,error}=await client
-      .from(CEMENT_TABLE)
-      .select("*")
-      .eq("tamamlandi",false)
-      .order("tarih",{ascending:true})
-      .order("created_at",{ascending:true});
+    const {data,error}=await fetchCementRecords();
     if(error){
-      setCementStatus("Çimento kayıtları alınamadı: "+error.message,true);
+      setCementStatus("Çimento kayıtları alınamadı: "+(error.message||error),true);
       cementRecords=[];
       renderCementRows();
       return;
@@ -175,6 +183,7 @@
     cementRecords=data||[];
     setCementStatus("");
     renderCementRows();
+    if(byId("tomorrowPage")&&!byId("tomorrowPage").classList.contains("hidden"))renderTomorrowCementAddon();
   }
 
   function renderCementRows(){
@@ -187,13 +196,13 @@
         <tr>
           <td>${index+1}</td>
           <td>${escapeHtml(formatDate(record.tarih))}</td>
-          <td>${escapeHtml(sentenceCase(record.firma))}</td>
-          <td>${escapeHtml(sentenceCase(record.teslim_yeri))}</td>
+          <td>${escapeHtml(titleCase(record.firma))}</td>
+          <td>${escapeHtml(titleCase(record.teslim_yeri))}</td>
           <td>${Number(record.arac_sayisi||0)}</td>
           <td>${fmtNumber(record.toplam_tonaj)} ton</td>
           <td><div class="cement-row-actions">
             <button type="button" class="icon-action edit" title="Düzenle" onclick="window.editCementShipment('${record.id}')">✏️</button>
-            <button type="button" class="btn btn-light" title="Tamamlandı" onclick="window.completeCementShipment('${record.id}')">✓</button>
+            <button type="button" class="btn btn-light" title="Tamamla" aria-label="Tamamla" onclick="window.completeCementShipment('${record.id}')">✓ Tamamla</button>
             <button type="button" class="icon-action delete" title="Sil" onclick="window.deleteCementShipment('${record.id}')">🗑️</button>
           </div></td>
         </tr>
@@ -219,8 +228,8 @@
 
   async function saveCementShipment(){
     const tarih=byId("cementDate").value;
-    const firma=sentenceCase(byId("cementCompany").value);
-    const teslimYeri=sentenceCase(byId("cementDelivery").value);
+    const firma=titleCase(byId("cementCompany").value);
+    const teslimYeri=titleCase(byId("cementDelivery").value);
     const aracSayisi=Number(byId("cementVehicleCount").value);
     const toplamTonaj=Number(String(byId("cementTonnage").value).replace(",","."));
 
@@ -232,19 +241,14 @@
     const client=db();
     if(!client){setCementStatus("Veritabanı bağlantısı yüklenemedi.",true);return;}
 
-    const payload={
-      tarih,
-      firma,
-      teslim_yeri:teslimYeri,
-      arac_sayisi:aracSayisi,
-      toplam_tonaj:toplamTonaj,
-      tamamlandi:false
-    };
+    const wasEditing=!!cementEditId;
+    const editId=cementEditId;
+    const payload={tarih,firma,teslim_yeri:teslimYeri,arac_sayisi:aracSayisi,toplam_tonaj:toplamTonaj,tamamlandi:false};
 
     byId("cementSaveBtn").disabled=true;
     setCementStatus("Kaydediliyor…");
-    const query=cementEditId
-      ? client.from(CEMENT_TABLE).update(payload).eq("id",cementEditId)
+    const query=wasEditing
+      ? client.from(CEMENT_TABLE).update(payload).eq("id",editId)
       : client.from(CEMENT_TABLE).insert(payload);
     const {error}=await query;
     byId("cementSaveBtn").disabled=false;
@@ -255,7 +259,7 @@
     }
 
     clearCementForm();
-    setCementStatus(cementEditId?"Çimento sevkiyatı güncellendi.":"Çimento sevkiyatı kaydedildi.");
+    setCementStatus(wasEditing?"Çimento sevkiyatı güncellendi.":"Çimento sevkiyatı kaydedildi.");
     await loadCementShipments();
   }
 
@@ -293,10 +297,164 @@
     await loadCementShipments();
   }
 
+  async function tomorrowCementRecords(){
+    const {data,error}=await fetchCementRecords();
+    if(error)return [];
+    cementRecords=data||[];
+    renderCementRows();
+    return cementRecords.filter(r=>r.tarih===tomorrowIso()).sort((a,b)=>String(a.firma||"").localeCompare(String(b.firma||""),"tr")||String(a.teslim_yeri||"").localeCompare(String(b.teslim_yeri||""),"tr"));
+  }
+
+  async function renderTomorrowCementAddon(){
+    const report=byId("tomorrowReport");
+    if(!report)return;
+    const old=byId("tomorrowCementSection");
+    if(old)old.remove();
+
+    const items=await tomorrowCementRecords();
+    const totalVehicles=items.reduce((sum,r)=>sum+Number(r.arac_sayisi||0),0);
+    const totalTonnage=items.reduce((sum,r)=>sum+Number(r.toplam_tonaj||0),0);
+
+    const section=document.createElement("section");
+    section.id="tomorrowCementSection";
+    section.innerHTML=`
+      <div class="cement-tomorrow-head">
+        <h3>🏗️ Yarınki Çimento Sevkiyatları</h3>
+        <strong>${items.length} sevkiyat · ${totalVehicles} araç · ${fmtNumber(totalTonnage)} ton</strong>
+      </div>
+      ${items.length?`
+        <div class="table-wrap" style="margin-top:0">
+          <table class="tomorrow-table" id="tomorrowCementTable">
+            <thead><tr><th>Firma</th><th>Teslim Yeri</th><th>Araç Sayısı</th><th>Toplam Tonaj</th></tr></thead>
+            <tbody>${items.map(r=>`<tr><td>${escapeHtml(titleCase(r.firma))}</td><td>${escapeHtml(titleCase(r.teslim_yeri))}</td><td>${Number(r.arac_sayisi||0)}</td><td>${fmtNumber(r.toplam_tonaj)} ton</td></tr>`).join("")}</tbody>
+          </table>
+        </div>
+        <div class="cement-tomorrow-total"><span>TOPLAM ARAÇ: ${totalVehicles}</span><span>TOPLAM TONAJ: ${fmtNumber(totalTonnage)} ton</span></div>
+      `:'<div class="tomorrow-empty">Yarın için planlanmış çimento sevkiyatı bulunmuyor.</div>'}
+    `;
+    report.appendChild(section);
+  }
+
+  function collectConcreteTomorrowTables(){
+    return [...document.querySelectorAll('#tomorrowReport .tomorrow-company')].map(section=>({
+      title:section.querySelector("h3")?.textContent?.trim()||"Beton Sevkiyatı",
+      subtotal:section.querySelector("strong")?.textContent?.trim()||"",
+      headers:[...section.querySelectorAll("thead th")].map(th=>th.textContent.trim()),
+      body:[...section.querySelectorAll("tbody tr")].map(tr=>[...tr.children].map(td=>td.textContent.trim()))
+    }));
+  }
+
+  async function downloadCombinedTomorrowPdf(){
+    await renderTomorrowCementAddon();
+    if(!window.jspdf||!window.jspdf.jsPDF){alert("PDF modülü yüklenemedi.");return;}
+    const concrete=collectConcreteTomorrowTables();
+    const cement=cementRecords.filter(r=>r.tarih===tomorrowIso());
+    if(!concrete.length&&!cement.length){alert("Yarın için sevkiyat yok.");return;}
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    let text=v=>String(v??"");
+    let fontName="helvetica";
+    try{
+      if(typeof window.preparePdfFont==="function"){
+        const font=await window.preparePdfFont(doc);
+        if(font){fontName=font.name||fontName;text=font.text||text;}
+      }
+    }catch(e){}
+    doc.setFont(fontName,"normal");
+    doc.setFontSize(16);
+    doc.text(text("Betonexa - Yarınki Sevkiyatlar"),14,14);
+    doc.setFontSize(10);
+    doc.text(text(formatDate(tomorrowIso())),14,20);
+    let y=27;
+
+    concrete.forEach(group=>{
+      if(y>180){doc.addPage();y=16;}
+      doc.setFontSize(11);
+      doc.text(text(group.title+(group.subtotal?" · "+group.subtotal:"")),14,y);
+      doc.autoTable({
+        head:[group.headers.map(text)],
+        body:group.body.map(row=>row.map(text)),
+        startY:y+3,
+        styles:{font:fontName,fontSize:6.5},
+        headStyles:{font:fontName,fillColor:[111,66,193]},
+        margin:{left:14,right:14}
+      });
+      y=(doc.lastAutoTable?.finalY||y+20)+7;
+    });
+
+    if(cement.length){
+      if(y>165){doc.addPage();y=16;}
+      const totalVehicles=cement.reduce((s,r)=>s+Number(r.arac_sayisi||0),0);
+      const totalTonnage=cement.reduce((s,r)=>s+Number(r.toplam_tonaj||0),0);
+      doc.setFontSize(12);
+      doc.text(text("Yarınki Çimento Sevkiyatları"),14,y);
+      doc.autoTable({
+        head:[["Firma","Teslim Yeri","Araç Sayısı","Toplam Tonaj"].map(text)],
+        body:cement.map(r=>[titleCase(r.firma),titleCase(r.teslim_yeri),String(Number(r.arac_sayisi||0)),fmtNumber(r.toplam_tonaj)+" ton"].map(text)),
+        startY:y+3,
+        styles:{font:fontName,fontSize:8},
+        headStyles:{font:fontName,fillColor:[111,66,193]},
+        margin:{left:14,right:14}
+      });
+      y=(doc.lastAutoTable?.finalY||y+20)+7;
+      doc.setFontSize(10);
+      doc.text(text(`Çimento Toplamı: ${totalVehicles} araç · ${fmtNumber(totalTonnage)} ton`),14,y);
+    }
+
+    doc.save(`Betonexa-Yarinki-Sevkiyatlar-${tomorrowIso()}.pdf`);
+  }
+
+  async function downloadCombinedTomorrowExcel(){
+    await renderTomorrowCementAddon();
+    if(!window.XLSX){alert("Excel modülü yüklenemedi.");return;}
+    const concrete=collectConcreteTomorrowTables();
+    const cement=cementRecords.filter(r=>r.tarih===tomorrowIso());
+    if(!concrete.length&&!cement.length){alert("Yarın için sevkiyat yok.");return;}
+
+    const wb=XLSX.utils.book_new();
+    const concreteRows=[];
+    concrete.forEach(group=>group.body.forEach(row=>{
+      const obj={Firma:group.title.replace(/^🏢\s*/,"").trim()};
+      group.headers.forEach((h,i)=>obj[h]=row[i]??"");
+      concreteRows.push(obj);
+    }));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(concreteRows.length?concreteRows:[{Bilgi:"Yarın beton sevkiyatı yok."}]),"Beton");
+
+    const cementRows=cement.map(r=>({Firma:titleCase(r.firma),"Teslim Yeri":titleCase(r.teslim_yeri),"Araç Sayısı":Number(r.arac_sayisi||0),"Toplam Tonaj":Number(r.toplam_tonaj||0)}));
+    if(cementRows.length){
+      cementRows.push({Firma:"TOPLAM", "Teslim Yeri":"", "Araç Sayısı":cement.reduce((s,r)=>s+Number(r.arac_sayisi||0),0), "Toplam Tonaj":cement.reduce((s,r)=>s+Number(r.toplam_tonaj||0),0)});
+    }
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cementRows.length?cementRows:[{Bilgi:"Yarın çimento sevkiyatı yok."}]),"Çimento");
+    XLSX.writeFile(wb,`Betonexa-Yarinki-Sevkiyatlar-${tomorrowIso()}.xlsx`);
+  }
+
+  async function printCombinedTomorrow(){
+    await renderTomorrowCementAddon();
+    const report=byId("tomorrowReport");
+    if(!report)return;
+    const w=window.open("","_blank");
+    if(!w)return;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Betonexa - Yarınki Sevkiyatlar</title><style>
+      body{font-family:Arial,sans-serif;padding:20px;color:#202633}h2{margin:0 0 4px}h3{margin:20px 0 8px}table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px}th,td{border:1px solid #bbb;padding:5px;text-align:left}th{background:#6f42c1;color:white}.tomorrow-company,.cement-tomorrow-total{margin-bottom:14px}.tomorrow-total,.cement-tomorrow-total{font-weight:bold;text-align:right;padding:8px}.tomorrow-empty{padding:12px;border:1px solid #ddd}
+    </style></head><body><h2>Betonexa - Yarınki Sevkiyatlar</h2><div>${escapeHtml(formatDate(tomorrowIso()))}</div>${report.innerHTML}</body></html>`);
+    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+  }
+
+  function bindCombinedExports(){
+    const pdf=byId("tomorrowPdfBtn");
+    const excel=byId("tomorrowExcelBtn");
+    const print=byId("tomorrowPrintBtn");
+    if(pdf)pdf.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();downloadCombinedTomorrowPdf();},true);
+    if(excel)excel.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();downloadCombinedTomorrowExcel();},true);
+    if(print)print.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();printCombinedTomorrow();},true);
+  }
+
   window.editCementShipment=editCementShipment;
   window.completeCementShipment=completeCementShipment;
   window.deleteCementShipment=deleteCementShipment;
   window.loadCementShipments=loadCementShipments;
+  window.renderTomorrowCementAddon=renderTomorrowCementAddon;
 
   function init(){
     injectStyles();
