@@ -2,6 +2,7 @@
   "use strict";
 
   const TABLE="cimento_sevkiyatlar";
+  let pastEditId=null;
   const byId=id=>document.getElementById(id);
   const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
   const fmt=value=>Number(value||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -102,6 +103,7 @@
     });
     byId("cementHistoryRefreshBtn").addEventListener("click",loadHistory);
 
+    bindPastEditForm();
     observeCurrentTable();
     setTimeout(filterCurrentTable,100);
   }
@@ -141,20 +143,73 @@
     setStatus("");
   }
 
-  async function editPastShipment(id){
+  function editPastShipment(id){
     const r=(window.__cementPastRecords||[]).find(x=>String(x.id)===String(id));
     if(!r)return;
-    const newDate=prompt("Tarih (YYYY-AA-GG)",r.tarih||"");
-    if(newDate===null)return;
-    const firma=prompt("Firma",r.firma||""); if(firma===null)return;
-    const teslim=prompt("Teslim yeri",r.teslim_yeri||""); if(teslim===null)return;
-    const arac=prompt("Araç sayısı",String(r.arac_sayisi??"")); if(arac===null)return;
-    const tonaj=prompt("Toplam tonaj",String(r.toplam_tonaj??"")); if(tonaj===null)return;
-    const client=db(); if(!client)return;
-    const {error}=await client.from(TABLE).update({tarih:newDate,firma:titleCase(firma),teslim_yeri:titleCase(teslim),arac_sayisi:Number(arac),toplam_tonaj:Number(String(tonaj).replace(",","."))}).eq("id",id);
-    if(error){setStatus("Kayıt güncellenemedi: "+error.message,true);return;}
-    await loadHistory();
-    if(typeof window.loadCementShipments==="function")await window.loadCementShipments();
+    pastEditId=r.id;
+    byId("cementDate").value=r.tarih||todayIso();
+    byId("cementCompany").value=r.firma||"";
+    byId("cementDelivery").value=r.teslim_yeri||"";
+    byId("cementVehicleCount").value=r.arac_sayisi??"";
+    byId("cementTonnage").value=r.toplam_tonaj??"";
+    byId("cementSaveBtn").textContent="Değişiklikleri Kaydet";
+    byId("cementCancelBtn").classList.remove("hidden");
+    const panel=byId("cementHistoryPanel");
+    if(panel&&!panel.classList.contains("hidden"))panel.classList.add("hidden");
+    const historyBtn=byId("cementHistoryBtn");
+    if(historyBtn)historyBtn.textContent="Geçmiş Sevkiyatlar";
+    byId("cementPage").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function clearPastEditState(){
+    pastEditId=null;
+  }
+
+  function bindPastEditForm(){
+    const saveBtn=byId("cementSaveBtn");
+    const cancelBtn=byId("cementCancelBtn");
+    if(saveBtn&&!saveBtn.dataset.pastEditBound){
+      saveBtn.dataset.pastEditBound="1";
+      saveBtn.addEventListener("click",async event=>{
+        if(!pastEditId)return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        const tarih=byId("cementDate").value;
+        const firma=titleCase(byId("cementCompany").value);
+        const teslim=titleCase(byId("cementDelivery").value);
+        const arac=Number(byId("cementVehicleCount").value);
+        const tonaj=Number(String(byId("cementTonnage").value).replace(",","."));
+        if(!tarih||!firma||!teslim||!Number.isInteger(arac)||arac<1||!Number.isFinite(tonaj)||tonaj<=0){
+          setStatus("Tarih, firma, teslim yeri, araç sayısı ve toplam tonaj bilgilerini eksiksiz doldur.",true);
+          return;
+        }
+
+        const client=db();
+        if(!client){setStatus("Veritabanı bağlantısı yüklenemedi.",true);return;}
+        saveBtn.disabled=true;
+        const editId=pastEditId;
+        const {error}=await client.from(TABLE).update({tarih,firma,teslim_yeri:teslim,arac_sayisi:arac,toplam_tonaj:tonaj}).eq("id",editId);
+        saveBtn.disabled=false;
+        if(error){setStatus("Kayıt güncellenemedi: "+error.message,true);return;}
+
+        clearPastEditState();
+        byId("cementDate").value=todayIso();
+        byId("cementCompany").value="";
+        byId("cementDelivery").value="";
+        byId("cementVehicleCount").value="";
+        byId("cementTonnage").value="";
+        saveBtn.textContent="Çimento Sevkiyatını Kaydet";
+        byId("cementCancelBtn").classList.add("hidden");
+        setStatus("Çimento sevkiyatı güncellendi.");
+        await loadHistory();
+        if(typeof window.loadCementShipments==="function")await window.loadCementShipments();
+      },true);
+    }
+    if(cancelBtn&&!cancelBtn.dataset.pastEditBound){
+      cancelBtn.dataset.pastEditBound="1";
+      cancelBtn.addEventListener("click",()=>clearPastEditState(),true);
+    }
   }
 
   async function deletePastShipment(id){
