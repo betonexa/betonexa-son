@@ -271,3 +271,12 @@
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
   else init();
 })();
+
+(function loadCementMobileFix(){
+  if(document.getElementById("cementMobileFixCss"))return;
+  const link=document.createElement("link");
+  link.id="cementMobileFixCss";
+  link.rel="stylesheet";
+  link.href="./cimento-mobile-fix.css?v=20260817-1";
+  document.head.appendChild(link);
+})();
