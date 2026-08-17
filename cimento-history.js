@@ -280,3 +280,11 @@
   link.href="./cimento-mobile-fix.css?v=20260817-1";
   document.head.appendChild(link);
 })();
+
+(function loadCementEnhancements(){
+  if(document.querySelector('script[src^="./cimento-enhancements.js"]'))return;
+  const script=document.createElement("script");
+  script.src="./cimento-enhancements.js?v=20260817-1";
+  script.defer=true;
+  document.head.appendChild(script);
+})();
