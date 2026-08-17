@@ -45,10 +45,11 @@
       #cementHistoryStatus{min-height:20px;font-size:13px;font-weight:700;margin:5px 0 8px}
       @media(max-width:700px){
         #cementHistoryPanel .cement-history-summary{grid-template-columns:1fr}
-        #cementPage .cement-form{grid-template-columns:1fr 1fr!important;gap:10px!important}
-        #cementPage .cement-field:first-child{grid-column:auto!important}
-        #cementPage .cement-field:nth-child(5){grid-column:1 / -1}
-        #cementPage .cement-field input{min-width:0}
+        #cementPage .cement-form{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;column-gap:14px!important;row-gap:12px!important;width:100%!important}
+        #cementPage .cement-field{min-width:0!important;max-width:100%!important;width:auto!important}
+        #cementPage .cement-field:first-child{grid-column:1 / -1!important}
+        #cementPage .cement-field:nth-child(5){grid-column:auto!important}
+        #cementPage .cement-field input{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important}
         #cementPage .cement-actions{margin-top:2px}
       }
     `;
@@ -168,9 +169,7 @@
     byId("cementPage").scrollIntoView({behavior:"smooth",block:"start"});
   }
 
-  function clearPastEditState(){
-    pastEditId=null;
-  }
+  function clearPastEditState(){pastEditId=null;}
 
   function bindPastEditForm(){
     const saveBtn=byId("cementSaveBtn");
@@ -181,17 +180,12 @@
         if(!pastEditId)return;
         event.preventDefault();
         event.stopImmediatePropagation();
-
         const tarih=byId("cementDate").value;
         const firma=titleCase(byId("cementCompany").value);
         const teslim=titleCase(byId("cementDelivery").value);
         const arac=Number(byId("cementVehicleCount").value);
         const tonaj=Number(String(byId("cementTonnage").value).replace(",","."));
-        if(!tarih||!firma||!teslim||!Number.isInteger(arac)||arac<1||!Number.isFinite(tonaj)||tonaj<=0){
-          setStatus("Tarih, firma, teslim yeri, araç sayısı ve toplam tonaj bilgilerini eksiksiz doldur.",true);
-          return;
-        }
-
+        if(!tarih||!firma||!teslim||!Number.isInteger(arac)||arac<1||!Number.isFinite(tonaj)||tonaj<=0){setStatus("Tarih, firma, teslim yeri, araç sayısı ve toplam tonaj bilgilerini eksiksiz doldur.",true);return;}
         const client=db();
         if(!client){setStatus("Veritabanı bağlantısı yüklenemedi.",true);return;}
         saveBtn.disabled=true;
@@ -199,7 +193,6 @@
         const {error}=await client.from(TABLE).update({tarih,firma,teslim_yeri:teslim,arac_sayisi:arac,toplam_tonaj:tonaj}).eq("id",editId);
         saveBtn.disabled=false;
         if(error){setStatus("Kayıt güncellenemedi: "+error.message,true);return;}
-
         clearPastEditState();
         byId("cementDate").value=todayIso();
         byId("cementCompany").value="";
@@ -213,10 +206,7 @@
         if(typeof window.loadCementShipments==="function")await window.loadCementShipments();
       },true);
     }
-    if(cancelBtn&&!cancelBtn.dataset.pastEditBound){
-      cancelBtn.dataset.pastEditBound="1";
-      cancelBtn.addEventListener("click",()=>clearPastEditState(),true);
-    }
+    if(cancelBtn&&!cancelBtn.dataset.pastEditBound){cancelBtn.dataset.pastEditBound="1";cancelBtn.addEventListener("click",()=>clearPastEditState(),true);}
   }
 
   async function deletePastShipment(id){
@@ -232,7 +222,6 @@
     if(!tbody)return;
     const today=todayIso();
     let visibleCount=0,vehicleTotal=0,tonnageTotal=0;
-
     [...tbody.querySelectorAll("tr")].forEach(row=>{
       const cells=row.querySelectorAll("td");
       if(cells.length<7)return;
@@ -249,7 +238,6 @@
         tonnageTotal+=Number((cells[5].textContent||"0").replace(".","").replace(",",".").replace(/[^0-9.-]/g,""))||0;
       }
     });
-
     if(byId("cementShipmentTotal"))byId("cementShipmentTotal").textContent=String(visibleCount);
     if(byId("cementVehicleTotal"))byId("cementVehicleTotal").textContent=String(vehicleTotal);
     if(byId("cementTonnageTotal"))byId("cementTonnageTotal").textContent=fmt(tonnageTotal)+" ton";
