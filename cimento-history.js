@@ -40,7 +40,7 @@
 (function loadCementEnhancements(){if(document.querySelector('script[src^="./cimento-enhancements.js"]'))return;const s=document.createElement("script");s.src="./cimento-enhancements.js?v=20260817-2";s.defer=true;document.head.appendChild(s)})();
 (function loadRecordsCementAddon(){if(document.querySelector('script[src^="./records-cement-addon.js"]'))return;const s=document.createElement("script");s.src="./records-cement-addon.js?v=20260817-2";s.defer=true;document.head.appendChild(s)})();
 
-/* Yarınki Sevkiyatlar birleşik PDF: üstteki gereksiz başlığı kaldır. */
+/* Yarınki Sevkiyatlar birleşik PDF: başlık/karakter temizliği. */
 (function removeTomorrowPdfTitle(){
   let tries=0;
   const timer=setInterval(()=>{
@@ -51,6 +51,9 @@
     if(API.__betonexaTomorrowTitlePatched)return;
     API.__betonexaTomorrowTitlePatched=true;
     const originalText=API.text;
+    const normalizePdfText=value=>String(value??"")
+      .replace(/\bm3\b/gi,"m³")
+      .replace(/\s+·\s+/g," · ");
     API.text=function(value,x,y,options,transform){
       const plain=Array.isArray(value)?value.join(" "):String(value??"");
       if(plain==="Betonexa - Yarınki Sevkiyatlar"){
@@ -61,7 +64,8 @@
         this.__betonexaMoveTomorrowDate=false;
         y=14;
       }
-      return originalText.call(this,value,x,y,options,transform);
+      const cleaned=Array.isArray(value)?value.map(normalizePdfText):normalizePdfText(value);
+      return originalText.call(this,cleaned,x,y,options,transform);
     };
   },50);
 })();
