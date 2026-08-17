@@ -1,0 +1,49 @@
+/* Betonexa - yalnızca mobil çimento formu yerleşim düzeltmesi */
+@media (max-width: 700px) {
+  #cementPage .cement-form {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    column-gap: 14px !important;
+    row-gap: 12px !important;
+    width: 100% !important;
+  }
+
+  /* Tarih tek satır ve tam genişlik */
+  #cementPage .cement-form > .cement-field:nth-child(1) {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Firma + Teslim yeri */
+  #cementPage .cement-form > .cement-field:nth-child(2),
+  #cementPage .cement-form > .cement-field:nth-child(3),
+  /* Araç sayısı + Toplam tonaj */
+  #cementPage .cement-form > .cement-field:nth-child(4),
+  #cementPage .cement-form > .cement-field:nth-child(5) {
+    grid-column: auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #cementPage .cement-field {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  #cementPage .cement-field input {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #cementPage #cementDate {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
