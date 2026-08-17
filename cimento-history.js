@@ -43,7 +43,14 @@
       #cementHistoryPanel tbody tr:nth-child(even){background:rgba(255,255,255,.56)}
       #cementHistoryPanel .cement-history-empty{padding:22px;text-align:center;color:var(--muted)}
       #cementHistoryStatus{min-height:20px;font-size:13px;font-weight:700;margin:5px 0 8px}
-      @media(max-width:700px){#cementHistoryPanel .cement-history-summary{grid-template-columns:1fr}}
+      @media(max-width:700px){
+        #cementHistoryPanel .cement-history-summary{grid-template-columns:1fr}
+        #cementPage .cement-form{grid-template-columns:1fr 1fr!important;gap:10px!important}
+        #cementPage .cement-field:first-child{grid-column:auto!important}
+        #cementPage .cement-field:nth-child(5){grid-column:1 / -1}
+        #cementPage .cement-field input{min-width:0}
+        #cementPage .cement-actions{margin-top:2px}
+      }
     `;
     document.head.appendChild(style);
   }
