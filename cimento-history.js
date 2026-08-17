@@ -288,3 +288,11 @@
   script.defer=true;
   document.head.appendChild(script);
 })();
+
+(function loadRecordsCementAddon(){
+  if(document.querySelector('script[src^="./records-cement-addon.js"]'))return;
+  const script=document.createElement("script");
+  script.src="./records-cement-addon.js?v=20260817-1";
+  script.defer=true;
+  document.head.appendChild(script);
+})();
