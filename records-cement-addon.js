@@ -98,7 +98,7 @@
     if(!cr.length&&!ce.length){alert('Seçilen dönemde sevkiyat yok.');return;}
     const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});let text=v=>String(v??''),font='helvetica';
     try{if(typeof window.preparePdfFont==='function'){const f=await window.preparePdfFont(doc);if(f){font=f.name||font;text=f.text||text}}}catch(e){}
-    doc.setFont(font,'normal');doc.setFontSize(16);doc.text(text('Betonexa - Sevkiyat Planı'),14,14);doc.setFontSize(10);doc.text(text(b.label),14,20);let y=28;
+    doc.setFont(font,'normal');doc.setFontSize(10);doc.text(text(b.label),14,14);let y=22;
     if(cr.length){
       doc.setFontSize(13);doc.text(text('Beton Sevkiyatları'),14,y);y+=4;
       doc.autoTable({head:[['Tarih','Saat','Santral','Firma','Şantiye','Beton','Metraj','Pompa'].map(text)],body:cr.map(r=>[trDate(r.tarih),(r.saat||'').slice(0,5),title(r.santral),title(r.firma),title(r.santiye),title([r.beton_sinifi,r.beton_ozelligi].filter(Boolean).join(' ')),`${fmt(r.metraj)}${r.metraj_plus?'+':''} m³`,r.pompa_var_mi?title(r.pompa_tipi||'Pompalı'):'Pompasız'].map(text)),startY:y+2,styles:{font,fontSize:7},headStyles:{font,fillColor:[111,66,193]},margin:{left:14,right:14}});
