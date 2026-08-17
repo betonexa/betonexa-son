@@ -7,13 +7,13 @@
   const norm=s=>String(s||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' ');
   const title=s=>String(s||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('tr-TR').replace(/(^|[\s\-\/])([\p{L}])/gu,(m,a,b)=>a+b.toLocaleUpperCase('tr-TR'));
   const fmt=n=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  let suggestions={firma:[],yer:[],pairs:[]};
+  let suggestions={firma:[],yer:[]};
   let nullTonnageIds=new Set();
 
   function addStyles(){if($('cementEnhStyles'))return;const s=document.createElement('style');s.id='cementEnhStyles';s.textContent=`
     #cementAnalysisAddon{margin-top:20px;padding-top:18px;border-top:2px solid rgba(103,52,189,.18)}
     #cementAnalysisAddon h3{margin:0 0 12px}.cement-analysis-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.cement-analysis-card{background:rgba(255,255,255,.55);border:1px solid rgba(103,52,189,.12);border-radius:14px;padding:14px}.cement-analysis-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:6px}.cement-analysis-card strong{font-size:21px}.cement-analysis-table{overflow:auto;border-radius:14px}.cement-analysis-table table{width:100%;border-collapse:collapse;min-width:620px}.cement-analysis-table th,.cement-analysis-table td{padding:9px;border-bottom:1px solid rgba(103,52,189,.1);text-align:left}.cement-analysis-table th{background:#7442c8;color:#fff!important}.cement-tonnage-pending{font-weight:800;color:var(--purple-dark)}
-    .cement-pair-menu{position:absolute;left:0;right:0;top:100%;z-index:1000;background:#fff;border:1px solid rgba(103,52,189,.22);border-radius:12px;box-shadow:0 10px 24px rgba(40,25,70,.16);max-height:220px;overflow:auto;margin-top:4px}.cement-pair-menu.hidden{display:none}.cement-pair-option{display:block;width:100%;border:0;background:#fff;text-align:left;padding:10px 12px;font:inherit;cursor:pointer}.cement-pair-option:hover,.cement-pair-option:focus{background:rgba(103,52,189,.09);outline:none}.cement-pair-option strong{color:var(--purple-dark)}
+    .cement-pair-menu{position:absolute;left:0;right:0;top:100%;z-index:1000;background:#fff;border:1px solid rgba(103,52,189,.22);border-radius:12px;box-shadow:0 10px 24px rgba(40,25,70,.16);max-height:220px;overflow:auto;margin-top:4px}.cement-pair-menu.hidden{display:none}.cement-pair-option{display:block;width:100%;border:0;background:#fff;text-align:left;padding:10px 12px;font:inherit;cursor:pointer;color:var(--ink)}.cement-pair-option:hover,.cement-pair-option:focus{background:rgba(103,52,189,.09);outline:none}.cement-pair-option strong{color:var(--purple-dark)}
     @media(max-width:700px){.cement-analysis-cards{grid-template-columns:1fr 1fr}}
   `;document.head.appendChild(s)}
 
@@ -24,24 +24,29 @@
       c.from(CONCRETE).select('firma,santiye')
     ]);
     nullTonnageIds=new Set((a.data||[]).filter(x=>x.toplam_tonaj==null).map(x=>String(x.id)));
-    const fm=new Map(),yr=new Map(),pairs=new Map();
-    const addPair=(f,y)=>{if(!f)return;const F=title(f),Y=title(y);fm.set(norm(F),F);if(Y)yr.set(norm(Y),Y);if(Y)pairs.set(norm(F)+'|'+norm(Y),{firma:F,yer:Y});};
-    (a.data||[]).forEach(x=>addPair(x.firma,x.teslim_yeri));
-    (b.data||[]).forEach(x=>addPair(x.firma,x.santiye));
-    suggestions={firma:[...fm.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:[...yr.values()].sort((a,b)=>a.localeCompare(b,'tr')),pairs:[...pairs.values()].sort((a,b)=>a.firma.localeCompare(b.firma,'tr')||a.yer.localeCompare(b.yer,'tr'))};
+    const fm=new Map(),yr=new Map();
+    const add=(f,y)=>{if(f){const F=title(f);fm.set(norm(F),F)}if(y){const Y=title(y);yr.set(norm(Y),Y)}};
+    (a.data||[]).forEach(x=>add(x.firma,x.teslim_yeri));
+    (b.data||[]).forEach(x=>add(x.firma,x.santiye));
+    suggestions={firma:[...fm.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:[...yr.values()].sort((a,b)=>a.localeCompare(b,'tr'))};
     fillLists();patchAllDisplays();
   }
 
   function fillLists(){
-    let f=$('cementCompanyList'),y=$('cementDeliveryList');
-    if(!f){f=document.createElement('datalist');f.id='cementCompanyList';document.body.appendChild(f)}
+    let y=$('cementDeliveryList');
     if(!y){y=document.createElement('datalist');y.id='cementDeliveryList';document.body.appendChild(y)}
-    f.innerHTML=suggestions.firma.map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join('');
     y.innerHTML=suggestions.yer.map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join('');
     const ci=$('cementCompany'),di=$('cementDelivery');
     if(ci&&!ci.dataset.suggestBound){
-      ci.dataset.suggestBound='1';ci.setAttribute('list','cementCompanyList');ci.setAttribute('autocomplete','off');
-      const field=ci.closest('.cement-field');if(field){field.style.position='relative';const menu=document.createElement('div');menu.id='cementPairMenu';menu.className='cement-pair-menu hidden';field.appendChild(menu);ci.addEventListener('input',()=>renderPairMenu(ci.value));ci.addEventListener('focus',()=>{if(ci.value.trim())renderPairMenu(ci.value)});document.addEventListener('click',e=>{if(!field.contains(e.target))menu.classList.add('hidden')});}
+      ci.dataset.suggestBound='1';ci.removeAttribute('list');ci.setAttribute('autocomplete','off');
+      const field=ci.closest('.cement-field');
+      if(field){
+        field.style.position='relative';
+        const menu=document.createElement('div');menu.id='cementPairMenu';menu.className='cement-pair-menu hidden';field.appendChild(menu);
+        ci.addEventListener('input',()=>renderCompanyMenu(ci.value));
+        ci.addEventListener('focus',()=>{if(ci.value.trim())renderCompanyMenu(ci.value)});
+        document.addEventListener('click',e=>{if(!field.contains(e.target))menu.classList.add('hidden')});
+      }
       ci.addEventListener('blur',()=>setTimeout(()=>{const exact=suggestions.firma.find(v=>norm(v)===norm(ci.value));if(exact)ci.value=exact;else if(ci.value.trim())ci.value=title(ci.value)},120));
     }
     if(di&&!di.dataset.suggestBound){
@@ -50,13 +55,13 @@
     }
   }
 
-  function renderPairMenu(query){
+  function renderCompanyMenu(query){
     const menu=$('cementPairMenu');if(!menu)return;const q=norm(query);if(!q){menu.classList.add('hidden');return}
-    const matches=suggestions.pairs.filter(p=>norm(p.firma).startsWith(q)||norm(p.firma).includes(q)).slice(0,12);
+    const matches=suggestions.firma.filter(v=>norm(v).startsWith(q)).slice(0,12);
     if(!matches.length){menu.classList.add('hidden');return}
-    menu.innerHTML=matches.map((p,i)=>`<button type="button" class="cement-pair-option" data-i="${i}"><strong>${p.firma}</strong> – ${p.yer}</button>`).join('');
+    menu.innerHTML=matches.map((firma,i)=>`<button type="button" class="cement-pair-option" data-i="${i}"><strong>${firma}</strong></button>`).join('');
     menu.classList.remove('hidden');
-    [...menu.querySelectorAll('.cement-pair-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();const p=matches[i];$('cementCompany').value=p.firma;$('cementDelivery').value=p.yer;menu.classList.add('hidden')}));
+    [...menu.querySelectorAll('.cement-pair-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();$('cementCompany').value=matches[i];menu.classList.add('hidden')}));
   }
 
   function trackEditIds(){
