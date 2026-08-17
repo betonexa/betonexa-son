@@ -5,6 +5,8 @@
   const byId=id=>document.getElementById(id);
   const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
   const fmt=value=>Number(value||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const todayIso=()=>isoDate(new Date());
   const titleCase=value=>String(value??"").trim().replace(/\s+/g," ").toLocaleLowerCase("tr-TR").replace(/(^|[\s\-\/])([\p{L}])/gu,(m,sep,ch)=>sep+ch.toLocaleUpperCase("tr-TR"));
   const formatDate=value=>{
     if(!value)return "";
@@ -57,12 +59,7 @@
     if(!actions){
       actions=document.createElement("div");
       actions.className="cement-history-actions";
-      if(refresh){
-        head.insertBefore(actions,refresh);
-        actions.appendChild(refresh);
-      }else{
-        head.appendChild(actions);
-      }
+      if(refresh){head.insertBefore(actions,refresh);actions.appendChild(refresh);}else{head.appendChild(actions);}
     }
 
     const button=document.createElement("button");
@@ -79,13 +76,13 @@
       <div class="cement-history-head">
         <div>
           <h3>📚 Geçmiş Çimento Sevkiyatları</h3>
-          <small>Tamamlanan çimento sevkiyatları burada saklanır.</small>
+          <small>Tarihi geçen çimento sevkiyatları otomatik olarak burada listelenir.</small>
         </div>
         <button id="cementHistoryRefreshBtn" type="button" class="btn btn-light">Yenile</button>
       </div>
       <div id="cementHistoryStatus"></div>
       <div class="cement-history-summary">
-        <div class="cement-history-card"><small>TAMAMLANAN SEVKİYAT</small><strong id="cementHistoryCount">0</strong></div>
+        <div class="cement-history-card"><small>GEÇMİŞ SEVKİYAT</small><strong id="cementHistoryCount">0</strong></div>
         <div class="cement-history-card"><small>TOPLAM ARAÇ</small><strong id="cementHistoryVehicles">0</strong></div>
         <div class="cement-history-card"><small>TOPLAM TONAJ</small><strong id="cementHistoryTonnage">0,00 ton</strong></div>
       </div>
@@ -104,6 +101,9 @@
       if(!panel.classList.contains("hidden"))await loadHistory();
     });
     byId("cementHistoryRefreshBtn").addEventListener("click",loadHistory);
+
+    observeCurrentTable();
+    setTimeout(filterCurrentTable,100);
   }
 
   function setStatus(message,isError=false){
@@ -117,7 +117,7 @@
     const client=db();
     if(!client){setStatus("Veritabanı bağlantısı yüklenemedi.",true);return;}
     setStatus("Yükleniyor…");
-    const {data,error}=await client.from(TABLE).select("*").eq("tamamlandi",true).order("tarih",{ascending:false}).order("created_at",{ascending:false});
+    const {data,error}=await client.from(TABLE).select("*").lt("tarih",todayIso()).order("tarih",{ascending:false}).order("created_at",{ascending:false});
     if(error){setStatus("Geçmiş sevkiyatlar alınamadı: "+error.message,true);return;}
 
     const records=data||[];
@@ -131,27 +131,78 @@
           <td>${esc(titleCase(r.teslim_yeri))}</td>
           <td>${Number(r.arac_sayisi||0)}</td>
           <td>${fmt(r.toplam_tonaj)} ton</td>
-          <td><button type="button" class="btn btn-light" onclick="window.restoreCementShipment('${r.id}')">↩ Güncele Al</button></td>
-        </tr>`).join(""):'<tr><td colspan="7" class="cement-history-empty">Henüz tamamlanmış çimento sevkiyatı bulunmuyor.</td></tr>';
+          <td><div class="cement-row-actions"><button type="button" class="icon-action edit" title="Düzenle" onclick="window.editPastCementShipment('${r.id}')">✏️</button><button type="button" class="icon-action delete" title="Sil" onclick="window.deletePastCementShipment('${r.id}')">🗑️</button></div></td>
+        </tr>`).join(""):'<tr><td colspan="7" class="cement-history-empty">Henüz geçmiş çimento sevkiyatı bulunmuyor.</td></tr>';
     }
     if(byId("cementHistoryCount"))byId("cementHistoryCount").textContent=String(records.length);
     if(byId("cementHistoryVehicles"))byId("cementHistoryVehicles").textContent=String(records.reduce((s,r)=>s+Number(r.arac_sayisi||0),0));
     if(byId("cementHistoryTonnage"))byId("cementHistoryTonnage").textContent=fmt(records.reduce((s,r)=>s+Number(r.toplam_tonaj||0),0))+" ton";
+    window.__cementPastRecords=records;
     setStatus("");
   }
 
-  async function restoreShipment(id){
-    if(!confirm("Bu sevkiyat tekrar güncel listeye alınsın mı?"))return;
-    const client=db();
-    if(!client){setStatus("Veritabanı bağlantısı yüklenemedi.",true);return;}
-    const {error}=await client.from(TABLE).update({tamamlandi:false}).eq("id",id);
-    if(error){setStatus("Sevkiyat güncele alınamadı: "+error.message,true);return;}
-    setStatus("Sevkiyat tekrar güncel listeye alındı.");
+  async function editPastShipment(id){
+    const r=(window.__cementPastRecords||[]).find(x=>String(x.id)===String(id));
+    if(!r)return;
+    const newDate=prompt("Tarih (YYYY-AA-GG)",r.tarih||"");
+    if(newDate===null)return;
+    const firma=prompt("Firma",r.firma||""); if(firma===null)return;
+    const teslim=prompt("Teslim yeri",r.teslim_yeri||""); if(teslim===null)return;
+    const arac=prompt("Araç sayısı",String(r.arac_sayisi??"")); if(arac===null)return;
+    const tonaj=prompt("Toplam tonaj",String(r.toplam_tonaj??"")); if(tonaj===null)return;
+    const client=db(); if(!client)return;
+    const {error}=await client.from(TABLE).update({tarih:newDate,firma:titleCase(firma),teslim_yeri:titleCase(teslim),arac_sayisi:Number(arac),toplam_tonaj:Number(String(tonaj).replace(",","."))}).eq("id",id);
+    if(error){setStatus("Kayıt güncellenemedi: "+error.message,true);return;}
     await loadHistory();
     if(typeof window.loadCementShipments==="function")await window.loadCementShipments();
   }
 
-  window.restoreCementShipment=restoreShipment;
+  async function deletePastShipment(id){
+    if(!confirm("Bu geçmiş çimento sevkiyatı kalıcı olarak silinsin mi?"))return;
+    const client=db(); if(!client)return;
+    const {error}=await client.from(TABLE).delete().eq("id",id);
+    if(error){setStatus("Kayıt silinemedi: "+error.message,true);return;}
+    await loadHistory();
+  }
+
+  function filterCurrentTable(){
+    const tbody=byId("cementRows");
+    if(!tbody)return;
+    const today=todayIso();
+    let visibleCount=0,vehicleTotal=0,tonnageTotal=0;
+
+    [...tbody.querySelectorAll("tr")].forEach(row=>{
+      const cells=row.querySelectorAll("td");
+      if(cells.length<7)return;
+      const dateText=(cells[1].textContent||"").trim().split(" · ")[0];
+      const parts=dateText.split(".");
+      const rowIso=parts.length===3?`${parts[2]}-${parts[1]}-${parts[0]}`:"";
+      const isPast=rowIso&&rowIso<today;
+      row.style.display=isPast?"none":"";
+      const completeBtn=[...row.querySelectorAll("button")].find(b=>(b.textContent||"").includes("Tamamla"));
+      if(completeBtn)completeBtn.remove();
+      if(!isPast){
+        visibleCount++;
+        vehicleTotal+=Number((cells[4].textContent||"0").replace(/[^0-9.-]/g,""))||0;
+        tonnageTotal+=Number((cells[5].textContent||"0").replace(".","").replace(",",".").replace(/[^0-9.-]/g,""))||0;
+      }
+    });
+
+    if(byId("cementShipmentTotal"))byId("cementShipmentTotal").textContent=String(visibleCount);
+    if(byId("cementVehicleTotal"))byId("cementVehicleTotal").textContent=String(vehicleTotal);
+    if(byId("cementTonnageTotal"))byId("cementTonnageTotal").textContent=fmt(tonnageTotal)+" ton";
+  }
+
+  function observeCurrentTable(){
+    const tbody=byId("cementRows");
+    if(!tbody||tbody.dataset.historyObserver==="1")return;
+    tbody.dataset.historyObserver="1";
+    const observer=new MutationObserver(()=>setTimeout(filterCurrentTable,0));
+    observer.observe(tbody,{childList:true,subtree:true});
+  }
+
+  window.editPastCementShipment=editPastShipment;
+  window.deletePastCementShipment=deletePastShipment;
   window.loadCementHistory=loadHistory;
 
   function init(){
@@ -160,7 +211,7 @@
     let tries=0;
     const timer=setInterval(()=>{
       tries++;
-      if(byId("cementPage")||tries>=30){
+      if(byId("cementPage")||tries>=50){
         clearInterval(timer);
         if(byId("cementPage"))injectUi();
       }
