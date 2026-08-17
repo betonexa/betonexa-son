@@ -29,7 +29,7 @@
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     box-sizing: border-box !important;
   }
 
@@ -45,5 +45,12 @@
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    border-radius: 14px !important;
+    -webkit-border-radius: 14px !important;
+    overflow: hidden !important;
+    clip-path: inset(0 round 14px) !important;
+    -webkit-appearance: none;
+    appearance: none;
+    background-clip: padding-box !important;
   }
 }
