@@ -6,6 +6,8 @@
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const norm=s=>String(s||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' ');
   const title=s=>String(s||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('tr-TR').replace(/(^|[\s\-\/])([\p{L}])/gu,(m,a,b)=>a+b.toLocaleUpperCase('tr-TR'));
+  const canonical=s=>norm(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/[.,;:()'"`]/g,' ').replace(/\bins\b/g,'insaat').replace(/\s+/g,' ').trim();
+  const prettier=(oldV,newV)=>{if(!oldV)return newV;if(!newV)return oldV;const score=v=>String(v).replace(/[.]/g,'').length+(String(v).toLocaleLowerCase('tr-TR').includes('inşaat')?20:0);return score(newV)>score(oldV)?newV:oldV};
   const fmt=n=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
   let suggestions={firma:[],yer:['Şantiye']};
   let concreteSuggestions={firma:[],santiye:[]};
@@ -34,7 +36,7 @@
     ]);
     nullTonnageIds=new Set((a.data||[]).filter(x=>x.toplam_tonaj==null).map(x=>String(x.id)));
     const allFirma=new Map(),betonFirma=new Map(),betonSite=new Map();
-    const addFirma=(map,v)=>{if(v){const V=title(v);map.set(norm(V),V)}};
+    const addFirma=(map,v)=>{if(v){const V=title(v),key=canonical(V);map.set(key,prettier(map.get(key),V))}};
     (a.data||[]).forEach(x=>addFirma(allFirma,x.firma));
     (b.data||[]).forEach(x=>{addFirma(allFirma,x.firma);addFirma(betonFirma,x.firma);addFirma(betonSite,x.santiye)});
     suggestions={firma:[...allFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:['Şantiye']};
@@ -52,8 +54,8 @@
     input.dataset.betonexaAutoBound='1';input.removeAttribute('list');input.setAttribute('autocomplete','off');
     const render=async()=>{
       if((values()||[]).length===0)await loadSuggestions();
-      const q=norm(input.value);if(!q){menu.classList.add('hidden');return}
-      const matches=(values()||[]).filter(v=>norm(v).startsWith(q)).slice(0,12);
+      const q=canonical(input.value);if(!q){menu.classList.add('hidden');return}
+      const matches=(values()||[]).filter(v=>canonical(v).startsWith(q)).slice(0,12);
       if(!matches.length){menu.classList.add('hidden');return}
       menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');menu.classList.remove('hidden');
       [...menu.querySelectorAll('.betonexa-auto-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')}));
@@ -74,7 +76,7 @@
         ci.addEventListener('focus',async()=>{if(ci.value.trim()){if(!suggestions.firma.length)await loadSuggestions();renderCompanyMenu(ci.value)}});
         document.addEventListener('click',e=>{if(!field.contains(e.target))menu.classList.add('hidden')});
       }
-      ci.addEventListener('blur',()=>setTimeout(()=>{const exact=suggestions.firma.find(v=>norm(v)===norm(ci.value));if(exact)ci.value=exact;else if(ci.value.trim())ci.value=title(ci.value)},120));
+      ci.addEventListener('blur',()=>setTimeout(()=>{const exact=suggestions.firma.find(v=>canonical(v)===canonical(ci.value));if(exact)ci.value=exact;else if(ci.value.trim())ci.value=title(ci.value)},120));
     }
     createMenuForInput(di,'cementDeliveryMenu',()=>['Şantiye'],()=>{di.value='Şantiye'});
     if(di&&!di.dataset.siteForceBound){
@@ -86,8 +88,8 @@
 
   function renderCompanyMenu(query){
     const menu=$('cementPairMenu');if(!menu)return;
-    const q=norm(query);if(!q){menu.classList.add('hidden');return}
-    const matches=suggestions.firma.filter(v=>norm(v).startsWith(q)).slice(0,12);
+    const q=canonical(query);if(!q){menu.classList.add('hidden');return}
+    const matches=suggestions.firma.filter(v=>canonical(v).startsWith(q)).slice(0,12);
     if(!matches.length){menu.classList.add('hidden');return}
     menu.innerHTML=matches.map(firma=>`<button type="button" class="cement-pair-option"><strong>${firma}</strong></button>`).join('');menu.classList.remove('hidden');
     [...menu.querySelectorAll('.cement-pair-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();$('cementCompany').value=matches[i];menu.classList.add('hidden')}));
@@ -170,7 +172,7 @@
     let q=c.from(CEMENT).select('*');const start=$('analysisStart')?.value,end=$('analysisEnd')?.value;if(start)q=q.gte('tarih',start);if(end)q=q.lte('tarih',end);
     const {data,error}=await q.order('tarih',{ascending:true});if(error){box.innerHTML='<h3>🏗️ Çimento Analizi</h3><div>Veriler alınamadı.</div>';return}
     const rows=data||[],pending=rows.filter(r=>r.toplam_tonaj==null).length,vehicles=rows.reduce((s,r)=>s+Number(r.arac_sayisi||0),0),tons=rows.reduce((s,r)=>s+Number(r.toplam_tonaj||0),0),groups=new Map();
-    rows.forEach(r=>{const key=norm(r.firma),g=groups.get(key)||{name:title(r.firma),sev:0,arac:0,ton:0,bek:0};g.sev++;g.arac+=Number(r.arac_sayisi||0);if(r.toplam_tonaj==null)g.bek++;else g.ton+=Number(r.toplam_tonaj||0);groups.set(key,g)});
+    rows.forEach(r=>{const key=canonical(r.firma),g=groups.get(key)||{name:title(r.firma),sev:0,arac:0,ton:0,bek:0};g.name=prettier(g.name,title(r.firma));g.sev++;g.arac+=Number(r.arac_sayisi||0);if(r.toplam_tonaj==null)g.bek++;else g.ton+=Number(r.toplam_tonaj||0);groups.set(key,g)});
     box.innerHTML=`<h3>🏗️ Çimento Analizi</h3><div class="cement-analysis-cards"><div class="cement-analysis-card"><small>SEVKİYAT</small><strong>${rows.length}</strong></div><div class="cement-analysis-card"><small>TOPLAM ARAÇ</small><strong>${vehicles}</strong></div><div class="cement-analysis-card"><small>TOPLAM TONAJ</small><strong>${fmt(tons)} ton</strong></div><div class="cement-analysis-card"><small>TONAJ BEKLEYEN</small><strong class="cement-tonnage-pending">${pending}</strong></div></div><div class="cement-analysis-table"><table><thead><tr><th>Firma</th><th>Sevkiyat</th><th>Araç</th><th>Tonaj</th><th>Tonaj Bekleyen</th></tr></thead><tbody>${[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name,'tr')).map(g=>`<tr><td>${g.name}</td><td>${g.sev}</td><td>${g.arac}</td><td>${fmt(g.ton)} ton</td><td>${g.bek||'-'}</td></tr>`).join('')}</tbody></table></div>`;
   }
 
