@@ -50,7 +50,7 @@
       #cementPage .cement-table-wrap{overflow:auto;border-radius:14px}
       #cementPage table{width:100%;border-collapse:collapse;min-width:820px}
       #cementPage th,#cementPage td{padding:10px 9px;border-bottom:1px solid rgba(103,52,189,.10);text-align:left;vertical-align:middle}
-      #cementPage th{font-size:12px;color:var(--muted);white-space:nowrap}
+      #cementPage th{font-size:12px;color:#fff !important;white-space:nowrap;font-weight:700}
       #cementPage tbody tr:nth-child(odd){background:rgba(255,255,255,.34)}
       #cementPage tbody tr:nth-child(even){background:rgba(255,255,255,.56)}
       #cementPage .cement-row-actions{display:flex;gap:6px;white-space:nowrap}
