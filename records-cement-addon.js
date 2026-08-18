@@ -36,7 +36,6 @@
       .trim();
   }
 
-  // MADDE 18: ana uygulamadaki analiz gruplamasını aynı tekilleştirme kuralına bağla.
   window.analysisCanonicalKey=canonicalKey;
   window.analysisDisplayName=displayName;
   window.groupAnalysis=function(items,keyFn){
@@ -67,7 +66,9 @@
       #recordsCombinedView .rc-title{display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap;margin:0 0 12px}#recordsCombinedView .rc-title h3{margin:0;font-size:20px}.rc-sub{font-size:13px;color:var(--muted)}
       .rc-table{overflow:auto;border:1px solid rgba(103,52,189,.13);border-radius:14px;background:rgba(255,255,255,.32)}.rc-table table{width:100%;border-collapse:collapse;min-width:900px}.rc-table th,.rc-table td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(103,52,189,.09);font-size:12px}.rc-table th{background:#7442c8;color:#fff!important;white-space:nowrap}.rc-table tbody tr:nth-child(odd){background:rgba(255,255,255,.34)}.rc-table tbody tr:nth-child(even){background:rgba(255,255,255,.54)}
       .rc-total{display:flex;justify-content:flex-end;gap:22px;flex-wrap:wrap;border-radius:12px;padding:12px 14px;background:rgba(103,52,189,.10);font-weight:850;margin-top:8px}.rc-empty{padding:16px;border:1px dashed rgba(103,52,189,.25);border-radius:12px;color:var(--muted)}.rc-error{padding:12px 14px;margin:0 0 12px;border-radius:12px;background:rgba(204,51,42,.10);color:var(--danger);font-size:13px;font-weight:700}
-      .rc-actions{display:flex;gap:6px;white-space:nowrap}.rc-edit,.rc-delete{border:1px solid rgba(103,52,189,.18);background:#f1e9ff;border-radius:9px;padding:6px 9px;cursor:pointer;font-size:16px}.rc-delete{background:#fff0f0;border-color:rgba(190,40,40,.18)}#recordsPage .records-report > .table-wrap.rc-original-hidden{display:none!important}@media(max-width:700px){#recordsCombinedView{margin-top:14px}.rc-total{justify-content:flex-start;gap:8px 18px}.rc-table table{min-width:820px}}
+      .rc-actions{display:flex;gap:6px;white-space:nowrap}.rc-edit,.rc-delete{border:1px solid rgba(103,52,189,.18);background:#f1e9ff;border-radius:9px;padding:6px 9px;cursor:pointer;font-size:16px}.rc-delete{background:#fff0f0;border-color:rgba(190,40,40,.18)}#recordsPage .records-report > .table-wrap.rc-original-hidden{display:none!important}
+      #cementPage .cement-export-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+      @media(max-width:700px){#recordsCombinedView{margin-top:14px}.rc-total{justify-content:flex-start;gap:8px 18px}.rc-table table{min-width:820px}#cementPage .cement-export-actions{width:100%;margin-left:0}#cementPage .cement-export-actions .btn{flex:1}}
     `;
     document.head.appendChild(s);
   }
@@ -190,6 +191,87 @@
     doc.save(`Betonexa-Sevkiyat-Plani-${b.range}.pdf`);
   }
 
+  function cementExportBounds(){
+    const mode=$('cementRange')?.value||'all';
+    const ref=$('cementFilterDate')?.value||iso(new Date());
+    const d=new Date(ref+'T00:00:00');
+    if(mode==='all')return{mode,start:null,end:null,label:'Tüm Çimento Sevkiyatları'};
+    if(mode==='daily')return{mode,start:ref,end:ref,label:trDate(ref)};
+    if(mode==='weekly'){
+      const s=monday(d),e=addDays(s,6);
+      return{mode,start:iso(s),end:iso(e),label:`${trDate(iso(s))} – ${trDate(iso(e))}`};
+    }
+    const start=ref.slice(0,7)+'-01';
+    const f=new Date(start+'T00:00:00');
+    const e=new Date(f.getFullYear(),f.getMonth()+1,0);
+    return{mode,start,end:iso(e),label:f.toLocaleDateString('tr-TR',{month:'long',year:'numeric'})};
+  }
+
+  async function cementExportItems(){
+    const c=db();if(!c){alert('Veritabanı bağlantısı yüklenemedi.');return null}
+    const{data,error}=await c.from(CEMENT).select('*').order('tarih',{ascending:false}).order('created_at',{ascending:false});
+    if(error){alert('Çimento kayıtları alınamadı: '+error.message);return null}
+    const b=cementExportBounds();
+    return{bounds:b,items:(data||[]).filter(r=>!b.start||(r.tarih>=b.start&&r.tarih<=b.end))};
+  }
+
+  async function cementPanelPdf(){
+    if(!window.jspdf?.jsPDF){alert('PDF modülü yüklenemedi.');return}
+    const pack=await cementExportItems();if(!pack)return;
+    const{bounds,items}=pack;if(!items.length){alert('Seçilen dönemde çimento sevkiyatı yok.');return}
+    const{jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    let text=v=>String(v??''),font='helvetica';
+    try{if(typeof window.preparePdfFont==='function'){const f=await window.preparePdfFont(doc);if(f){font=f.name||font;text=f.text||text}}}catch(e){}
+    doc.setFont(font,'normal');doc.setFontSize(14);doc.text(text('Betonexa - Çimento Sevkiyatları'),14,14);
+    doc.setFontSize(9);doc.text(text(bounds.label),14,20);
+    doc.autoTable({
+      head:[['Tarih','Firma','Teslim Yeri','Araç Sayısı','Toplam Tonaj'].map(text)],
+      body:items.map(r=>[trDate(r.tarih),title(r.firma),title(r.teslim_yeri||''),String(Number(r.arac_sayisi||0)),r.toplam_tonaj==null?'-':fmt(r.toplam_tonaj)+' ton'].map(text)),
+      startY:25,styles:{font,fontSize:8},headStyles:{font,fillColor:[111,66,193]},margin:{left:14,right:14}
+    });
+    const vehicles=items.reduce((s,r)=>s+Number(r.arac_sayisi||0),0);
+    const tons=items.reduce((s,r)=>s+(r.toplam_tonaj==null?0:Number(r.toplam_tonaj||0)),0);
+    const pending=items.filter(r=>r.toplam_tonaj==null).length;
+    const y=(doc.lastAutoTable?.finalY||30)+8;
+    doc.setFontSize(10);doc.text(text(`TOPLAM: ${items.length} sevkiyat · ${vehicles} araç · ${fmt(tons)} ton${pending?` · ${pending} tonaj bekliyor`:''}`),14,y);
+    doc.save(`Betonexa-Cimento-Sevkiyatlari-${bounds.mode}.pdf`);
+  }
+
+  async function cementPanelExcel(){
+    if(!window.XLSX){alert('Excel modülü yüklenemedi.');return}
+    const pack=await cementExportItems();if(!pack)return;
+    const{bounds,items}=pack;if(!items.length){alert('Seçilen dönemde çimento sevkiyatı yok.');return}
+    const rows=items.map((r,i)=>({No:i+1,Tarih:trDate(r.tarih),Firma:title(r.firma),'Teslim Yeri':title(r.teslim_yeri||''),'Araç Sayısı':Number(r.arac_sayisi||0),'Toplam Tonaj':r.toplam_tonaj==null?'':Number(r.toplam_tonaj||0)}));
+    rows.push({No:'',Tarih:'',Firma:'TOPLAM','Teslim Yeri':'','Araç Sayısı':items.reduce((s,r)=>s+Number(r.arac_sayisi||0),0),'Toplam Tonaj':items.reduce((s,r)=>s+(r.toplam_tonaj==null?0:Number(r.toplam_tonaj||0)),0)});
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Çimento');
+    XLSX.writeFile(wb,`Betonexa-Cimento-Sevkiyatlari-${bounds.mode}.xlsx`);
+  }
+
+  async function cementPanelPrint(){
+    const pack=await cementExportItems();if(!pack)return;
+    const{bounds,items}=pack;if(!items.length){alert('Seçilen dönemde çimento sevkiyatı yok.');return}
+    const vehicles=items.reduce((s,r)=>s+Number(r.arac_sayisi||0),0);
+    const tons=items.reduce((s,r)=>s+(r.toplam_tonaj==null?0:Number(r.toplam_tonaj||0)),0);
+    const pending=items.filter(r=>r.toplam_tonaj==null).length;
+    const w=window.open('','_blank');if(!w)return;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Betonexa - Çimento Sevkiyatları</title><style>body{font-family:Arial,sans-serif;padding:22px;color:#202633}h2{margin:0 0 4px}p{margin:0 0 16px;color:#687181}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #bbb;padding:7px;text-align:left}th{background:#6f42c1;color:#fff}.total{margin-top:12px;font-weight:bold;text-align:right}</style></head><body><h2>Betonexa - Çimento Sevkiyatları</h2><p>${esc(bounds.label)}</p><table><thead><tr><th>No</th><th>Tarih</th><th>Firma</th><th>Teslim Yeri</th><th>Araç Sayısı</th><th>Toplam Tonaj</th></tr></thead><tbody>${items.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(trDate(r.tarih))}</td><td>${esc(title(r.firma))}</td><td>${esc(title(r.teslim_yeri||''))}</td><td>${Number(r.arac_sayisi||0)}</td><td>${r.toplam_tonaj==null?'-':fmt(r.toplam_tonaj)+' ton'}</td></tr>`).join('')}</tbody></table><div class="total">TOPLAM: ${items.length} sevkiyat · ${vehicles} araç · ${fmt(tons)} ton${pending?` · ${pending} tonaj bekliyor`:''}</div></body></html>`);
+    w.document.close();w.focus();setTimeout(()=>w.print(),250);
+  }
+
+  function injectCementExportButtons(){
+    const actions=document.querySelector('#cementPage .cement-actions');
+    if(!actions||$('cementExportActions'))return false;
+    const box=document.createElement('div');
+    box.id='cementExportActions';box.className='cement-export-actions';
+    box.innerHTML=`<button id="cementPdfBtn" type="button" class="btn btn-light">PDF Al</button><button id="cementExcelBtn" type="button" class="btn btn-light">Excel Al</button><button id="cementPrintBtn" type="button" class="btn btn-light">Yazdır</button>`;
+    actions.appendChild(box);
+    $('cementPdfBtn').addEventListener('click',cementPanelPdf);
+    $('cementExcelBtn').addEventListener('click',cementPanelExcel);
+    $('cementPrintBtn').addEventListener('click',cementPanelPrint);
+    return true;
+  }
+
   function bind(){
     const range=$('exportRange'),date=$('exportDate'),pdfBtn=$('pdfBtn'),refreshBtn=$('refreshBtn'),loginBtn=$('loginBtn'),shipmentForm=$('shipmentForm');
     if(range)range.value='all';
@@ -198,7 +280,7 @@
     refreshBtn?.addEventListener('click',()=>setTimeout(refresh,250));
     loginBtn?.addEventListener('click',()=>setTimeout(refresh,900));
     shipmentForm?.addEventListener('submit',()=>{setTimeout(refresh,300);setTimeout(refresh,900);setTimeout(refresh,1800)});
-    document.querySelector('.tabs')?.addEventListener('click',e=>{if(e.target.closest('[data-page="records"]'))setTimeout(refresh,100)});
+    document.querySelector('.tabs')?.addEventListener('click',e=>{if(e.target.closest('[data-page="records"]'))setTimeout(refresh,100);if(e.target.closest('[data-page="cement"]'))setTimeout(injectCementExportButtons,120)});
     if(pdfBtn&&!pdfBtn.dataset.combinedCementPdf){pdfBtn.dataset.combinedCementPdf='1';pdfBtn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();pdf()},true)}
     document.addEventListener('click',e=>{if(e.target.closest('#cementSaveBtn')||e.target.closest('#cementRows .delete')||e.target.closest('#cementHistoryRows .delete'))setTimeout(refresh,900)},true);
     const client=db();
@@ -215,6 +297,8 @@
 
   function init(){
     styles();bind();
+    let tries=0;
+    const timer=setInterval(()=>{tries++;if(injectCementExportButtons()||tries>60)clearInterval(timer)},100);
     if(typeof window.renderAnalysis==='function')setTimeout(()=>window.renderAnalysis(),200);
     setTimeout(refresh,250);setTimeout(refresh,1500);
   }
