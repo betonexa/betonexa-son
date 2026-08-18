@@ -6,8 +6,8 @@ const norm=v=>String(v||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' '
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const asciiKey=v=>norm(v).replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 function titleTr(v){return String(v||'').split(/(\s+|-)/).map(p=>/^[\s-]+$/.test(p)?p:(p.charAt(0).toLocaleUpperCase('tr-TR')+p.slice(1).toLocaleLowerCase('tr-TR'))).join('')}
-function canonicalLabel(v){let s=String(v||'').trim().replace(/\s+/g,' ');if(!s)return'';const m=s.match(/^(.*?)(?:[\s.,-]+)?(?:inş(?:a+t+)?|ins(?:a+t+)?)\.?$/iu);if(m&&m[1].trim())s=m[1].trim()+' İnşaat';return titleTr(s)}
-function canonicalKey(v){return asciiKey(canonicalLabel(v)).replace(/\bins(?:aat)?\b$/,'insaat')}
+function canonicalLabel(v){let s=String(v||'').trim().replace(/\s+/g,' ');if(!s)return'';let k=asciiKey(s);const m=k.match(/^(.*?)(?:\s+)?ins[a-z]*$/i);if(m&&m[1].trim()){const base=m[1].trim().split(' ').filter(Boolean).map(w=>w.charAt(0).toLocaleUpperCase('tr-TR')+w.slice(1)).join(' ');return base+' İnşaat'}return titleTr(s)}
+function canonicalKey(v){return asciiKey(canonicalLabel(v)).replace(/\bins[a-z]*\b$/,'insaat')}
 
 async function prepareTurkishPdfFont(doc){
   try{
@@ -100,7 +100,7 @@ function pdfSubline(){
   return [company,dateText].filter(Boolean).join(' · ');
 }
 function filterSummary(){const p=[];[['Firma','shipmentFilterCompany'],['Şantiye','shipmentFilterSite'],['Santral','shipmentFilterPlant'],['Beton','shipmentFilterConcrete']].forEach(([a,b])=>{if($(b)?.value)p.push(`${a}: ${$(b).value}`)});if($('shipmentFilterStart')?.value)p.push(`Başlangıç: ${$('shipmentFilterStart').value.split('-').reverse().join('.')}`);if($('shipmentFilterEnd')?.value)p.push(`Bitiş: ${$('shipmentFilterEnd').value.split('-').reverse().join('.')}`);return p.length?p.join(' · '):'Tüm Sevkiyatlar'}
-function exportData(){const rows=visibleRows(),data=rows.map((r,i)=>({No:i+1,Tarih:r.children[1]?.textContent.trim()||'',Saat:r.children[2]?.textContent.trim()||'',Santral:r.children[3]?.textContent.trim()||'',Firma:r.children[4]?.textContent.trim()||'','Şantiye':r.children[5]?.textContent.trim()||'',Beton:r.children[6]?.textContent.trim()||'',Metraj:r.children[7]?.textContent.trim()||'',Pompa:r.children[8]?.textContent.trim()||''}));return{rows,data,total:rows.reduce((s,r)=>s+parseM3(r.children[7]?.textContent),0)}}
+function exportData(){const rows=visibleRows(),data=rows.map((r,i)=>({No:i+1,Tarih:r.children[1]?.textContent.trim()||'',Saat:r.children[2]?.textContent.trim()||'',Santral:r.children[3]?.textContent.trim()||'',Firma:canonicalLabel(r.children[4]?.textContent||''),'Şantiye':canonicalLabel(r.children[5]?.textContent||''),Beton:r.children[6]?.textContent.trim()||'',Metraj:r.children[7]?.textContent.trim()||'',Pompa:r.children[8]?.textContent.trim()||''}));return{rows,data,total:rows.reduce((s,r)=>s+parseM3(r.children[7]?.textContent),0)}}
 function refreshOptions(){
   const b=betonBlock();if(!b)return;const rows=[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9);
   rows.forEach(r=>{if(r.children[4])r.children[4].textContent=canonicalLabel(r.children[4].textContent);if(r.children[5])r.children[5].textContent=canonicalLabel(r.children[5].textContent)});
