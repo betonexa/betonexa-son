@@ -34,20 +34,22 @@ function addStyles(){
   if(!$('shipmentFilterStyles')){const s=document.createElement('style');s.id='shipmentFilterStyles';s.textContent=`
     #recordsCombinedView>.rc-title{display:none!important}
     #shipmentQuickFilters{margin:0 0 18px;padding:16px;border:1px solid rgba(103,52,189,.15);border-radius:18px;background:rgba(255,249,244,.52);box-shadow:0 8px 22px rgba(73,42,115,.06)}
-    #shipmentQuickFilters .sqf-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    #shipmentQuickFilters .sqf-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
     #shipmentQuickFilters .sqf-head strong{font-size:18px;color:var(--purple-dark,#4d2393)}
     #shipmentQuickFilters .sqf-quick{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
     #shipmentQuickFilters .sqf-quick button{border:1px solid rgba(103,52,189,.18);background:rgba(255,255,255,.82);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;color:var(--ink,#202633)}
-    #shipmentQuickFilters .sqf-quick button.active{background:var(--purple,#6734bd);color:white;border-color:transparent}
-    #shipmentQuickFilters .sqf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end}
+    #shipmentQuickFilters .sqf-quick button.active{background:var(--purple,#6734bd);color:white;border-color:transparent;box-shadow:0 5px 12px rgba(103,52,189,.18)}
+    #shipmentQuickFilters .sqf-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
     #shipmentQuickFilters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800;color:var(--muted,#687181)}
     #shipmentQuickFilters select,#shipmentQuickFilters input{box-sizing:border-box;width:100%;height:42px;border:1px solid rgba(103,52,189,.20);border-radius:10px;background:rgba(255,255,255,.90);padding:0 10px;font:inherit;color:var(--ink,#202633)}
-    #shipmentQuickFilters .sqf-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(103,52,189,.12)}
-    #shipmentFilterResult{font-size:12px;font-weight:850;color:var(--purple-dark,#4d2393)}
+    #shipmentQuickFilters .sqf-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(103,52,189,.12)}
+    #shipmentQuickFilters .sqf-clear{min-width:0;width:auto;padding-left:14px;padding-right:14px;margin-left:auto}
+    #shipmentFilterResult{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;font-size:12px;font-weight:850;color:var(--purple-dark,#4d2393)}
+    #shipmentFilterResult .sqf-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:rgba(103,52,189,.10);border:1px solid rgba(103,52,189,.13);white-space:nowrap}
+    #shipmentFilterResult .sqf-badge-cement{background:rgba(184,119,33,.10);border-color:rgba(184,119,33,.16);color:#765015}
     #shipmentQuickFilters .sqf-hidden{display:none!important}
-    #shipmentQuickFilters .sqf-clear{min-width:150px}
-    @media(max-width:800px){#shipmentQuickFilters .sqf-grid{grid-template-columns:1fr 1fr}}
-    @media(max-width:520px){#shipmentQuickFilters{padding:12px}#shipmentQuickFilters .sqf-grid{grid-template-columns:1fr}#shipmentQuickFilters .sqf-actions .btn{flex:1}}
+    @media(max-width:1100px){#shipmentQuickFilters .sqf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:520px){#shipmentQuickFilters{padding:12px}#shipmentQuickFilters .sqf-grid{grid-template-columns:1fr}#shipmentQuickFilters .sqf-actions .btn{flex:1}#shipmentQuickFilters .sqf-clear{margin-left:0}#shipmentFilterResult{justify-content:flex-start}}
   `;document.head.appendChild(s)}
 }
 
@@ -63,7 +65,12 @@ function rowIso(row){const t=(row.children[1]?.textContent||'').trim();let m=t.m
 function uniqueLabels(values){const map=new Map();values.forEach(raw=>{raw=String(raw||'').trim();if(!raw)return;const label=canonicalLabel(raw),key=canonicalKey(label);if(!map.has(key))map.set(key,label)});return[...map.values()].sort((a,b)=>a.localeCompare(b,'tr'))}
 function fillSelect(id,values,allLabel,canonical=true){const el=$(id);if(!el)return;const old=el.value,key=canonical?canonicalKey(old):norm(old);el.innerHTML=`<option value="">${allLabel}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');const same=[...el.options].find(o=>(canonical?canonicalKey(o.value):norm(o.value))===key);el.value=same?same.value:''}
 
-function forceLegacyAll(){const range=$('exportRange');if(range&&range.value!=='all'){range.value='all';range.dispatchEvent(new Event('change',{bubbles:true}))}['exportRange','exportDate','exportPdfBtn','exportExcelBtn','exportPrintBtn'].forEach(id=>{const el=$(id);if(!el)return;const wrap=(id==='exportRange'||id==='exportDate')?(el.closest('label')||el.parentElement):el;wrap.style.display='none'});const labels=[...document.querySelectorAll('#recordsPage label')];labels.forEach(l=>{const t=(l.textContent||'').trim();if(t==='Plan dönemi'||t==='Referans tarihi')l.style.display='none'})}
+function forceLegacyAll(){
+  const range=$('exportRange');if(range&&range.value!=='all'){range.value='all';range.dispatchEvent(new Event('change',{bubbles:true}))}
+  ['exportRange','exportDate','exportPdfBtn','exportExcelBtn','exportPrintBtn'].forEach(id=>{const el=$(id);if(!el)return;const wrap=(id==='exportRange'||id==='exportDate')?(el.closest('label')||el.parentElement):el;wrap.style.display='none'});
+  [...document.querySelectorAll('#recordsPage label')].forEach(l=>{const t=(l.textContent||'').trim();if(t==='Plan dönemi'||t==='Referans tarihi')l.style.display='none'});
+  [...document.querySelectorAll('#recordsPage button')].forEach(btn=>{if(btn.closest('#shipmentQuickFilters'))return;const t=(btn.textContent||'').trim();if(t==='PDF İndir'||t==='Excel İndir'||t==='Yazdır')btn.style.display='none'});
+}
 
 function updateFieldVisibility(){const type=$('shipmentFilterType')?.value||'all';document.querySelectorAll('#shipmentQuickFilters [data-only]').forEach(el=>{const only=el.dataset.only;el.classList.toggle('sqf-hidden',type==='all'||only!==type)})}
 function refreshOptions(){
@@ -90,13 +97,13 @@ function applyFilters(){
   concreteRows().forEach(r=>{const ok=type!=='cement'&&(!company||canonicalKey(r.children[4]?.textContent)===company)&&(!site||canonicalKey(r.children[5]?.textContent)===site)&&(!plant||norm(r.children[3]?.textContent)===plant)&&(!concrete||norm(r.children[6]?.textContent)===concrete)&&matchesDate(r,start,end);r.style.display=ok?'':'none';if(ok){cc++;m3+=parseNumber(r.children[7]?.textContent)}});
   cementRows().forEach(r=>{const ok=type!=='concrete'&&(!company||canonicalKey(r.children[2]?.textContent)===company)&&(!delivery||canonicalKey(r.children[3]?.textContent)===delivery)&&matchesDate(r,start,end);r.style.display=ok?'':'none';if(ok){zc++;vehicles+=parseNumber(r.children[4]?.textContent);tons+=parseNumber(r.children[5]?.textContent)}});
   if(cb)cb.style.display=type==='cement'?'none':'';if(ceb)ceb.style.display=type==='concrete'?'none':'';
-  const result=$('shipmentFilterResult');if(result){const parts=[];if(type!=='cement')parts.push(`${cc} beton · ${trNum(m3)} m³`);if(type!=='concrete')parts.push(`${zc} çimento · ${vehicles} araç · ${trNum(tons)} ton`);result.textContent=parts.join(' | ')}
+  const result=$('shipmentFilterResult');if(result){const parts=[];if(type!=='cement')parts.push(`<span class="sqf-badge">🚚 ${cc} beton · ${trNum(m3)} m³</span>`);if(type!=='concrete')parts.push(`<span class="sqf-badge sqf-badge-cement">🏗️ ${zc} çimento · ${vehicles} araç · ${trNum(tons)} ton</span>`);result.innerHTML=parts.join('')}
   if(cb?.querySelector('.rc-total'))cb.querySelector('.rc-total').innerHTML=`<span>BETON SEVKİYATI: ${cc}</span><span>GENEL BETON: ${trNum(m3)} m³</span>`;
   if(ceb?.querySelector('.rc-total'))ceb.querySelector('.rc-total').innerHTML=`<span>ÇİMENTO SEVKİYATI: ${zc}</span><span>TOPLAM ARAÇ: ${vehicles}</span><span>TOPLAM TONAJ: ${trNum(tons)} ton</span>`;
 }
 
 function setQuick(kind,button){const today=new Date();let start='',end='';if(kind==='today'){start=end=iso(today)}else if(kind==='tomorrow'){start=end=iso(addDays(today,1))}else if(kind==='week'){const s=monday(today);start=iso(s);end=iso(addDays(s,6))}else if(kind==='month'){start=iso(new Date(today.getFullYear(),today.getMonth(),1));end=iso(new Date(today.getFullYear(),today.getMonth()+1,0))}$('shipmentFilterStart').value=start;$('shipmentFilterEnd').value=end;document.querySelectorAll('#shipmentQuickFilters .sqf-quick button').forEach(b=>b.classList.toggle('active',b===button));applyFilters()}
-function clearFilters(){['shipmentFilterCompany','shipmentFilterSite','shipmentFilterPlant','shipmentFilterConcrete','shipmentFilterDelivery','shipmentFilterStart','shipmentFilterEnd'].forEach(id=>{if($(id))$(id).value=''});if($('shipmentFilterType'))$('shipmentFilterType').value='all';document.querySelectorAll('#shipmentQuickFilters .sqf-quick button').forEach(b=>b.classList.remove('active'));refreshOptions();applyFilters()}
+function clearFilters(){['shipmentFilterCompany','shipmentFilterSite','shipmentFilterPlant','shipmentFilterConcrete','shipmentFilterDelivery','shipmentFilterStart','shipmentFilterEnd'].forEach(id=>{if($(id))$(id).value=''});if($('shipmentFilterType'))$('shipmentFilterType').value='all';document.querySelectorAll('#shipmentQuickFilters .sqf-quick button').forEach(b=>b.classList.toggle('active',b.dataset.quick==='all'));refreshOptions();applyFilters()}
 
 function exportData(){
   const cr=concreteRows().filter(r=>r.style.display!=='none').map((r,i)=>({No:i+1,Tarih:(r.children[1]?.textContent||'').trim(),Saat:(r.children[2]?.textContent||'').trim(),Santral:(r.children[3]?.textContent||'').trim(),Firma:canonicalLabel(r.children[4]?.textContent||''),'Şantiye':canonicalLabel(r.children[5]?.textContent||''),Beton:(r.children[6]?.textContent||'').trim(),Metraj:(r.children[7]?.textContent||'').trim(),Pompa:(r.children[8]?.textContent||'').trim()}));
@@ -112,7 +119,7 @@ function printRows(){const p=exportData();if(!p.concrete.length&&!p.cement.lengt
 function ensureFilters(){
   forceLegacyAll();const{box}=blocks();if(!box)return false;let p=$('shipmentQuickFilters');if(!p){p=document.createElement('div');p.id='shipmentQuickFilters';p.innerHTML=`
     <div class="sqf-head"><strong>🔎 Sevkiyat Filtreleri</strong><span id="shipmentFilterResult"></span></div>
-    <div class="sqf-quick"><button type="button" data-quick="today">Bugün</button><button type="button" data-quick="tomorrow">Yarın</button><button type="button" data-quick="week">Bu Hafta</button><button type="button" data-quick="month">Bu Ay</button><button type="button" data-quick="all">Tümü</button></div>
+    <div class="sqf-quick"><button type="button" data-quick="today">Bugün</button><button type="button" data-quick="tomorrow">Yarın</button><button type="button" data-quick="week">Bu Hafta</button><button type="button" data-quick="month">Bu Ay</button><button type="button" data-quick="all" class="active">Tümü</button></div>
     <div class="sqf-grid">
       <label>Sevkiyat Türü<select id="shipmentFilterType"><option value="all">Tümü</option><option value="concrete">Beton</option><option value="cement">Çimento</option></select></label>
       <label>Firma<select id="shipmentFilterCompany"></select></label>
@@ -122,9 +129,8 @@ function ensureFilters(){
       <label data-only="cement">Teslim Yeri<select id="shipmentFilterDelivery"></select></label>
       <label>Başlangıç Tarihi<input id="shipmentFilterStart" type="date"></label>
       <label>Bitiş Tarihi<input id="shipmentFilterEnd" type="date"></label>
-      <button id="shipmentFilterClear" class="btn btn-light sqf-clear" type="button">Filtreleri Temizle</button>
     </div>
-    <div class="sqf-actions"><button id="shipmentFilterPdf" class="btn btn-light" type="button">PDF İndir</button><button id="shipmentFilterExcel" class="btn btn-light" type="button">Excel İndir</button><button id="shipmentFilterPrint" class="btn btn-light" type="button">Yazdır</button></div>`;
+    <div class="sqf-actions"><button id="shipmentFilterPdf" class="btn btn-light" type="button">PDF İndir</button><button id="shipmentFilterExcel" class="btn btn-light" type="button">Excel İndir</button><button id="shipmentFilterPrint" class="btn btn-light" type="button">Yazdır</button><button id="shipmentFilterClear" class="btn btn-light sqf-clear" type="button">Filtreleri Temizle</button></div>`;
     box.insertBefore(p,box.querySelector('.rc-block')||box.firstChild);
     p.querySelectorAll('[data-quick]').forEach(btn=>btn.addEventListener('click',()=>setQuick(btn.dataset.quick,btn)));
     $('shipmentFilterType').addEventListener('change',()=>{['shipmentFilterSite','shipmentFilterPlant','shipmentFilterConcrete','shipmentFilterDelivery'].forEach(id=>{if($(id))$(id).value=''});refreshOptions();applyFilters()});
