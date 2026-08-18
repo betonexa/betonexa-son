@@ -3873,21 +3873,47 @@ $("exportDate").addEventListener("input",updateExportDateDisplay);
 
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
 (async function requireFreshLogin(){
-  const client=ensureDb();
+  const client = ensureDb();
 
   sessionStorage.removeItem("betonexa_login");
 
   $("login").classList.remove("hidden");
   $("app").classList.add("hidden");
 
-  if($("loginPass")) $("loginPass").value="";
+  if($("loginPass")) $("loginPass").value = "";
 
-  if(!client)return;
+  if(!client) return;
 
   try{
-    await client.auth.signOut({scope:"local"});
+    const { data: { session }, error: sessionError } =
+      await client.auth.getSession();
+
+    if(sessionError || !session){
+      return;
+    }
+
+    const { data: { user }, error: userError } =
+      await client.auth.getUser();
+
+    if(userError || !user){
+      await client.auth.signOut({ scope: "local" });
+      return;
+    }
+
+    sessionStorage.setItem("betonexa_login","1");
+
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
+
+    showPage("records");
+    await loadRecords();
+
   }catch(e){
-    console.warn("Eski oturum temizlenemedi:",e);
+    console.warn("Oturum kontrolü başarısız:", e);
+
+    try{
+      await client.auth.signOut({ scope: "local" });
+    }catch(_){}
   }
 })();
 if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
