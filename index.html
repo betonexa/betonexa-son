@@ -2570,10 +2570,50 @@ async function saveShipment(e){
   if(!p.tarih||!p.saat||!p.santral||!p.beton_sinifi||!Number.isFinite(p.metraj)){setStatus("Zorunlu alanları doldurun.",true);return}
   if(p.pompa_var_mi&&!p.pompa_tipi){setStatus("Pompa tipini seçin.",true);return}
   setLoading(true);const id=$("editId").value;
-  const q=id?ensureDb().from(TABLE).update(p).eq("id",id):ensureDb().from(TABLE).insert(p);
-  const {error}=await q;setLoading(false);
-  if(error){setStatus("Kayıt işlemi başarısız: "+error.message,true);return}
-  setStatus(id?"Sevkiyat güncellendi.":"Sevkiyat kaydedildi.");clearForm();await loadRecords();
+  let result;
+
+if(id){
+  result = await ensureDb()
+    .from(TABLE)
+    .update(p)
+    .eq("id",id)
+    .select()
+    .single();
+}else{
+  result = await ensureDb()
+    .from(TABLE)
+    .insert(p)
+    .select()
+    .single();
+}
+
+setLoading(false);
+
+if(result.error){
+  setStatus("Kayıt işlemi başarısız: "+result.error.message,true);
+  return;
+}
+
+const saved = result.data;
+
+if(id){
+  records = records.map(r =>
+    String(r.id) === String(id) ? saved : r
+  );
+}else{
+  records = [...records, saved];
+}
+
+renderTable();
+renderKpis();
+renderCalendar();
+renderAnalysis();
+renderDashboard();
+renderTomorrowReport();
+refreshFormOptions();
+
+setStatus(id ? "Sevkiyat güncellendi." : "Sevkiyat kaydedildi.");
+clearForm();
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
