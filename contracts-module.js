@@ -4,6 +4,10 @@ const $=id=>document.getElementById(id);
 const db=()=>typeof window.ensureDb==='function'?window.ensureDb():null;
 const norm=v=>String(v||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' ');
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const asciiKey=v=>norm(v).replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
+function titleTr(v){return String(v||'').split(/(\s+|-)/).map(p=>/^[\s-]+$/.test(p)?p:(p.charAt(0).toLocaleUpperCase('tr-TR')+p.slice(1).toLocaleLowerCase('tr-TR'))).join('')}
+function canonicalLabel(v){let s=String(v||'').trim().replace(/\s+/g,' ');if(!s)return'';const m=s.match(/^(.*?)(?:[\s.,-]+)?(?:inş(?:a+t+)?|ins(?:a+t+)?)\.?$/iu);if(m&&m[1].trim())s=m[1].trim()+' İnşaat';return titleTr(s)}
+function canonicalKey(v){return asciiKey(canonicalLabel(v)).replace(/\bins(?:aat)?\b$/,'insaat')}
 
 function addStyles(){
   if(!$('contractListDeleteStyles')){
@@ -58,24 +62,25 @@ function betonBlock(){const box=$('recordsCombinedView');if(!box)return null;ret
 function rowDate(row){const t=(row.children[1]?.textContent||'').trim();let m=t.match(/(\d{2})\.(\d{2})\.(\d{4})/);if(m)return `${m[3]}-${m[2]}-${m[1]}`;m=t.match(/(\d{4})-(\d{2})-(\d{2})/);return m?m[0]:''}
 function parseM3(text){const n=Number(String(text||'').replace(/m³/gi,'').replace(/\+/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0}
 function trNum(n){return Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function unique(rows,i){const map=new Map();rows.forEach(r=>{const v=(r.children[i]?.textContent||'').trim();if(!v)return;const k=norm(v);if(!map.has(k))map.set(k,v)});return [...map.values()].sort((a,b)=>a.localeCompare(b,'tr'))}
-function fill(id,values,label){const el=$(id);if(!el)return;const cur=el.value,curNorm=norm(cur);el.innerHTML=`<option value="">Tüm ${label}</option>`+values.map(v=>`<option value="${esc(v)}">${v}</option>`).join('');const same=[...el.options].find(o=>norm(o.value)===curNorm);el.value=same?same.value:''}
+function unique(rows,i){const map=new Map();rows.forEach(r=>{const raw=(r.children[i]?.textContent||'').trim();if(!raw)return;const label=canonicalLabel(raw),k=canonicalKey(label);if(!map.has(k))map.set(k,label)});return [...map.values()].sort((a,b)=>a.localeCompare(b,'tr'))}
+function fill(id,values,label){const el=$(id);if(!el)return;const curKey=canonicalKey(el.value);el.innerHTML=`<option value="">Tüm ${label}</option>`+values.map(v=>`<option value="${esc(v)}">${v}</option>`).join('');const same=[...el.options].find(o=>canonicalKey(o.value)===curKey);el.value=same?same.value:''}
 function visibleRows(){const b=betonBlock();return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9&&r.style.display!=='none'):[]}
 function filterSummary(){const p=[];[['Firma','shipmentFilterCompany'],['Şantiye','shipmentFilterSite'],['Santral','shipmentFilterPlant'],['Beton','shipmentFilterConcrete']].forEach(([a,b])=>{if($(b)?.value)p.push(`${a}: ${$(b).value}`)});if($('shipmentFilterStart')?.value)p.push(`Başlangıç: ${$('shipmentFilterStart').value.split('-').reverse().join('.')}`);if($('shipmentFilterEnd')?.value)p.push(`Bitiş: ${$('shipmentFilterEnd').value.split('-').reverse().join('.')}`);return p.length?p.join(' · '):'Tüm Sevkiyatlar'}
 function exportData(){const rows=visibleRows(),data=rows.map((r,i)=>({No:i+1,Tarih:r.children[1]?.textContent.trim()||'',Saat:r.children[2]?.textContent.trim()||'',Santral:r.children[3]?.textContent.trim()||'',Firma:r.children[4]?.textContent.trim()||'','Şantiye':r.children[5]?.textContent.trim()||'',Beton:r.children[6]?.textContent.trim()||'',Metraj:r.children[7]?.textContent.trim()||'',Pompa:r.children[8]?.textContent.trim()||''}));return{rows,data,total:rows.reduce((s,r)=>s+parseM3(r.children[7]?.textContent),0)}}
 function refreshOptions(){
   const b=betonBlock();if(!b)return;const rows=[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9);
+  rows.forEach(r=>{if(r.children[4])r.children[4].textContent=canonicalLabel(r.children[4].textContent);if(r.children[5])r.children[5].textContent=canonicalLabel(r.children[5].textContent)});
   fill('shipmentFilterCompany',unique(rows,4),'Firmalar');
-  const selectedCompany=norm($('shipmentFilterCompany')?.value);
-  const siteRows=selectedCompany?rows.filter(r=>norm(r.children[4]?.textContent)===selectedCompany):rows;
+  const selectedCompany=canonicalKey($('shipmentFilterCompany')?.value);
+  const siteRows=selectedCompany?rows.filter(r=>canonicalKey(r.children[4]?.textContent)===selectedCompany):rows;
   fill('shipmentFilterSite',unique(siteRows,5),'Şantiyeler');
-  fill('shipmentFilterPlant',unique(rows,3),'Santraller');
-  fill('shipmentFilterConcrete',unique(rows,6),'Beton Sınıfları');
+  fill('shipmentFilterPlant',[...new Set(rows.map(r=>(r.children[3]?.textContent||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')),'Santraller');
+  fill('shipmentFilterConcrete',[...new Set(rows.map(r=>(r.children[6]?.textContent||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'tr')),'Beton Sınıfları');
 }
 function applyFilters(){
-  const b=betonBlock();if(!b)return;const company=norm($('shipmentFilterCompany')?.value),site=norm($('shipmentFilterSite')?.value),plant=norm($('shipmentFilterPlant')?.value),concrete=norm($('shipmentFilterConcrete')?.value),start=$('shipmentFilterStart')?.value||'',end=$('shipmentFilterEnd')?.value||'';
+  const b=betonBlock();if(!b)return;const company=canonicalKey($('shipmentFilterCompany')?.value),site=canonicalKey($('shipmentFilterSite')?.value),plant=norm($('shipmentFilterPlant')?.value),concrete=norm($('shipmentFilterConcrete')?.value),start=$('shipmentFilterStart')?.value||'',end=$('shipmentFilterEnd')?.value||'';
   const rows=[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9);let count=0,total=0;
-  rows.forEach(r=>{const d=rowDate(r),ok=(!company||norm(r.children[4]?.textContent)===company)&&(!site||norm(r.children[5]?.textContent)===site)&&(!plant||norm(r.children[3]?.textContent)===plant)&&(!concrete||norm(r.children[6]?.textContent)===concrete)&&(!start||d>=start)&&(!end||d<=end);r.style.display=ok?'':'none';if(ok){count++;total+=parseM3(r.children[7]?.textContent)}});
+  rows.forEach(r=>{const d=rowDate(r),ok=(!company||canonicalKey(r.children[4]?.textContent)===company)&&(!site||canonicalKey(r.children[5]?.textContent)===site)&&(!plant||norm(r.children[3]?.textContent)===plant)&&(!concrete||norm(r.children[6]?.textContent)===concrete)&&(!start||d>=start)&&(!end||d<=end);r.style.display=ok?'':'none';if(ok){count++;total+=parseM3(r.children[7]?.textContent)}});
   if($('shipmentFilterResult'))$('shipmentFilterResult').textContent=`${count} sevkiyat · ${trNum(total)} m³`;
   const t=b.querySelector('.rc-total');if(t){t.dataset.originalHtml=t.dataset.originalHtml||t.innerHTML;const active=company||site||plant||concrete||start||end;t.innerHTML=active?`<span>FİLTRELENEN SEVKİYAT: ${count}</span><span>FİLTRELENEN BETON: ${trNum(total)} m³</span>`:t.dataset.originalHtml}
 }
