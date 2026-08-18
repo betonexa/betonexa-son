@@ -1,0 +1,14 @@
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+function inject(){
+ const tabs=document.querySelector('.tabs'); const app=document.getElementById('app'); if(!tabs||!app||$('contractsTabBtn')) return;
+ const btn=document.createElement('button'); btn.id='contractsTabBtn'; btn.className='tab'; btn.dataset.page='contracts'; btn.textContent='Sözleşme & Fiyat'; tabs.appendChild(btn);
+ const page=document.createElement('section'); page.id='contractsPage'; page.className='page hidden';
+ page.innerHTML=`<div class="panel"><h2>📑 Sözleşme & Fiyat Takip</h2><p class="muted">Firma ve şantiye bazında sözleşme, fiyat, vade ve metraj takibi.</p><div class="contract-grid"><label>Firma<input id="contractCompany" placeholder="Firma"></label><label>Şantiye<input id="contractSite" placeholder="Şantiye"></label><label>Sözleşme Tarihi<input id="contractDate" type="date"></label><label>Alış Fiyatı (TL/m³)<input id="contractBuy" type="number" step="0.01"></label><label>Satış Fiyatı (TL/m³)<input id="contractSell" type="number" step="0.01"></label><label>Vade (Gün)<input id="contractTerm" type="number" min="0"></label><label>Fiyat Sabitlik Bitişi<input id="contractFixedUntil" type="date"></label><label>Toplam Sözleşme m³<input id="contractTotal" type="number" step="0.01"></label><label>Devir Tarihi<input id="contractCarryDate" type="date"></label><label>Devir m³<input id="contractCarry" type="number" step="0.01"></label></div><div class="contract-note">Gerçekleşen ve kalan m³, beton sevkiyatlarıyla otomatik hesaplanacak.</div></div><div class="panel"><h3>Sözleşmeler</h3><div id="contractsTable" class="rc-empty">Henüz sözleşme kaydı yok.</div></div>`;
+ app.appendChild(page);
+ const style=document.createElement('style'); style.textContent=`.contract-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.contract-grid label{font-size:12px;font-weight:800}.contract-grid input{width:100%;margin-top:5px;padding:10px;border:1px solid rgba(103,52,189,.2);border-radius:10px;background:rgba(255,255,255,.75)}.contract-note{margin-top:14px;padding:11px 13px;border-radius:10px;background:rgba(103,52,189,.09);font-weight:700;font-size:13px}@media(max-width:700px){.contract-grid{grid-template-columns:1fr}}`; document.head.appendChild(style);
+ btn.addEventListener('click',()=>{document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));page.classList.remove('hidden');btn.classList.add('active')});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,250),{once:true});else setTimeout(inject,250);
+})();
