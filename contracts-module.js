@@ -73,12 +73,54 @@ function observeList(){
   obs.observe(list,{childList:true,subtree:false});
 }
 
+async function refreshContractProgress(){
+  try{
+    if(typeof window.loadContracts==='function'){
+      await window.loadContracts();
+      decorateCards();
+    }else if(typeof window.renderContracts==='function'){
+      window.renderContracts();
+      decorateCards();
+    }
+  }catch(e){
+    console.warn('Sözleşme ilerleme bilgisi yenilenemedi:',e);
+  }
+}
+
+function refreshContractProgressLater(){
+  [350,900,1800].forEach(ms=>setTimeout(refreshContractProgress,ms));
+}
+
+function bindLiveProgress(){
+  const form=$('shipmentForm');
+  if(form&&form.dataset.contractProgressBound!=='1'){
+    form.dataset.contractProgressBound='1';
+    form.addEventListener('submit',refreshContractProgressLater);
+  }
+
+  const contractsTab=document.querySelector('[data-page="contracts"]');
+  if(contractsTab&&contractsTab.dataset.contractProgressBound!=='1'){
+    contractsTab.dataset.contractProgressBound='1';
+    contractsTab.addEventListener('click',()=>setTimeout(refreshContractProgress,120));
+  }
+
+  if(document.body.dataset.contractProgressDeleteBound!=='1'){
+    document.body.dataset.contractProgressDeleteBound='1';
+    document.addEventListener('click',e=>{
+      if(e.target.closest('.icon-action.delete')||e.target.closest('.rc-delete')){
+        refreshContractProgressLater();
+      }
+    },true);
+  }
+}
+
 function init(){
   if(!$('contractsPage'))return;
   addStyles();
   hideDetailDelete();
   decorateCards();
   observeList();
+  bindLiveProgress();
 }
 
 let tries=0;
