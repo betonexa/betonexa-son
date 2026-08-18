@@ -2,17 +2,86 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const TABLE='sozlesmeler';
-let selectedId=null;
-function db(){return typeof window.ensureDb==='function'?window.ensureDb():null}
-function status(msg,error=false){let el=$('contractDeleteStatus');if(!el){el=document.createElement('div');el.id='contractDeleteStatus';el.style.cssText='margin-top:8px;font-size:13px;font-weight:700';$('contractSaveBtn')?.parentElement?.appendChild(el)}if(el){el.textContent=msg||'';el.style.color=error?'var(--danger,#b42318)':'var(--ok,#18794e)'}}
-function ensureDeleteButton(){const save=$('contractSaveBtn');if(!save||$('contractDeleteBtn'))return;const del=document.createElement('button');del.id='contractDeleteBtn';del.type='button';del.className='btn btn-danger';del.textContent='🗑️ Sözleşmeyi Sil';del.style.marginLeft='8px';del.style.display='none';save.insertAdjacentElement('afterend',del);del.addEventListener('click',removeSelected)}
-function showDeleteButton(){ensureDeleteButton();const del=$('contractDeleteBtn');if(del)del.style.display=selectedId?'inline-flex':'none'}
-function captureIdFromCard(card){if(!card)return null;const onclick=card.getAttribute('onclick')||'';const m=onclick.match(/selectContract\((\d+)\)/);return m?m[1]:null}
-async function removeSelected(){if(!selectedId){status('Silmek için önce soldaki listeden bir sözleşme seç.',true);return}if(!confirm('Bu sözleşmeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'))return;const client=db();if(!client){status('Veritabanı bağlantısı yüklenemedi.',true);return}const del=$('contractDeleteBtn');if(del)del.disabled=true;status('Sözleşme siliniyor…');const{error}=await client.from(TABLE).delete().eq('id',selectedId);if(del)del.disabled=false;if(error){status('Sözleşme silinemedi: '+error.message,true);return}selectedId=null;status('Sözleşme silindi.');showDeleteButton();if(typeof window.clearContractForm==='function')window.clearContractForm();if(typeof window.loadContracts==='function')await window.loadContracts();else location.reload()}
-function watchSelection(){const list=$('contractsList');if(!list||list.dataset.deleteBound==='1')return;list.dataset.deleteBound='1';list.addEventListener('click',e=>{const card=e.target.closest('.contract-card');if(!card)return;const id=captureIdFromCard(card);if(id){selectedId=id;setTimeout(()=>{showDeleteButton();status('')},50)}},true)}
-function wrapSelectContract(){if(typeof window.selectContract!=='function'||window.selectContract.__deleteAddonWrapped)return;const original=window.selectContract;const wrapped=async function(id){selectedId=String(id);const result=await original.apply(this,arguments);showDeleteButton();status('');return result};wrapped.__deleteAddonWrapped=true;window.selectContract=wrapped}
-function bindNew(){const newBtn=$('contractNewBtn');if(!newBtn||newBtn.dataset.deleteBound==='1')return;newBtn.dataset.deleteBound='1';newBtn.addEventListener('click',()=>{selectedId=null;showDeleteButton();status('')})}
-function init(){if(!$('contractsPage'))return;ensureDeleteButton();watchSelection();wrapSelectContract();bindNew();showDeleteButton()}
-let tries=0;const timer=setInterval(()=>{tries++;init();if(tries>40)clearInterval(timer)},250);
+const db=()=>typeof window.ensureDb==='function'?window.ensureDb():null;
+
+function addStyles(){
+  if($('contractListDeleteStyles'))return;
+  const s=document.createElement('style');
+  s.id='contractListDeleteStyles';
+  s.textContent=`
+    #contractsList .contract-card-wrap{position:relative;margin-bottom:10px}
+    #contractsList .contract-card-wrap>.contract-card{width:100%;margin:0;padding-right:58px}
+    #contractsList .contract-list-delete{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:3;width:36px;height:36px;border:1px solid rgba(190,40,40,.18);border-radius:10px;background:#fff0f0;color:#b42318;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+    #contractsList .contract-list-delete:hover{background:#ffe3e3}
+  `;
+  document.head.appendChild(s);
+}
+
+function hideDetailDelete(){
+  const old=$('contractDeleteBtn');
+  if(old)old.remove();
+}
+
+function cardId(card){
+  const onclick=card?.getAttribute('onclick')||'';
+  const m=onclick.match(/selectContract\((\d+)\)/);
+  return m?m[1]:null;
+}
+
+async function deleteContract(id,btn){
+  if(!id)return;
+  if(!confirm('Bu sözleşmeyi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'))return;
+  const client=db();
+  if(!client){alert('Veritabanı bağlantısı yüklenemedi.');return}
+  if(btn)btn.disabled=true;
+  const {error}=await client.from(TABLE).delete().eq('id',id);
+  if(btn)btn.disabled=false;
+  if(error){alert('Sözleşme silinemedi: '+error.message);return}
+  if(typeof window.clearContractForm==='function')window.clearContractForm();
+  if(typeof window.loadContracts==='function')await window.loadContracts();
+  decorateCards();
+}
+
+function decorateCards(){
+  hideDetailDelete();
+  const list=$('contractsList');
+  if(!list)return;
+  [...list.querySelectorAll('.contract-card')].forEach(card=>{
+    if(card.closest('.contract-card-wrap'))return;
+    const id=cardId(card);
+    if(!id)return;
+    const wrap=document.createElement('div');
+    wrap.className='contract-card-wrap';
+    card.parentNode.insertBefore(wrap,card);
+    wrap.appendChild(card);
+    const del=document.createElement('button');
+    del.type='button';
+    del.className='contract-list-delete';
+    del.title='Sözleşmeyi Sil';
+    del.setAttribute('aria-label','Sözleşmeyi Sil');
+    del.textContent='🗑️';
+    del.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();deleteContract(id,del)});
+    wrap.appendChild(del);
+  });
+}
+
+function observeList(){
+  const list=$('contractsList');
+  if(!list||list.dataset.deleteObserver==='1')return;
+  list.dataset.deleteObserver='1';
+  const obs=new MutationObserver(()=>requestAnimationFrame(decorateCards));
+  obs.observe(list,{childList:true,subtree:false});
+}
+
+function init(){
+  if(!$('contractsPage'))return;
+  addStyles();
+  hideDetailDelete();
+  decorateCards();
+  observeList();
+}
+
+let tries=0;
+const timer=setInterval(()=>{tries++;init();if(tries>40)clearInterval(timer)},250);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
