@@ -1,5 +1,32 @@
 (function(){
   'use strict';
+
+  function cleanCementEntryOnly(){
+    const page=document.getElementById('cementPage');
+    if(!page)return;
+
+    // Çimento ekranı yalnızca yeni sevkiyat kaydı için kullanılacak.
+    page.querySelectorAll('.cement-summary,.cement-table-wrap,.cement-export-actions,.cement-export-controls,.cement-period-controls,.cement-controls,[id*="cementExport"],[id*="cementPeriod"],#cementRefreshBtn').forEach(el=>{
+      el.style.display='none';
+    });
+
+    // Eski sürümden kalan Dönem / Tümü alanını tamamen kaldır.
+    const range=page.querySelector('#cementRange');
+    if(range){
+      const host=range.closest('.field,.cement-field,div');
+      if(host)host.remove();
+      else range.remove();
+    }
+
+    [...page.querySelectorAll('label,small,span,div')].forEach(el=>{
+      if((el.textContent||'').trim()==='Dönem'){
+        const host=el.closest('.field,.cement-field');
+        if(host)host.remove();
+        else el.remove();
+      }
+    });
+  }
+
   function applyMenuLayout(){
     const nav=document.querySelector('.tabs');
     if(!nav)return false;
@@ -9,10 +36,8 @@
     const calendar=nav.querySelector('[data-page="calendar"]');
     if(!records||!cement||!tomorrow)return false;
 
-    // Mevcut Sevkiyatlar ekranı ortak filtreleme/takip ekranıdır.
     records.innerHTML='📋 Sevkiyat Takibi';
 
-    // Beton ana operasyon butonu: mevcut yeni beton sevkiyat formuna gider.
     let concrete=nav.querySelector('[data-page="concrete"]');
     if(!concrete){
       concrete=document.createElement('button');
@@ -25,7 +50,6 @@
         document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
         const form=document.getElementById('newShipmentPage') || document.getElementById('formPage') || document.querySelector('main.content > section.panel:has(#shipmentForm)');
         if(form){form.classList.remove('hidden');concrete.classList.add('active');return;}
-        // Eski sürümlerde beton giriş formu Sevkiyatlar sayfasının üstündedir.
         records.click();
         setTimeout(()=>{
           const candidates=[document.getElementById('shipmentForm'),document.getElementById('newShipmentForm'),document.querySelector('#recordsPage form')].filter(Boolean);
@@ -49,8 +73,22 @@
         if(/Haftalık\s+Takvim/i.test(btn.textContent||''))btn.innerHTML='📅 Takvim';
       });
     }
+
+    cement.addEventListener('click',()=>setTimeout(cleanCementEntryOnly,30));
+    cleanCementEntryOnly();
     return true;
   }
-  function init(){let tries=0;const timer=setInterval(()=>{tries++;if(applyMenuLayout()||tries>100)clearInterval(timer)},50)}
+
+  function init(){
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries++;
+      if(applyMenuLayout()||tries>100)clearInterval(timer);
+    },50);
+
+    const observer=new MutationObserver(()=>cleanCementEntryOnly());
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
