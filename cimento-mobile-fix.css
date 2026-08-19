@@ -64,6 +64,11 @@
 #cementPage .cement-period-controls,
 #cementPage [id*="cementExport"],
 #cementPage [id*="cementPeriod"],
-#cementPage .cement-controls {
+#cementPage .cement-controls,
+#cementPage #cementRange,
+#cementPage label[for="cementRange"],
+#cementPage .field:has(#cementRange),
+#cementPage .cement-field:has(#cementRange),
+#cementPage div:has(> #cementRange) {
   display: none !important;
 }
