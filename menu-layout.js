@@ -1,6 +1,8 @@
 (function(){
   'use strict';
 
+  let contactFixTimer=null;
+
   function disableBrowserLoginSuggestions(){
     const user=document.getElementById('loginUser');
     const pass=document.getElementById('loginPass');
@@ -37,13 +39,10 @@
     if(excel.parentElement!==actions)actions.appendChild(excel);
     if(print.parentElement!==actions)actions.appendChild(print);
 
-    // Yarınki Sevkiyatlar ile birebir aynı renk mantığı.
     pdf.className='btn btn-primary';
     excel.className='btn btn-light';
     print.className='btn btn-light';
 
-    // Butonları filtre kutusunun altından çıkarıp, Yarınki Sevkiyatlar gibi
-    // ana panelin sağ üst köşesine yerleştir.
     report.style.position='relative';
     report.style.paddingTop='72px';
 
@@ -65,6 +64,64 @@
       btn.style.margin='0';
       btn.style.whiteSpace='nowrap';
     });
+  }
+
+  async function restoreConcreteContactColumns(){
+    const table=document.querySelector('#recordsCombinedView .rc-block .rc-table table');
+    if(!table)return;
+
+    const headRow=table.querySelector('thead tr');
+    const bodyRows=[...table.querySelectorAll('tbody tr')];
+    if(!headRow||!bodyRows.length)return;
+
+    const headers=[...headRow.children].map(th=>(th.textContent||'').trim());
+    if(headers.includes('Sorumlu')&&headers.includes('Telefon'))return;
+
+    if(typeof window.ensureDb!=='function')return;
+
+    const ids=bodyRows.map(row=>{
+      const btn=row.querySelector('.rc-edit');
+      const src=btn?.getAttribute('onclick')||'';
+      const m=src.match(/editConcreteFromCombined\(['"]?([^'")]+)['"]?\)/);
+      return m?m[1]:null;
+    }).filter(Boolean);
+    if(!ids.length)return;
+
+    try{
+      const db=window.ensureDb();
+      const {data,error}=await db.from('sevkiyatlar').select('id,sorumlu_kisi,telefon').in('id',ids);
+      if(error||!Array.isArray(data))return;
+      const map=new Map(data.map(r=>[String(r.id),r]));
+
+      const actionHead=headRow.lastElementChild;
+      const responsibleHead=document.createElement('th');
+      responsibleHead.textContent='Sorumlu';
+      const phoneHead=document.createElement('th');
+      phoneHead.textContent='Telefon';
+      headRow.insertBefore(responsibleHead,actionHead);
+      headRow.insertBefore(phoneHead,actionHead);
+
+      bodyRows.forEach(row=>{
+        const btn=row.querySelector('.rc-edit');
+        const src=btn?.getAttribute('onclick')||'';
+        const m=src.match(/editConcreteFromCombined\(['"]?([^'")]+)['"]?\)/);
+        const rec=m?map.get(String(m[1])):null;
+        const actionCell=row.lastElementChild;
+        const responsible=document.createElement('td');
+        const phone=document.createElement('td');
+        responsible.textContent=rec?.sorumlu_kisi||'';
+        phone.textContent=rec?.telefon||'';
+        row.insertBefore(responsible,actionCell);
+        row.insertBefore(phone,actionCell);
+      });
+
+      table.style.minWidth='1120px';
+    }catch(e){}
+  }
+
+  function scheduleConcreteContactFix(){
+    clearTimeout(contactFixTimer);
+    contactFixTimer=setTimeout(()=>restoreConcreteContactColumns(),80);
   }
 
   function applyEntryUi(){
@@ -123,6 +180,7 @@
     }
     applyEntryUi();
     styleTrackingExportActions();
+    scheduleConcreteContactFix();
     return {recordsPage,report,entryWrap};
   }
 
@@ -149,6 +207,7 @@
     parts.report.style.display='';
     records.classList.add('active');
     styleTrackingExportActions();
+    scheduleConcreteContactFix();
     window.scrollTo({top:0,behavior:'auto'});
   }
 
@@ -172,7 +231,7 @@
     if(calendar){calendar.innerHTML='📅 Takvim';nav.insertBefore(calendar,tomorrow.nextSibling);}
     else [...nav.querySelectorAll('button')].forEach(btn=>{if(/Haftalık\s+Takvim/i.test(btn.textContent||''))btn.innerHTML='📅 Takvim';});
     if(!cement.dataset.entryOnlyBound){cement.dataset.entryOnlyBound='1';cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));}
-    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions();
+    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions(); scheduleConcreteContactFix();
     if(parts){
       if(records.classList.contains('active')){parts.entryWrap.style.display='none';parts.report.style.display='';}
       else if(concrete.classList.contains('active')){parts.entryWrap.style.display='';parts.report.style.display='none';}
@@ -183,13 +242,13 @@
   function init(){
     disableBrowserLoginSuggestions();
     if(applyMenuLayout()){
-      const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();});
+      const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();});
       observer.observe(document.documentElement,{childList:true,subtree:true});
       return;
     }
     let tries=0;
     const timer=setInterval(()=>{tries++;if(applyMenuLayout()||tries>100)clearInterval(timer);},50);
-    const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();});
+    const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();});
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
