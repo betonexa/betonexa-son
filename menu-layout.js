@@ -3,6 +3,56 @@
 
   let contactFixTimer=null;
 
+  function installTomorrowPendingTonnagePdfFix(){
+    if(window.__tomorrowPendingTonnagePdfFix)return;
+    window.__tomorrowPendingTonnagePdfFix=true;
+
+    const replacePending=v=>{
+      if(typeof v==='string')return v.replace(/0([,.]00)?\s*ton/gi,'Tonaj bilgisi bekleniyor');
+      if(Array.isArray(v))return v.map(replacePending);
+      return v;
+    };
+
+    const patch=()=>{
+      const API=window.jspdf?.jsPDF?.API;
+      if(!API)return false;
+      if(typeof API.text==='function'&&!API.__pendingTonnageTextPatched){
+        const original=API.text;
+        API.text=function(){
+          const args=[...arguments];
+          if(window.__tomorrowPdfPendingTonnageMode)args[0]=replacePending(args[0]);
+          return original.apply(this,args);
+        };
+        API.__pendingTonnageTextPatched=true;
+      }
+      if(typeof API.autoTable==='function'&&!API.__pendingTonnageTablePatched){
+        const original=API.autoTable;
+        API.autoTable=function(options){
+          if(window.__tomorrowPdfPendingTonnageMode&&options){
+            options={...options};
+            if(options.head)options.head=replacePending(options.head);
+            if(options.body)options.body=replacePending(options.body);
+          }
+          return original.call(this,options);
+        };
+        API.__pendingTonnageTablePatched=true;
+      }
+      return true;
+    };
+
+    patch();
+    let tries=0;
+    const timer=setInterval(()=>{tries++;if(patch()||tries>50)clearInterval(timer);},100);
+
+    document.addEventListener('click',e=>{
+      if(!e.target.closest?.('#tomorrowPdfBtn'))return;
+      patch();
+      window.__tomorrowPdfPendingTonnageMode=true;
+      clearTimeout(window.__tomorrowPdfPendingTonnageTimer);
+      window.__tomorrowPdfPendingTonnageTimer=setTimeout(()=>{window.__tomorrowPdfPendingTonnageMode=false;},5000);
+    },true);
+  }
+
   function disableBrowserLoginSuggestions(){
     const user=document.getElementById('loginUser');
     const pass=document.getElementById('loginPass');
@@ -280,6 +330,7 @@
   }
 
   function init(){
+    installTomorrowPendingTonnagePdfFix();
     disableBrowserLoginSuggestions();
     enforceCombinedEditRouting();
 
