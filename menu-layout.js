@@ -4,10 +4,12 @@
   function applyEntryUi(){
     const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
     const cementTitle=document.querySelector('#cementPage .cement-head h2');
+    const cementDesc=document.querySelector('#cementPage .cement-head p');
     const refresh=document.getElementById('refreshBtn');
 
     if(concreteTitle) concreteTitle.textContent='Yeni Sevkiyat Ekle - Beton';
     if(cementTitle) cementTitle.textContent='Yeni Sevkiyat Ekle - Çimento';
+    if(cementDesc) cementDesc.textContent='Sevkiyat bilgilerini doldurarak kaydedebilirsin.';
     if(refresh) refresh.style.display='none';
 
     [concreteTitle,cementTitle].forEach(el=>{
