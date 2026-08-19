@@ -5,12 +5,11 @@
     const page=document.getElementById('cementPage');
     if(!page)return;
 
-    // Çimento ekranı yalnızca yeni sevkiyat kaydı için kullanılacak.
+    // Çimento ekranı yalnızca yeni sevkiyat kaydı içindir.
     page.querySelectorAll('.cement-summary,.cement-table-wrap,.cement-export-actions,.cement-export-controls,.cement-period-controls,.cement-controls,[id*="cementExport"],[id*="cementPeriod"],#cementRefreshBtn').forEach(el=>{
       el.style.display='none';
     });
 
-    // Eski sürümden kalan Dönem / Tümü alanını tamamen kaldır.
     const range=page.querySelector('#cementRange');
     if(range){
       const host=range.closest('.field,.cement-field,div');
@@ -27,9 +26,67 @@
     });
   }
 
+  function prepareConcreteAndTracking(){
+    const recordsPage=document.getElementById('recordsPage');
+    if(!recordsPage)return null;
+
+    const report=recordsPage.querySelector('.records-report');
+    if(!report)return null;
+
+    let entryWrap=document.getElementById('concreteEntryWrap');
+    if(!entryWrap){
+      entryWrap=document.createElement('div');
+      entryWrap.id='concreteEntryWrap';
+
+      // Sevkiyat Takibi başlamadan önceki tüm içerik beton kayıt ekranına aittir.
+      const nodes=[];
+      for(const child of [...recordsPage.children]){
+        if(child===report)break;
+        nodes.push(child);
+      }
+      nodes.forEach(node=>entryWrap.appendChild(node));
+      recordsPage.insertBefore(entryWrap,report);
+    }
+
+    return {recordsPage,report,entryWrap};
+  }
+
+  function showConcreteMode(concrete){
+    const parts=prepareConcreteAndTracking();
+    if(!parts)return;
+
+    document.querySelectorAll('main.content > section.panel').forEach(s=>s.classList.add('hidden'));
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+
+    parts.recordsPage.classList.remove('hidden');
+    parts.entryWrap.style.display='';
+    parts.report.style.display='none';
+    concrete.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function showTrackingMode(records){
+    const parts=prepareConcreteAndTracking();
+    if(!parts)return;
+
+    parts.recordsPage.classList.remove('hidden');
+    parts.entryWrap.style.display='none';
+    parts.report.style.display='';
+
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    records.classList.add('active');
+
+    if(typeof window.refreshRecordsCombined==='function'){
+      try{window.refreshRecordsCombined();}catch(e){}
+    }else if(typeof window.loadRecords==='function'){
+      try{window.loadRecords();}catch(e){}
+    }
+  }
+
   function applyMenuLayout(){
     const nav=document.querySelector('.tabs');
     if(!nav)return false;
+
     const records=nav.querySelector('[data-page="records"]');
     const cement=nav.querySelector('[data-page="cement"]');
     const tomorrow=nav.querySelector('[data-page="tomorrow"]');
@@ -45,19 +102,20 @@
       concrete.className='btn btn-light';
       concrete.dataset.page='concrete';
       concrete.innerHTML='🚚 Beton';
-      concrete.addEventListener('click',function(){
-        document.querySelectorAll('main.content > section.panel').forEach(s=>s.classList.add('hidden'));
-        document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
-        const form=document.getElementById('newShipmentPage') || document.getElementById('formPage') || document.querySelector('main.content > section.panel:has(#shipmentForm)');
-        if(form){form.classList.remove('hidden');concrete.classList.add('active');return;}
-        records.click();
-        setTimeout(()=>{
-          const candidates=[document.getElementById('shipmentForm'),document.getElementById('newShipmentForm'),document.querySelector('#recordsPage form')].filter(Boolean);
-          if(candidates[0])candidates[0].scrollIntoView({behavior:'smooth',block:'start'});
-          document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
-          concrete.classList.add('active');
-        },30);
+    }
+
+    if(!concrete.dataset.modeBound){
+      concrete.dataset.modeBound='1';
+      concrete.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        showConcreteMode(concrete);
       });
+    }
+
+    if(!records.dataset.modeBound){
+      records.dataset.modeBound='1';
+      records.addEventListener('click',()=>setTimeout(()=>showTrackingMode(records),0));
     }
 
     nav.insertBefore(concrete,nav.firstElementChild);
@@ -68,14 +126,24 @@
     if(calendar){
       calendar.innerHTML='📅 Takvim';
       nav.insertBefore(calendar,tomorrow.nextSibling);
-    } else {
+    }else{
       [...nav.querySelectorAll('button')].forEach(btn=>{
         if(/Haftalık\s+Takvim/i.test(btn.textContent||''))btn.innerHTML='📅 Takvim';
       });
     }
 
-    cement.addEventListener('click',()=>setTimeout(cleanCementEntryOnly,30));
+    if(!cement.dataset.entryOnlyBound){
+      cement.dataset.entryOnlyBound='1';
+      cement.addEventListener('click',()=>setTimeout(cleanCementEntryOnly,30));
+    }
+
+    prepareConcreteAndTracking();
     cleanCementEntryOnly();
+
+    // Sayfa ilk açıldığında hangi sekme aktifse doğru görünümü uygula.
+    if(records.classList.contains('active'))showTrackingMode(records);
+    else if(concrete.classList.contains('active'))showConcreteMode(concrete);
+
     return true;
   }
 
