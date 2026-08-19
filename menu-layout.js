@@ -64,9 +64,6 @@
 
     let entryWrap=document.getElementById('concreteEntryWrap');
     if(!entryWrap){
-      const oldVisibility=recordsPage.style.visibility;
-      recordsPage.style.visibility='hidden';
-
       entryWrap=document.createElement('div');
       entryWrap.id='concreteEntryWrap';
 
@@ -77,8 +74,6 @@
       }
       nodes.forEach(node=>entryWrap.appendChild(node));
       recordsPage.insertBefore(entryWrap,report);
-
-      recordsPage.style.visibility=oldVisibility;
     }
 
     applyEntryUi();
@@ -170,17 +165,33 @@
       cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));
     }
 
-    prepareConcreteAndTracking();
+    const parts=prepareConcreteAndTracking();
     cleanCementEntryOnly();
     applyEntryUi();
 
-    if(records.classList.contains('active'))showTrackingMode(records);
-    else if(concrete.classList.contains('active'))showConcreteMode(concrete);
+    // İlk yüklemede aktif sekmeyi yeniden açma. Sadece görünüm parçalarını
+    // mevcut aktif sekmeye uygun hale getir; böylece ikinci bir sayfa geçişi oluşmaz.
+    if(parts){
+      if(records.classList.contains('active')){
+        parts.entryWrap.style.display='none';
+        parts.report.style.display='';
+      }else if(concrete.classList.contains('active')){
+        parts.entryWrap.style.display='';
+        parts.report.style.display='none';
+      }
+    }
 
     return true;
   }
 
   function init(){
+    // DOM hazırsa ilk denemeyi bekletmeden yap; 50 ms sonra görünüm sıçraması oluşmasın.
+    if(applyMenuLayout()){
+      const observer=new MutationObserver(()=>cleanCementEntryOnly());
+      observer.observe(document.documentElement,{childList:true,subtree:true});
+      return;
+    }
+
     let tries=0;
     const timer=setInterval(()=>{
       tries++;
