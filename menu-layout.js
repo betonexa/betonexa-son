@@ -1,6 +1,28 @@
 (function(){
   'use strict';
 
+  function disableBrowserLoginSuggestions(){
+    const user=document.getElementById('loginUser');
+    const pass=document.getElementById('loginPass');
+
+    if(user){
+      // E-posta değerini Betonexa'nın mevcut "Beni hatırla" kodu doldurur.
+      // Tarayıcının geçmişte yazılmış diğer kullanıcı/e-posta önerilerini göstermesini engelle.
+      user.setAttribute('autocomplete','off');
+      user.setAttribute('autocapitalize','none');
+      user.setAttribute('autocorrect','off');
+      user.setAttribute('spellcheck','false');
+      user.setAttribute('inputmode','email');
+      user.setAttribute('name','betonexa_account_entry');
+      if(user.type==='email') user.type='text';
+    }
+
+    if(pass){
+      pass.setAttribute('autocomplete','new-password');
+      pass.setAttribute('name','betonexa_password_entry');
+    }
+  }
+
   function applyEntryUi(){
     const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
     const cementTitle=document.querySelector('#cementPage .cement-head h2');
@@ -108,6 +130,8 @@
   }
 
   function applyMenuLayout(){
+    disableBrowserLoginSuggestions();
+
     const nav=document.querySelector('.tabs');
     if(!nav)return false;
 
@@ -185,6 +209,8 @@
   }
 
   function init(){
+    disableBrowserLoginSuggestions();
+
     // DOM hazırsa ilk denemeyi bekletmeden yap; 50 ms sonra görünüm sıçraması oluşmasın.
     if(applyMenuLayout()){
       const observer=new MutationObserver(()=>cleanCementEntryOnly());
