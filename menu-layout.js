@@ -124,6 +124,43 @@
     contactFixTimer=setTimeout(()=>restoreConcreteContactColumns(),80);
   }
 
+  const concreteEditRouter=async function(id){
+    const concreteBtn=document.querySelector('.tabs [data-page="concrete"]');
+    if(concreteBtn)concreteBtn.click();
+
+    try{
+      if(typeof window.loadRecords==='function')await window.loadRecords();
+    }catch(e){}
+
+    setTimeout(()=>{
+      if(typeof window.editRecord==='function'){
+        window.editRecord(id);
+        window.scrollTo({top:0,behavior:'auto'});
+      }
+    },80);
+  };
+
+  const cementEditRouter=async function(id){
+    const cementBtn=document.querySelector('.tabs [data-page="cement"]')||document.getElementById('cementTabBtn');
+    if(cementBtn)cementBtn.click();
+
+    try{
+      if(typeof window.loadCementShipments==='function')await window.loadCementShipments();
+    }catch(e){}
+
+    setTimeout(()=>{
+      if(typeof window.editCementShipment==='function'){
+        window.editCementShipment(String(id));
+        window.scrollTo({top:0,behavior:'auto'});
+      }
+    },100);
+  };
+
+  function enforceCombinedEditRouting(){
+    if(window.editConcreteFromCombined!==concreteEditRouter)window.editConcreteFromCombined=concreteEditRouter;
+    if(window.editCementFromCombined!==cementEditRouter)window.editCementFromCombined=cementEditRouter;
+  }
+
   function applyEntryUi(){
     const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
     const cementTitle=document.querySelector('#cementPage .cement-head h2');
@@ -181,6 +218,7 @@
     applyEntryUi();
     styleTrackingExportActions();
     scheduleConcreteContactFix();
+    enforceCombinedEditRouting();
     return {recordsPage,report,entryWrap};
   }
 
@@ -208,11 +246,13 @@
     records.classList.add('active');
     styleTrackingExportActions();
     scheduleConcreteContactFix();
+    enforceCombinedEditRouting();
     window.scrollTo({top:0,behavior:'auto'});
   }
 
   function applyMenuLayout(){
     disableBrowserLoginSuggestions();
+    enforceCombinedEditRouting();
     const nav=document.querySelector('.tabs'); if(!nav)return false;
     const records=nav.querySelector('[data-page="records"]');
     const cement=nav.querySelector('[data-page="cement"]');
@@ -231,7 +271,7 @@
     if(calendar){calendar.innerHTML='📅 Takvim';nav.insertBefore(calendar,tomorrow.nextSibling);}
     else [...nav.querySelectorAll('button')].forEach(btn=>{if(/Haftalık\s+Takvim/i.test(btn.textContent||''))btn.innerHTML='📅 Takvim';});
     if(!cement.dataset.entryOnlyBound){cement.dataset.entryOnlyBound='1';cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));}
-    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions(); scheduleConcreteContactFix();
+    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions(); scheduleConcreteContactFix(); enforceCombinedEditRouting();
     if(parts){
       if(records.classList.contains('active')){parts.entryWrap.style.display='none';parts.report.style.display='';}
       else if(concrete.classList.contains('active')){parts.entryWrap.style.display='';parts.report.style.display='none';}
@@ -241,14 +281,23 @@
 
   function init(){
     disableBrowserLoginSuggestions();
+    enforceCombinedEditRouting();
+
+    let routeTries=0;
+    const routeTimer=setInterval(()=>{
+      routeTries++;
+      enforceCombinedEditRouting();
+      if(routeTries>60)clearInterval(routeTimer);
+    },100);
+
     if(applyMenuLayout()){
-      const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();});
+      const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();enforceCombinedEditRouting();});
       observer.observe(document.documentElement,{childList:true,subtree:true});
       return;
     }
     let tries=0;
     const timer=setInterval(()=>{tries++;if(applyMenuLayout()||tries>100)clearInterval(timer);},50);
-    const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();});
+    const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();scheduleConcreteContactFix();enforceCombinedEditRouting();});
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
