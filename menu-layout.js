@@ -19,6 +19,39 @@
     }
   }
 
+  function styleTrackingExportActions(){
+    const report=document.querySelector('#recordsPage .records-report');
+    const exportBar=report&&report.querySelector('.export-bar');
+    const pdf=document.getElementById('pdfBtn');
+    const excel=document.getElementById('excelBtn');
+    const print=document.getElementById('printBtn');
+    if(!report||!exportBar||!pdf||!excel||!print)return;
+
+    let actions=report.querySelector('.tracking-export-actions');
+    if(!actions){
+      actions=document.createElement('div');
+      actions.className='tomorrow-actions tracking-export-actions';
+      exportBar.parentNode.insertBefore(actions,exportBar);
+    }
+
+    [pdf,excel,print].forEach(btn=>actions.appendChild(btn));
+
+    pdf.classList.remove('btn-light');
+    pdf.classList.add('btn-primary');
+    excel.classList.remove('btn-primary');
+    excel.classList.add('btn-light');
+    print.classList.remove('btn-primary');
+    print.classList.add('btn-light');
+
+    actions.style.display='flex';
+    actions.style.justifyContent='flex-end';
+    actions.style.alignItems='center';
+    actions.style.gap='8px';
+    actions.style.flexWrap='wrap';
+    actions.style.width='100%';
+    actions.style.margin='0 0 14px 0';
+  }
+
   function applyEntryUi(){
     const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
     const cementTitle=document.querySelector('#cementPage .cement-head h2');
@@ -74,6 +107,7 @@
       recordsPage.insertBefore(entryWrap,report);
     }
     applyEntryUi();
+    styleTrackingExportActions();
     return {recordsPage,report,entryWrap};
   }
 
@@ -95,14 +129,13 @@
 
   function showTrackingMode(records){
     const parts=prepareConcreteAndTracking(); if(!parts)return;
-    // Önemli: Yarınki Sevkiyatlar gibi başka bir sayfadan gelirken
-    // önce bütün ana sayfaları kapatıp recordsPage'i açıkça görünür yap.
     hideAllMainPages();
     document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
     parts.recordsPage.classList.remove('hidden');
     parts.entryWrap.style.display='none';
     parts.report.style.display='';
     records.classList.add('active');
+    styleTrackingExportActions();
     window.scrollTo({top:0,behavior:'auto'});
   }
 
@@ -136,7 +169,7 @@
     if(!cement.dataset.entryOnlyBound){
       cement.dataset.entryOnlyBound='1'; cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));
     }
-    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi();
+    const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions();
     if(parts){
       if(records.classList.contains('active')){parts.entryWrap.style.display='none';parts.report.style.display='';}
       else if(concrete.classList.contains('active')){parts.entryWrap.style.display='';parts.report.style.display='none';}
