@@ -73,12 +73,11 @@
   display: none !important;
 }
 
-/* Masaüstünde dikey scrollbar açılıp kapansa bile içerik merkezde sabit kalsın.
-   both-edges iki tarafta eşit pay bıraktığı için ilk açılışta ve sekme geçişlerinde
-   1-2 mm'lik sağ-sol kayma oluşmaz. */
+/* Masaüstünde scrollbar için yalnızca doğal tarafta yer ayır.
+   Böylece iki taraftan daralma olmaz. */
 @media (min-width: 701px) {
   html {
-    scrollbar-gutter: stable both-edges;
+    scrollbar-gutter: stable;
   }
 
   body {
