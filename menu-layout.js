@@ -4,12 +4,20 @@
   function applyEntryUi(){
     const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
     const cementTitle=document.querySelector('#cementPage .cement-head h2');
-    const cementDesc=document.querySelector('#cementPage .cement-head p');
     const refresh=document.getElementById('refreshBtn');
 
     if(concreteTitle) concreteTitle.textContent='Yeni Sevkiyat Ekle - Beton';
-    if(cementTitle) cementTitle.textContent='Yeni Sevkiyat Ekle - Çimento';
-    if(cementDesc) cementDesc.textContent='Sevkiyat bilgilerini doldurarak kaydedebilirsin.';
+    if(cementTitle){
+      cementTitle.textContent='Yeni Sevkiyat Ekle - Çimento';
+      const head=cementTitle.closest('.cement-head') || cementTitle.parentElement;
+      if(head){
+        const desc=[...head.querySelectorAll('p,small,div,span')].find(el=>{
+          const t=(el.textContent||'').trim();
+          return t && el!==cementTitle && !el.contains(cementTitle);
+        });
+        if(desc) desc.textContent='Sevkiyat bilgilerini doldurarak kaydedebilirsin.';
+      }
+    }
     if(refresh) refresh.style.display='none';
 
     [concreteTitle,cementTitle].forEach(el=>{
@@ -27,7 +35,6 @@
     const page=document.getElementById('cementPage');
     if(!page)return;
 
-    // Çimento ekranı yalnızca yeni sevkiyat kaydı içindir.
     page.querySelectorAll('.cement-summary,.cement-table-wrap,.cement-export-actions,.cement-export-controls,.cement-period-controls,.cement-controls,[id*="cementExport"],[id*="cementPeriod"],#cementRefreshBtn').forEach(el=>{
       el.style.display='none';
     });
@@ -60,7 +67,6 @@
       entryWrap=document.createElement('div');
       entryWrap.id='concreteEntryWrap';
 
-      // Sevkiyat Takibi başlamadan önceki tüm içerik beton kayıt ekranına aittir.
       const nodes=[];
       for(const child of [...recordsPage.children]){
         if(child===report)break;
@@ -165,7 +171,6 @@
     cleanCementEntryOnly();
     applyEntryUi();
 
-    // Sayfa ilk açıldığında hangi sekme aktifse doğru görünümü uygula.
     if(records.classList.contains('active'))showTrackingMode(records);
     else if(concrete.classList.contains('active'))showConcreteMode(concrete);
 
@@ -179,8 +184,6 @@
       if(applyMenuLayout()||tries>100)clearInterval(timer);
     },50);
 
-    // Yalnızca eski çimento liste elemanları sonradan oluşursa onları gizle.
-    // Başlıkları observer içinde değiştirmiyoruz; giriş akışına müdahale etmez.
     const observer=new MutationObserver(()=>cleanCementEntryOnly());
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
