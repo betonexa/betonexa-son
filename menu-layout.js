@@ -13,10 +13,36 @@
       return v;
     };
 
+    const patchInstance=doc=>{
+      if(!doc||doc.__pendingTonnageInstancePatched)return doc;
+      if(typeof doc.text==='function'){
+        const originalText=doc.text.bind(doc);
+        doc.text=function(){
+          const args=[...arguments];
+          if(window.__tomorrowPdfPendingTonnageMode)args[0]=replacePending(args[0]);
+          return originalText(...args);
+        };
+      }
+      if(typeof doc.autoTable==='function'){
+        const originalTable=doc.autoTable.bind(doc);
+        doc.autoTable=function(options){
+          if(window.__tomorrowPdfPendingTonnageMode&&options){
+            options={...options};
+            if(options.head)options.head=replacePending(options.head);
+            if(options.body)options.body=replacePending(options.body);
+          }
+          return originalTable(options);
+        };
+      }
+      doc.__pendingTonnageInstancePatched=true;
+      return doc;
+    };
+
     const patch=()=>{
-      const API=window.jspdf?.jsPDF?.API;
-      if(!API)return false;
-      if(typeof API.text==='function'&&!API.__pendingTonnageTextPatched){
+      const J=window.jspdf?.jsPDF;
+      if(!J)return false;
+      const API=J.API;
+      if(API&&typeof API.text==='function'&&!API.__pendingTonnageTextPatched){
         const original=API.text;
         API.text=function(){
           const args=[...arguments];
@@ -25,7 +51,7 @@
         };
         API.__pendingTonnageTextPatched=true;
       }
-      if(typeof API.autoTable==='function'&&!API.__pendingTonnageTablePatched){
+      if(API&&typeof API.autoTable==='function'&&!API.__pendingTonnageTablePatched){
         const original=API.autoTable;
         API.autoTable=function(options){
           if(window.__tomorrowPdfPendingTonnageMode&&options){
@@ -36,6 +62,16 @@
           return original.call(this,options);
         };
         API.__pendingTonnageTablePatched=true;
+      }
+      if(!J.__pendingTonnageCtorPatched){
+        const Original=J;
+        const Wrapped=function(){return patchInstance(new Original(...arguments));};
+        Object.setPrototypeOf(Wrapped,Original);
+        Wrapped.prototype=Original.prototype;
+        Object.keys(Original).forEach(k=>{try{Wrapped[k]=Original[k]}catch(e){}});
+        Wrapped.API=Original.API;
+        Wrapped.__pendingTonnageCtorPatched=true;
+        window.jspdf.jsPDF=Wrapped;
       }
       return true;
     };
