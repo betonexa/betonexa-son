@@ -73,11 +73,15 @@
   display: none !important;
 }
 
-/* Masaüstünde sekmeler arasında geçişte içerik yüksekliği değişse de
-   sayfa genişliği sabit kalsın. Zorunlu scrollbar kullanmıyoruz; bu sayede
-   ilk giriş ekranında da milimetrik oynama oluşmaz. */
+/* Masaüstünde dikey scrollbar açılıp kapansa bile içerik merkezde sabit kalsın.
+   both-edges iki tarafta eşit pay bıraktığı için ilk açılışta ve sekme geçişlerinde
+   1-2 mm'lik sağ-sol kayma oluşmaz. */
 @media (min-width: 701px) {
   html {
-    scrollbar-gutter: stable;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  body {
+    overflow-x: hidden;
   }
 }
