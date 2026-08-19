@@ -64,6 +64,10 @@
 
     let entryWrap=document.getElementById('concreteEntryWrap');
     if(!entryWrap){
+      // İlk kurulum sırasında içerik bir an üst üste görünmesin.
+      const oldVisibility=recordsPage.style.visibility;
+      recordsPage.style.visibility='hidden';
+
       entryWrap=document.createElement('div');
       entryWrap.id='concreteEntryWrap';
 
@@ -74,6 +78,8 @@
       }
       nodes.forEach(node=>entryWrap.appendChild(node));
       recordsPage.insertBefore(entryWrap,report);
+
+      recordsPage.style.visibility=oldVisibility;
     }
 
     applyEntryUi();
@@ -92,7 +98,7 @@
     parts.report.style.display='none';
     concrete.classList.add('active');
     applyEntryUi();
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top:0,behavior:'auto'});
   }
 
   function showTrackingMode(records){
@@ -106,6 +112,7 @@
     document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
     records.classList.add('active');
 
+    // Veri yenileme yalnızca mevcut fonksiyondan yapılır; sekme ikinci kez açılmaz.
     if(typeof window.refreshRecordsCombined==='function'){
       try{window.refreshRecordsCombined();}catch(e){}
     }else if(typeof window.loadRecords==='function'){
@@ -145,7 +152,12 @@
 
     if(!records.dataset.modeBound){
       records.dataset.modeBound='1';
-      records.addEventListener('click',()=>setTimeout(()=>showTrackingMode(records),0));
+      // Eski records tıklama kodu ile bizim özel görünüm aynı anda çalışmasın.
+      records.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        showTrackingMode(records);
+      },true);
     }
 
     nav.insertBefore(concrete,nav.firstElementChild);
