@@ -72,3 +72,12 @@
 #cementPage div:has(> #cementRange) {
   display: none !important;
 }
+
+/* Masaüstünde sekmeler arasında geçişte dikey scrollbar açılıp kapanınca
+   oluşan milimetrik sağ-sol kaymayı engelle. */
+@media (min-width: 701px) {
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+}
