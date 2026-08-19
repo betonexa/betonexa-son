@@ -3916,45 +3916,20 @@ const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.g
   const client = ensureDb();
 
   sessionStorage.removeItem("betonexa_login");
-
   $("login").classList.remove("hidden");
   $("app").classList.add("hidden");
 
   if($("loginPass")) $("loginPass").value = "";
 
-  if(!client) return;
-
   try{
-    const { data: { session }, error: sessionError } =
-      await client.auth.getSession();
-
-    if(sessionError || !session){
-      return;
-    }
-
-    const { data: { user }, error: userError } =
-      await client.auth.getUser();
-
-    if(userError || !user){
+    if(client){
       await client.auth.signOut({ scope: "local" });
-      return;
     }
-
-    sessionStorage.setItem("betonexa_login","1");
-
-    $("login").classList.add("hidden");
-    $("app").classList.remove("hidden");
-
-    showPage("records");
-    await loadRecords();
-
   }catch(e){
-    console.warn("Oturum kontrolü başarısız:", e);
-
-    try{
-      await client.auth.signOut({ scope: "local" });
-    }catch(_){}
+    console.warn("Eski yerel oturum temizlenemedi:", e);
   }
+
+  setTimeout(() => $("loginPass")?.focus(), 50);
 })();
 if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
   try{
