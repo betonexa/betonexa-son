@@ -64,7 +64,6 @@
 
     let entryWrap=document.getElementById('concreteEntryWrap');
     if(!entryWrap){
-      // İlk kurulum sırasında içerik bir an üst üste görünmesin.
       const oldVisibility=recordsPage.style.visibility;
       recordsPage.style.visibility='hidden';
 
@@ -111,13 +110,6 @@
 
     document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
     records.classList.add('active');
-
-    // Veri yenileme yalnızca mevcut fonksiyondan yapılır; sekme ikinci kez açılmaz.
-    if(typeof window.refreshRecordsCombined==='function'){
-      try{window.refreshRecordsCombined();}catch(e){}
-    }else if(typeof window.loadRecords==='function'){
-      try{window.loadRecords();}catch(e){}
-    }
   }
 
   function applyMenuLayout(){
@@ -152,7 +144,6 @@
 
     if(!records.dataset.modeBound){
       records.dataset.modeBound='1';
-      // Eski records tıklama kodu ile bizim özel görünüm aynı anda çalışmasın.
       records.addEventListener('click',function(e){
         e.preventDefault();
         e.stopImmediatePropagation();
