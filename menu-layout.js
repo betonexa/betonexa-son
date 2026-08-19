@@ -1,6 +1,26 @@
 (function(){
   'use strict';
 
+  function applyEntryUi(){
+    const concreteTitle=document.querySelector('#recordsPage .dashboard-head h2');
+    const cementTitle=document.querySelector('#cementPage .cement-head h2');
+    const refresh=document.getElementById('refreshBtn');
+
+    if(concreteTitle) concreteTitle.textContent='Yeni Sevkiyat Ekle - Beton';
+    if(cementTitle) cementTitle.textContent='Yeni Sevkiyat Ekle - Çimento';
+    if(refresh) refresh.style.display='none';
+
+    [concreteTitle,cementTitle].forEach(el=>{
+      if(!el)return;
+      el.style.fontFamily='Arial, Helvetica, sans-serif';
+      el.style.fontSize='25px';
+      el.style.fontWeight='700';
+      el.style.lineHeight='1.2';
+      el.style.color='#4f3271';
+      el.style.margin='0';
+    });
+  }
+
   function cleanCementEntryOnly(){
     const page=document.getElementById('cementPage');
     if(!page)return;
@@ -48,6 +68,7 @@
       recordsPage.insertBefore(entryWrap,report);
     }
 
+    applyEntryUi();
     return {recordsPage,report,entryWrap};
   }
 
@@ -62,6 +83,7 @@
     parts.entryWrap.style.display='';
     parts.report.style.display='none';
     concrete.classList.add('active');
+    applyEntryUi();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -134,11 +156,12 @@
 
     if(!cement.dataset.entryOnlyBound){
       cement.dataset.entryOnlyBound='1';
-      cement.addEventListener('click',()=>setTimeout(cleanCementEntryOnly,30));
+      cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));
     }
 
     prepareConcreteAndTracking();
     cleanCementEntryOnly();
+    applyEntryUi();
 
     // Sayfa ilk açıldığında hangi sekme aktifse doğru görünümü uygula.
     if(records.classList.contains('active'))showTrackingMode(records);
@@ -154,6 +177,8 @@
       if(applyMenuLayout()||tries>100)clearInterval(timer);
     },50);
 
+    // Yalnızca eski çimento liste elemanları sonradan oluşursa onları gizle.
+    // Başlıkları observer içinde değiştirmiyoruz; giriş akışına müdahale etmez.
     const observer=new MutationObserver(()=>cleanCementEntryOnly());
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
