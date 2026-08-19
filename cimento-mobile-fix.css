@@ -63,6 +63,7 @@
 #cementPage .cement-export-controls,
 #cementPage .cement-period-controls,
 #cementPage [id*="cementExport"],
-#cementPage [id*="cementPeriod"] {
+#cementPage [id*="cementPeriod"],
+#cementPage .cement-controls {
   display: none !important;
 }
