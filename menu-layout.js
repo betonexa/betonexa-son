@@ -21,48 +21,49 @@
 
   function styleTrackingExportActions(){
     const report=document.querySelector('#recordsPage .records-report');
-    const exportBar=report&&report.querySelector('.export-bar');
     const pdf=document.getElementById('pdfBtn');
     const excel=document.getElementById('excelBtn');
     const print=document.getElementById('printBtn');
-    if(!report||!exportBar||!pdf||!excel||!print)return;
+    if(!report||!pdf||!excel||!print)return;
 
-    // Butonlar başka kod tarafından tekrar export-bar içine alınsa bile
-    // her seferinde tek bir aksiyon grubunda sağa hizala.
     let actions=report.querySelector('.tracking-export-actions');
     if(!actions){
       actions=document.createElement('div');
-      actions.className='tracking-export-actions';
-      exportBar.appendChild(actions);
+      actions.className='tomorrow-actions tracking-export-actions';
+      report.appendChild(actions);
     }
 
     if(pdf.parentElement!==actions)actions.appendChild(pdf);
     if(excel.parentElement!==actions)actions.appendChild(excel);
     if(print.parentElement!==actions)actions.appendChild(print);
 
-    // Yarınki Sevkiyatlar ile aynı renk mantığı.
+    // Yarınki Sevkiyatlar ile birebir aynı renk mantığı.
     pdf.className='btn btn-primary';
     excel.className='btn btn-light';
     print.className='btn btn-light';
 
-    exportBar.style.display='flex';
-    exportBar.style.alignItems='flex-end';
-    exportBar.style.flexWrap='wrap';
-    exportBar.style.gap='9px';
-    exportBar.style.width='100%';
+    // Butonları filtre kutusunun altından çıkarıp, Yarınki Sevkiyatlar gibi
+    // ana panelin sağ üst köşesine yerleştir.
+    report.style.position='relative';
+    report.style.paddingTop='72px';
 
+    actions.style.position='absolute';
+    actions.style.top='16px';
+    actions.style.right='16px';
     actions.style.display='flex';
     actions.style.alignItems='center';
     actions.style.justifyContent='flex-end';
     actions.style.gap='8px';
-    actions.style.flexWrap='wrap';
-    actions.style.marginLeft='auto';
+    actions.style.flexWrap='nowrap';
     actions.style.width='auto';
+    actions.style.margin='0';
+    actions.style.zIndex='5';
 
     [pdf,excel,print].forEach(btn=>{
       btn.style.width='auto';
       btn.style.minWidth='0';
       btn.style.margin='0';
+      btn.style.whiteSpace='nowrap';
     });
   }
 
