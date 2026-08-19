@@ -27,29 +27,43 @@
     const print=document.getElementById('printBtn');
     if(!report||!exportBar||!pdf||!excel||!print)return;
 
+    // Butonlar başka kod tarafından tekrar export-bar içine alınsa bile
+    // her seferinde tek bir aksiyon grubunda sağa hizala.
     let actions=report.querySelector('.tracking-export-actions');
     if(!actions){
       actions=document.createElement('div');
-      actions.className='tomorrow-actions tracking-export-actions';
-      exportBar.parentNode.insertBefore(actions,exportBar);
+      actions.className='tracking-export-actions';
+      exportBar.appendChild(actions);
     }
 
-    [pdf,excel,print].forEach(btn=>actions.appendChild(btn));
+    if(pdf.parentElement!==actions)actions.appendChild(pdf);
+    if(excel.parentElement!==actions)actions.appendChild(excel);
+    if(print.parentElement!==actions)actions.appendChild(print);
 
-    pdf.classList.remove('btn-light');
-    pdf.classList.add('btn-primary');
-    excel.classList.remove('btn-primary');
-    excel.classList.add('btn-light');
-    print.classList.remove('btn-primary');
-    print.classList.add('btn-light');
+    // Yarınki Sevkiyatlar ile aynı renk mantığı.
+    pdf.className='btn btn-primary';
+    excel.className='btn btn-light';
+    print.className='btn btn-light';
+
+    exportBar.style.display='flex';
+    exportBar.style.alignItems='flex-end';
+    exportBar.style.flexWrap='wrap';
+    exportBar.style.gap='9px';
+    exportBar.style.width='100%';
 
     actions.style.display='flex';
-    actions.style.justifyContent='flex-end';
     actions.style.alignItems='center';
+    actions.style.justifyContent='flex-end';
     actions.style.gap='8px';
     actions.style.flexWrap='wrap';
-    actions.style.width='100%';
-    actions.style.margin='0 0 14px 0';
+    actions.style.marginLeft='auto';
+    actions.style.width='auto';
+
+    [pdf,excel,print].forEach(btn=>{
+      btn.style.width='auto';
+      btn.style.minWidth='0';
+      btn.style.margin='0';
+    });
   }
 
   function applyEntryUi(){
@@ -111,9 +125,7 @@
     return {recordsPage,report,entryWrap};
   }
 
-  function hideAllMainPages(){
-    document.querySelectorAll('main.content > section.panel').forEach(s=>s.classList.add('hidden'));
-  }
+  function hideAllMainPages(){document.querySelectorAll('main.content > section.panel').forEach(s=>s.classList.add('hidden'));}
 
   function showConcreteMode(concrete){
     const parts=prepareConcreteAndTracking(); if(!parts)return;
@@ -149,26 +161,16 @@
     if(!records||!cement||!tomorrow)return false;
     records.innerHTML='📋 Sevkiyat Takibi';
     let concrete=nav.querySelector('[data-page="concrete"]');
-    if(!concrete){
-      concrete=document.createElement('button'); concrete.type='button'; concrete.className='btn btn-light'; concrete.dataset.page='concrete'; concrete.innerHTML='🚚 Beton';
-    }
-    if(!concrete.dataset.modeBound){
-      concrete.dataset.modeBound='1';
-      concrete.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();showConcreteMode(concrete);});
-    }
-    if(!records.dataset.modeBound){
-      records.dataset.modeBound='1';
-      records.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showTrackingMode(records);},true);
-    }
+    if(!concrete){concrete=document.createElement('button');concrete.type='button';concrete.className='btn btn-light';concrete.dataset.page='concrete';concrete.innerHTML='🚚 Beton';}
+    if(!concrete.dataset.modeBound){concrete.dataset.modeBound='1';concrete.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();showConcreteMode(concrete);});}
+    if(!records.dataset.modeBound){records.dataset.modeBound='1';records.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showTrackingMode(records);},true);}
     nav.insertBefore(concrete,nav.firstElementChild);
     nav.insertBefore(cement,concrete.nextSibling);
     nav.insertBefore(records,cement.nextSibling);
     nav.insertBefore(tomorrow,records.nextSibling);
     if(calendar){calendar.innerHTML='📅 Takvim';nav.insertBefore(calendar,tomorrow.nextSibling);}
     else [...nav.querySelectorAll('button')].forEach(btn=>{if(/Haftalık\s+Takvim/i.test(btn.textContent||''))btn.innerHTML='📅 Takvim';});
-    if(!cement.dataset.entryOnlyBound){
-      cement.dataset.entryOnlyBound='1'; cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));
-    }
+    if(!cement.dataset.entryOnlyBound){cement.dataset.entryOnlyBound='1';cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();applyEntryUi();},30));}
     const parts=prepareConcreteAndTracking(); cleanCementEntryOnly(); applyEntryUi(); styleTrackingExportActions();
     if(parts){
       if(records.classList.contains('active')){parts.entryWrap.style.display='none';parts.report.style.display='';}
@@ -180,11 +182,14 @@
   function init(){
     disableBrowserLoginSuggestions();
     if(applyMenuLayout()){
-      const observer=new MutationObserver(()=>cleanCementEntryOnly()); observer.observe(document.documentElement,{childList:true,subtree:true}); return;
+      const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();});
+      observer.observe(document.documentElement,{childList:true,subtree:true});
+      return;
     }
     let tries=0;
     const timer=setInterval(()=>{tries++;if(applyMenuLayout()||tries>100)clearInterval(timer);},50);
-    const observer=new MutationObserver(()=>cleanCementEntryOnly()); observer.observe(document.documentElement,{childList:true,subtree:true});
+    const observer=new MutationObserver(()=>{cleanCementEntryOnly();styleTrackingExportActions();});
+    observer.observe(document.documentElement,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
