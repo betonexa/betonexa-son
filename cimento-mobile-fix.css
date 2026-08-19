@@ -73,13 +73,8 @@
   display: none !important;
 }
 
-/* Masaüstünde scrollbar için yalnızca doğal tarafta yer ayır.
-   Böylece iki taraftan daralma olmaz. */
+/* Yatay taşmayı önle; scrollbar için ekstra alan ayırma. */
 @media (min-width: 701px) {
-  html {
-    scrollbar-gutter: stable;
-  }
-
   body {
     overflow-x: hidden;
   }
