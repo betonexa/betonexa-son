@@ -105,7 +105,7 @@
     window.__cementPendingEditId=null;
     if($('cementDate'))$('cementDate').value=today();
     ['cementCompany','cementDelivery','cementVehicleCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
-    if($('cementSaveBtn'))$('cementSaveBtn').textContent='Çimento Sevkiyatını Kaydet';
+    if($('cementSaveBtn'))$('cementSaveBtn').textContent='Sevkiyatı Kaydet';
     $('cementCancelBtn')?.classList.add('hidden');
     if($('cementStatus'))$('cementStatus').textContent='';
     $('cementPairMenu')?.classList.add('hidden');$('cementDeliveryMenu')?.classList.add('hidden');
