@@ -54,3 +54,15 @@
     background-clip: padding-box !important;
   }
 }
+
+/* Çimento ekranı yalnızca sevkiyat kaydı içindir.
+   Kayıtların listesi ve dönem/çıktı araçları Sevkiyat Takibi ekranında gösterilir. */
+#cementPage .cement-head > button,
+#cementPage .cement-summary,
+#cementPage .cement-table-wrap,
+#cementPage .cement-export-controls,
+#cementPage .cement-period-controls,
+#cementPage [id*="cementExport"],
+#cementPage [id*="cementPeriod"] {
+  display: none !important;
+}
