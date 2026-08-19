@@ -73,11 +73,11 @@
   display: none !important;
 }
 
-/* Masaüstünde sekmeler arasında geçişte dikey scrollbar açılıp kapanınca
-   oluşan milimetrik sağ-sol kaymayı engelle. */
+/* Masaüstünde sekmeler arasında geçişte içerik yüksekliği değişse de
+   sayfa genişliği sabit kalsın. Zorunlu scrollbar kullanmıyoruz; bu sayede
+   ilk giriş ekranında da milimetrik oynama oluşmaz. */
 @media (min-width: 701px) {
   html {
-    overflow-y: scroll;
     scrollbar-gutter: stable;
   }
 }
