@@ -1,6 +1,33 @@
 (function(){
   'use strict';
 
+  function normalizeEntryHeadings(){
+    const concreteWrap=document.getElementById('concreteEntryWrap');
+    const concreteTitle=concreteWrap?.querySelector('h1,h2,h3');
+    const cementTitle=document.querySelector('#cementPage .cement-head h2');
+
+    if(concreteTitle){
+      concreteTitle.textContent='Yeni Sevkiyat Ekle - Beton';
+    }
+    if(cementTitle){
+      cementTitle.textContent='Yeni Sevkiyat Ekle - Çimento';
+    }
+
+    // İki kayıt sayfasının başlığı aynı yazı karakteri, boyut ve renkte olsun.
+    if(concreteTitle&&cementTitle){
+      const cs=getComputedStyle(concreteTitle);
+      [concreteTitle,cementTitle].forEach(el=>{
+        el.style.fontFamily=cs.fontFamily;
+        el.style.fontSize=cs.fontSize;
+        el.style.fontWeight=cs.fontWeight;
+        el.style.lineHeight=cs.lineHeight;
+        el.style.letterSpacing=cs.letterSpacing;
+        el.style.color=cs.color;
+        el.style.margin=cs.margin;
+      });
+    }
+  }
+
   function cleanCementEntryOnly(){
     const page=document.getElementById('cementPage');
     if(!page)return;
@@ -24,6 +51,8 @@
         else el.remove();
       }
     });
+
+    normalizeEntryHeadings();
   }
 
   function prepareConcreteAndTracking(){
@@ -48,6 +77,7 @@
       recordsPage.insertBefore(entryWrap,report);
     }
 
+    normalizeEntryHeadings();
     return {recordsPage,report,entryWrap};
   }
 
@@ -62,6 +92,7 @@
     parts.entryWrap.style.display='';
     parts.report.style.display='none';
     concrete.classList.add('active');
+    normalizeEntryHeadings();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -134,11 +165,12 @@
 
     if(!cement.dataset.entryOnlyBound){
       cement.dataset.entryOnlyBound='1';
-      cement.addEventListener('click',()=>setTimeout(cleanCementEntryOnly,30));
+      cement.addEventListener('click',()=>setTimeout(()=>{cleanCementEntryOnly();normalizeEntryHeadings();},30));
     }
 
     prepareConcreteAndTracking();
     cleanCementEntryOnly();
+    normalizeEntryHeadings();
 
     // Sayfa ilk açıldığında hangi sekme aktifse doğru görünümü uygula.
     if(records.classList.contains('active'))showTrackingMode(records);
@@ -154,7 +186,10 @@
       if(applyMenuLayout()||tries>100)clearInterval(timer);
     },50);
 
-    const observer=new MutationObserver(()=>cleanCementEntryOnly());
+    const observer=new MutationObserver(()=>{
+      cleanCementEntryOnly();
+      normalizeEntryHeadings();
+    });
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
 
