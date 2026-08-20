@@ -1,5 +1,48 @@
-const CACHE='betonexa-1.3.2';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))));self.clients.claim()});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))))});
+const CACHE='betonexa-2026.08.20-stable';
+const ASSETS=[
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+  './cimento-module.js',
+  './cimento-history.js',
+  './cimento-enhancements.js',
+  './cimento-mobile-fix.css',
+  './contracts-module.js',
+  './menu-layout.js',
+  './records-cement-addon.js'
+];
+
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate',event=>{
+  event.waitUntil(caches.keys().then(keys=>Promise.all(
+    keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))
+  )));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch',event=>{
+  if(event.request.method!=='GET')return;
+  const requestUrl=new URL(event.request.url);
+  const isNavigation=event.request.mode==='navigate';
+
+  event.respondWith(
+    fetch(event.request).then(response=>{
+      if(response.ok&&requestUrl.origin===self.location.origin){
+        const copy=response.clone();
+        caches.open(CACHE).then(cache=>cache.put(event.request,copy));
+      }
+      return response;
+    }).catch(async()=>{
+      const cached=await caches.match(event.request);
+      if(cached)return cached;
+      if(isNavigation)return caches.match('./index.html');
+      return Response.error();
+    })
+  );
+});
