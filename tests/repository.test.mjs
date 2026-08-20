@@ -92,6 +92,15 @@ test('çalışan son yerleşim düzelticisi yeni sürüm adresiyle en sonda yük
   assert.match(finalizer,/host\.className='tomorrow-actions'/);
 });
 
+test('sevkiyat takibi beton tablosunda sorumlu ve telefon görünür',async()=>{
+  const addon=await read('records-cement-addon.js');
+  assert.match(addon,/<th>Pompa<\/th><th>Sorumlu<\/th><th>Telefon<\/th><th>İşlem<\/th>/);
+  assert.match(addon,/r\.sorumlu_kisi/);
+  assert.match(addon,/r\.telefon/);
+  const history=await read('cimento-history.js');
+  assert.match(history,/records-cement-addon\.js\?v=20260820-contact1/);
+});
+
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{
   const directory=new URL('../.github/workflows/',import.meta.url);
   const files=await readdir(directory);
