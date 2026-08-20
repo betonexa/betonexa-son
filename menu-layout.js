@@ -389,3 +389,12 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+
+/* BETONEXA_STABLE_TRACKING_ACTIONS_LOADER */
+(function(){
+  if(document.querySelector('script[data-betonexa-tracking-actions]'))return;
+  const s=document.createElement('script');
+  s.dataset.betonexaTrackingActions='1';
+  s.src='./tracking-actions.js?v=20260820-stable1';
+  document.head.appendChild(s);
+})();
