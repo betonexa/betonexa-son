@@ -114,58 +114,61 @@
     const print=document.getElementById('printBtn');
     if(!report||!pdf||!excel||!print)return;
 
-    const clear=[...report.querySelectorAll('button')].find(b=>(b.textContent||'').trim()==='Filtreleri Temizle');
-    if(!clear)return;
-
-    let card=clear.parentElement;
-    while(card&&card!==report){
-      const labels=[...card.querySelectorAll('button')].map(b=>(b.textContent||'').trim());
-      if(labels.includes('Bugün')&&labels.includes('Yarın')&&labels.includes('Bu Hafta')&&labels.includes('Bu Ay')&&labels.includes('Tümü'))break;
-      card=card.parentElement;
-    }
-    if(!card||card===report)return;
-
-    const leaves=[...card.querySelectorAll('div,span,strong')].filter(el=>el.children.length===0);
-    const beton=leaves.find(el=>/\d+\s*beton\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
-    const cimento=leaves.find(el=>/\d+\s*çimento\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
-
-    let host=null;
-    if(beton&&cimento){
-      if(beton.parentElement===cimento.parentElement) host=beton.parentElement;
-      else{
-        let n=beton.parentElement;
-        while(n&&n!==card){
-          if(n.contains(cimento)){host=n;break;}
-          n=n.parentElement;
-        }
-      }
-    }
+    let host=report.querySelector('.tracking-export-slot');
 
     if(!host){
-      host=card.querySelector('.tracking-export-slot');
-      if(!host){
-        host=document.createElement('div');
-        host.className='tracking-export-slot';
-        card.insertBefore(host,card.firstChild);
-      }
+      const all=[...report.querySelectorAll('*')];
+      const text=el=>(el.textContent||'').replace(/\s+/g,' ').trim();
+      const isBeton=el=>/^.*\b\d+\s*beton\b/i.test(text(el));
+      const isCimento=el=>/^.*\b\d+\s*çimento\b/i.test(text(el));
+
+      const betonLeaf=all
+        .filter(isBeton)
+        .filter(el=>![...el.children].some(isBeton))
+        .sort((a,b)=>text(a).length-text(b).length)[0];
+      const cimentoLeaf=all
+        .filter(isCimento)
+        .filter(el=>![...el.children].some(isCimento))
+        .sort((a,b)=>text(a).length-text(b).length)[0];
+
+      if(!betonLeaf||!cimentoLeaf)return;
+
+      const badgeRoot=(leaf,other)=>{
+        let cur=leaf;
+        while(cur.parentElement&&cur.parentElement!==report){
+          const p=cur.parentElement;
+          const t=text(p);
+          if(p.contains(other))break;
+          if(/Sevkiyat Filtreleri/i.test(t))break;
+          if(/Bugün/.test(t)&&/Yarın/.test(t)&&/Bu Hafta/.test(t))break;
+          cur=p;
+        }
+        return cur;
+      };
+
+      const betonBadge=badgeRoot(betonLeaf,cimentoLeaf);
+      const cimentoBadge=badgeRoot(cimentoLeaf,betonLeaf);
+      const parent=betonBadge.parentElement;
+      if(!parent)return;
+
+      host=document.createElement('div');
+      host.className='tomorrow-actions tracking-export-slot';
+      parent.insertBefore(host,betonBadge);
+
+      if(betonBadge.isConnected)betonBadge.remove();
+      if(cimentoBadge.isConnected)cimentoBadge.remove();
     }
 
-    if(beton){
-      const bwrap=beton.parentElement!==host&&beton.parentElement?.children.length===1?beton.parentElement:beton;
-      if(bwrap!==host)bwrap.remove(); else beton.remove();
-    }
-    if(cimento&&cimento.isConnected){
-      const cwrap=cimento.parentElement!==host&&cimento.parentElement?.children.length===1?cimento.parentElement:cimento;
-      if(cwrap!==host)cwrap.remove(); else cimento.remove();
-    }
-
-    report.querySelectorAll('.tracking-export-actions,.tracking-final-actions').forEach(el=>{
-      if(el!==host)el.style.setProperty('display','none','important');
+    const oldParent=pdf.parentElement;
+    [pdf,excel,print].forEach(btn=>{
+      if(btn.parentElement!==host)host.appendChild(btn);
     });
 
-    host.className='tomorrow-actions tracking-export-slot';
-    [pdf,excel,print].forEach(btn=>{if(btn.parentElement!==host)host.appendChild(btn);});
+    if(oldParent&&oldParent!==host&&!oldParent.querySelector('button')){
+      oldParent.style.setProperty('display','none','important');
+    }
 
+    host.className='tomorrow-actions tracking-export-slot';
     host.style.setProperty('display','flex','important');
     host.style.setProperty('align-items','center','important');
     host.style.setProperty('justify-content','flex-end','important');
