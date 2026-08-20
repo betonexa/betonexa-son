@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Remove conflicting patches and stabilize tracking layout
+      - name: Replace tracking export placement only
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -19,10 +19,6 @@ jobs:
           p=Path('menu-layout.js')
           s=p.read_text(encoding='utf-8')
 
-          marker='/* BETONEXA_STABLE_TRACKING_ACTIONS_LOADER */'
-          if marker in s:
-              s=s.split(marker)[0].rstrip()+"\n"
-
           new_style=r'''  function styleTrackingExportActions(){
     const report=document.querySelector('#recordsPage .records-report');
     const pdf=document.getElementById('pdfBtn');
@@ -30,58 +26,56 @@ jobs:
     const print=document.getElementById('printBtn');
     if(!report||!pdf||!excel||!print)return;
 
-    const clear=[...report.querySelectorAll('button')].find(b=>(b.textContent||'').trim()==='Filtreleri Temizle');
-    if(!clear)return;
-
-    let card=clear.parentElement;
-    while(card&&card!==report){
-      const labels=[...card.querySelectorAll('button')].map(b=>(b.textContent||'').trim());
-      if(labels.includes('Bugün')&&labels.includes('Yarın')&&labels.includes('Bu Hafta')&&labels.includes('Bu Ay')&&labels.includes('Tümü'))break;
-      card=card.parentElement;
-    }
-    if(!card||card===report)return;
-
-    const leaves=[...card.querySelectorAll('div,span,strong')].filter(el=>el.children.length===0);
-    const beton=leaves.find(el=>/\d+\s*beton\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
-    const cimento=leaves.find(el=>/\d+\s*çimento\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
-
-    let host=null;
-    if(beton&&cimento){
-      if(beton.parentElement===cimento.parentElement) host=beton.parentElement;
-      else{
-        let n=beton.parentElement;
-        while(n&&n!==card){
-          if(n.contains(cimento)){host=n;break;}
-          n=n.parentElement;
-        }
-      }
-    }
+    let host=report.querySelector('.tracking-export-slot');
 
     if(!host){
-      host=card.querySelector('.tracking-export-slot');
-      if(!host){
-        host=document.createElement('div');
-        host.className='tracking-export-slot';
-        card.insertBefore(host,card.firstChild);
-      }
+      const nodes=[...report.querySelectorAll('*')];
+      const textOf=el=>(el.textContent||'').replace(/\s+/g,' ').trim();
+      const betonLeaf=nodes
+        .filter(el=>/\b\d+\s*beton\b/i.test(textOf(el)))
+        .filter(el=>![...el.children].some(c=>/\b\d+\s*beton\b/i.test(textOf(c))))
+        .sort((a,b)=>textOf(a).length-textOf(b).length)[0];
+      const cimentoLeaf=nodes
+        .filter(el=>/\b\d+\s*çimento\b/i.test(textOf(el)))
+        .filter(el=>![...el.children].some(c=>/\b\d+\s*çimento\b/i.test(textOf(c))))
+        .sort((a,b)=>textOf(a).length-textOf(b).length)[0];
+
+      if(!betonLeaf||!cimentoLeaf)return;
+
+      const climbBadge=(leaf,other)=>{
+        let cur=leaf;
+        while(cur.parentElement&&cur.parentElement!==report){
+          const p=cur.parentElement;
+          const t=textOf(p);
+          if(p.contains(other)||/Sevkiyat Filtreleri/i.test(t)||/Bugün.*Yarın.*Bu Hafta/i.test(t))break;
+          cur=p;
+        }
+        return cur;
+      };
+
+      const betonBadge=climbBadge(betonLeaf,cimentoLeaf);
+      const cimentoBadge=climbBadge(cimentoLeaf,betonLeaf);
+      const parent=betonBadge.parentElement;
+
+      host=document.createElement('div');
+      host.className='tomorrow-actions tracking-export-slot';
+      if(parent) parent.insertBefore(host,betonBadge);
+      else report.insertBefore(host,report.firstChild);
+
+      if(betonBadge.isConnected)betonBadge.remove();
+      if(cimentoBadge.isConnected)cimentoBadge.remove();
     }
 
-    if(beton){
-      const bwrap=beton.parentElement!==host&&beton.parentElement?.children.length===1?beton.parentElement:beton;
-      if(bwrap!==host)bwrap.remove(); else beton.remove();
-    }
-    if(cimento&&cimento.isConnected){
-      const cwrap=cimento.parentElement!==host&&cimento.parentElement?.children.length===1?cimento.parentElement:cimento;
-      if(cwrap!==host)cwrap.remove(); else cimento.remove();
-    }
-
-    report.querySelectorAll('.tracking-export-actions,.tracking-final-actions').forEach(el=>{
-      if(el!==host)el.style.setProperty('display','none','important');
+    const oldParent=pdf.parentElement;
+    [pdf,excel,print].forEach(btn=>{
+      if(btn.parentElement!==host)host.appendChild(btn);
     });
 
-    host.className='tomorrow-actions tracking-export-slot';
-    [pdf,excel,print].forEach(btn=>{if(btn.parentElement!==host)host.appendChild(btn);});
+    if(oldParent&&oldParent!==host&&!oldParent.querySelector('button')){
+      oldParent.style.setProperty('display','none','important');
+    }
 
+    host.className='tomorrow-actions tracking-export-slot';
     host.style.setProperty('display','flex','important');
     host.style.setProperty('align-items','center','important');
     host.style.setProperty('justify-content','flex-end','important');
@@ -122,92 +116,19 @@ jobs:
           if n!=1:
               raise SystemExit('styleTrackingExportActions replacement failed')
 
-          new_contacts=r'''  async function restoreConcreteContactColumns(){
-    const table=document.querySelector('#recordsCombinedView .rc-block .rc-table table');
-    if(!table)return;
-
-    const headRow=table.querySelector('thead tr');
-    const bodyRows=[...table.querySelectorAll('tbody tr')];
-    if(!headRow||!bodyRows.length)return;
-
-    let headers=[...headRow.children].map(th=>(th.textContent||'').trim());
-    const removeDuplicateHeader=(label)=>{
-      const indexes=headers.map((h,i)=>h===label?i:-1).filter(i=>i>=0);
-      for(let k=indexes.length-1;k>=1;k--){
-        const idx=indexes[k];
-        headRow.children[idx]?.remove();
-        bodyRows.forEach(row=>row.children[idx]?.remove());
-        headers=[...headRow.children].map(th=>(th.textContent||'').trim());
-      }
-    };
-    removeDuplicateHeader('Telefon');
-    removeDuplicateHeader('Sorumlu');
-
-    headers=[...headRow.children].map(th=>(th.textContent||'').trim());
-    if(headers.includes('Sorumlu')&&headers.includes('Telefon'))return;
-    if(typeof window.ensureDb!=='function')return;
-
-    const ids=bodyRows.map(row=>{
-      const btn=row.querySelector('.rc-edit');
-      const src=btn?.getAttribute('onclick')||'';
-      const m=src.match(/editConcreteFromCombined\(['\"]?([^'\")]+)['\"]?\)/);
-      return m?m[1]:null;
-    }).filter(Boolean);
-    if(!ids.length)return;
-
-    try{
-      const db=window.ensureDb();
-      const {data,error}=await db.from('sevkiyatlar').select('id,sorumlu_kisi,telefon').in('id',ids);
-      if(error||!Array.isArray(data))return;
-      const map=new Map(data.map(r=>[String(r.id),r]));
-      const actionHead=headRow.lastElementChild;
-
-      if(!headers.includes('Sorumlu')){
-        const th=document.createElement('th'); th.textContent='Sorumlu'; headRow.insertBefore(th,actionHead);
-      }
-      if(!headers.includes('Telefon')){
-        const th=document.createElement('th'); th.textContent='Telefon'; headRow.insertBefore(th,actionHead);
-      }
-
-      bodyRows.forEach(row=>{
-        const btn=row.querySelector('.rc-edit');
-        const src=btn?.getAttribute('onclick')||'';
-        const m=src.match(/editConcreteFromCombined\(['\"]?([^'\")]+)['\"]?\)/);
-        const rec=m?map.get(String(m[1])):null;
-        const actionCell=row.lastElementChild;
-        const currentHeaders=[...headRow.children].map(th=>(th.textContent||'').trim());
-        const responsibleIndex=currentHeaders.indexOf('Sorumlu');
-        const phoneIndex=currentHeaders.indexOf('Telefon');
-        while(row.children.length<headRow.children.length){
-          row.insertBefore(document.createElement('td'),actionCell);
-        }
-        if(responsibleIndex>=0)row.children[responsibleIndex].textContent=rec?.sorumlu_kisi||'';
-        if(phoneIndex>=0)row.children[phoneIndex].textContent=rec?.telefon||'';
-      });
-      table.style.minWidth='1120px';
-    }catch(e){}
-  }
-
-'''
-
-          s,n=re.subn(r'  async function restoreConcreteContactColumns\(\)\{.*?\n  \}\n\n(?=  function scheduleConcreteContactFix)',new_contacts,s,count=1,flags=re.S)
-          if n!=1:
-              raise SystemExit('restoreConcreteContactColumns replacement failed')
-
           p.write_text(s,encoding='utf-8')
 
           idx=Path('index.html')
           h=idx.read_text(encoding='utf-8')
-          h,n=re.subn(r'(<script\s+src=["\']\./menu-layout\.js)(?:\?v=[^"\']+)?(["\']\s*>\s*</script>)',r'\1?v=20260820-clean-final\2',h,count=1)
+          h,n=re.subn(r'(<script\s+src=["\']\./menu-layout\.js)(?:\?v=[^"\']+)?(["\']\s*>\s*</script>)',r'\1?v=20260820-summary-slot\2',h,count=1)
           if n!=1:
               raise SystemExit('menu-layout script tag not found exactly once')
           idx.write_text(h,encoding='utf-8')
           PY
-      - name: Commit clean fix
+      - name: Commit
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add menu-layout.js index.html
-          git diff --cached --quiet || git commit -m 'Stabilize tracking buttons and remove duplicate contact columns'
+          git diff --cached --quiet || git commit -m 'Place tracking exports in summary slot'
           git push
-# trigger 2
