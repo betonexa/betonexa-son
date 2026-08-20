@@ -101,6 +101,15 @@ test('sevkiyat takibi beton tablosunda sorumlu ve telefon görünür',async()=>{
   assert.match(history,/records-cement-addon\.js\?v=20260820-contact1/);
 });
 
+test('yarınki sevkiyat geçişi içerik kaybolmadan yenilenir',async()=>{
+  const html=await read('index.html');
+  const cement=await read('cimento-module.js');
+  assert.match(html,/scrollbar-gutter:\s*stable/);
+  assert.match(html,/cimento-module\.js\?v=20260820-tomorrow1/);
+  assert.doesNotMatch(cement,/if\(old\)old\.remove\(\);const items=await tomorrowCementRecords/);
+  assert.match(cement,/if\(old\)old\.replaceWith\(section\);else report\.appendChild\(section\)/);
+});
+
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{
   const directory=new URL('../.github/workflows/',import.meta.url);
   const files=await readdir(directory);
