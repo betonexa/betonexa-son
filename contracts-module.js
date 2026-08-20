@@ -6,8 +6,8 @@ const norm=v=>String(v||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' '
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const asciiKey=v=>norm(v).replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 function titleTr(v){return String(v||'').split(/(\s+|-)/).map(p=>/^[\s-]+$/.test(p)?p:(p.charAt(0).toLocaleUpperCase('tr-TR')+p.slice(1).toLocaleLowerCase('tr-TR'))).join('')}
-function canonicalLabel(v){let s=String(v||'').trim().replace(/\s+/g,' ');if(!s)return'';let k=asciiKey(s);const m=k.match(/^(.*?)(?:\s+)?ins[a-z]*$/i);if(m&&m[1].trim()){const base=m[1].trim().split(' ').filter(Boolean).map(w=>w.charAt(0).toLocaleUpperCase('tr-TR')+w.slice(1)).join(' ');return base+' İnşaat'}return titleTr(s)}
-function canonicalKey(v){return asciiKey(canonicalLabel(v)).replace(/\bins[a-z]*\b$/,'insaat')}
+function canonicalLabel(v){return window.BetonexaNames.label(v)}
+function canonicalKey(v){return window.BetonexaNames.key(v)}
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function trDate(v){return v?v.split('-').reverse().join('.'):''}
 function monday(d){const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x}

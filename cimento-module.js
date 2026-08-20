@@ -12,7 +12,7 @@
   const todayIso=()=>isoDate(new Date());
   const tomorrowIso=()=>{const d=new Date();d.setDate(d.getDate()+1);return isoDate(d);};
   const formatDate=value=>{if(!value)return "";const d=new Date(value+"T00:00:00");const day=d.toLocaleDateString("tr-TR",{weekday:"long"});const date=value.split("-").reverse().join(".");return `${date} · ${day.charAt(0).toLocaleUpperCase("tr-TR")+day.slice(1)}`;};
-  const titleCase=value=>String(value??"").trim().replace(/\s+/g," ").toLocaleLowerCase("tr-TR").replace(/(^|[\s\-\/])([\p{L}])/gu,(m,sep,ch)=>sep+ch.toLocaleUpperCase("tr-TR"));
+  const titleCase=value=>window.BetonexaNames.label(value);
   const cleanPdfHeading=value=>String(value??"").replace(/^[^\p{L}\p{N}]+/u,"").trim();
   const parseTrNumber=value=>{const raw=String(value??"").replace(/[^0-9,.-]/g,"").replace(/\./g,"").replace(",",".");const n=Number(raw);return Number.isFinite(n)?n:0;};
   function db(){if(typeof window.ensureDb==="function")return window.ensureDb();return null;}

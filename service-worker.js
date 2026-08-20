@@ -10,6 +10,7 @@ const ASSETS=[
   './cimento-enhancements.js',
   './cimento-mobile-fix.css',
   './contracts-module.js',
+  './normalization.js',
   './menu-layout.js',
   './records-cement-addon.js'
 ];
