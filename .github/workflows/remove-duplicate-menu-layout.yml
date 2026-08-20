@@ -31,3 +31,4 @@ jobs:
           git add index.html
           git diff --cached --quiet || git commit -m 'Remove duplicate menu-layout script loader'
           git push
+# trigger
