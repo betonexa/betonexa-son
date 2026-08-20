@@ -114,41 +114,89 @@
     const print=document.getElementById('printBtn');
     if(!report||!pdf||!excel||!print)return;
 
-    let actions=report.querySelector('.tracking-export-actions');
-    if(!actions){
-      actions=document.createElement('div');
-      actions.className='tomorrow-actions tracking-export-actions';
-      report.appendChild(actions);
+    const clear=[...report.querySelectorAll('button')].find(b=>(b.textContent||'').trim()==='Filtreleri Temizle');
+    if(!clear)return;
+
+    let card=clear.parentElement;
+    while(card&&card!==report){
+      const labels=[...card.querySelectorAll('button')].map(b=>(b.textContent||'').trim());
+      if(labels.includes('Bugün')&&labels.includes('Yarın')&&labels.includes('Bu Hafta')&&labels.includes('Bu Ay')&&labels.includes('Tümü'))break;
+      card=card.parentElement;
+    }
+    if(!card||card===report)return;
+
+    const leaves=[...card.querySelectorAll('div,span,strong')].filter(el=>el.children.length===0);
+    const beton=leaves.find(el=>/\d+\s*beton\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
+    const cimento=leaves.find(el=>/\d+\s*çimento\b/i.test((el.textContent||'').replace(/\s+/g,' ').trim()));
+
+    let host=null;
+    if(beton&&cimento){
+      if(beton.parentElement===cimento.parentElement) host=beton.parentElement;
+      else{
+        let n=beton.parentElement;
+        while(n&&n!==card){
+          if(n.contains(cimento)){host=n;break;}
+          n=n.parentElement;
+        }
+      }
     }
 
-    if(pdf.parentElement!==actions)actions.appendChild(pdf);
-    if(excel.parentElement!==actions)actions.appendChild(excel);
-    if(print.parentElement!==actions)actions.appendChild(print);
+    if(!host){
+      host=card.querySelector('.tracking-export-slot');
+      if(!host){
+        host=document.createElement('div');
+        host.className='tracking-export-slot';
+        card.insertBefore(host,card.firstChild);
+      }
+    }
+
+    if(beton){
+      const bwrap=beton.parentElement!==host&&beton.parentElement?.children.length===1?beton.parentElement:beton;
+      if(bwrap!==host)bwrap.remove(); else beton.remove();
+    }
+    if(cimento&&cimento.isConnected){
+      const cwrap=cimento.parentElement!==host&&cimento.parentElement?.children.length===1?cimento.parentElement:cimento;
+      if(cwrap!==host)cwrap.remove(); else cimento.remove();
+    }
+
+    report.querySelectorAll('.tracking-export-actions,.tracking-final-actions').forEach(el=>{
+      if(el!==host)el.style.setProperty('display','none','important');
+    });
+
+    host.className='tomorrow-actions tracking-export-slot';
+    [pdf,excel,print].forEach(btn=>{if(btn.parentElement!==host)host.appendChild(btn);});
+
+    host.style.setProperty('display','flex','important');
+    host.style.setProperty('align-items','center','important');
+    host.style.setProperty('justify-content','flex-end','important');
+    host.style.setProperty('gap','8px','important');
+    host.style.setProperty('flex-wrap','nowrap','important');
+    host.style.setProperty('width','auto','important');
+    host.style.setProperty('margin','0','important');
+    host.style.setProperty('padding','0','important');
+    host.style.setProperty('position','static','important');
+    host.style.setProperty('background','transparent','important');
+    host.style.setProperty('border','0','important');
+
+    report.style.removeProperty('padding-top');
+    report.style.removeProperty('position');
 
     pdf.className='btn btn-primary';
     excel.className='btn btn-light';
     print.className='btn btn-light';
-
-    report.style.position='relative';
-    report.style.paddingTop='72px';
-
-    actions.style.position='absolute';
-    actions.style.top='16px';
-    actions.style.right='16px';
-    actions.style.display='flex';
-    actions.style.alignItems='center';
-    actions.style.justifyContent='flex-end';
-    actions.style.gap='8px';
-    actions.style.flexWrap='nowrap';
-    actions.style.width='auto';
-    actions.style.margin='0';
-    actions.style.zIndex='5';
-
+    pdf.style.setProperty('background','#6f42c1','important');
+    pdf.style.setProperty('border-color','#6f42c1','important');
+    pdf.style.setProperty('color','#fff','important');
+    [excel,print].forEach(btn=>{
+      btn.style.removeProperty('background');
+      btn.style.removeProperty('border-color');
+      btn.style.removeProperty('color');
+    });
     [pdf,excel,print].forEach(btn=>{
-      btn.style.width='auto';
-      btn.style.minWidth='0';
-      btn.style.margin='0';
-      btn.style.whiteSpace='nowrap';
+      btn.style.setProperty('width','auto','important');
+      btn.style.setProperty('min-width','0','important');
+      btn.style.setProperty('margin','0','important');
+      btn.style.setProperty('white-space','nowrap','important');
     });
   }
 
@@ -160,9 +208,21 @@
     const bodyRows=[...table.querySelectorAll('tbody tr')];
     if(!headRow||!bodyRows.length)return;
 
-    const headers=[...headRow.children].map(th=>(th.textContent||'').trim());
-    if(headers.includes('Sorumlu')&&headers.includes('Telefon'))return;
+    let headers=[...headRow.children].map(th=>(th.textContent||'').trim());
+    const removeDuplicateHeader=(label)=>{
+      const indexes=headers.map((h,i)=>h===label?i:-1).filter(i=>i>=0);
+      for(let k=indexes.length-1;k>=1;k--){
+        const idx=indexes[k];
+        headRow.children[idx]?.remove();
+        bodyRows.forEach(row=>row.children[idx]?.remove());
+        headers=[...headRow.children].map(th=>(th.textContent||'').trim());
+      }
+    };
+    removeDuplicateHeader('Telefon');
+    removeDuplicateHeader('Sorumlu');
 
+    headers=[...headRow.children].map(th=>(th.textContent||'').trim());
+    if(headers.includes('Sorumlu')&&headers.includes('Telefon'))return;
     if(typeof window.ensureDb!=='function')return;
 
     const ids=bodyRows.map(row=>{
@@ -178,14 +238,18 @@
       const {data,error}=await db.from('sevkiyatlar').select('id,sorumlu_kisi,telefon').in('id',ids);
       if(error||!Array.isArray(data))return;
       const map=new Map(data.map(r=>[String(r.id),r]));
-
       const actionHead=headRow.lastElementChild;
-      const responsibleHead=document.createElement('th');
-      responsibleHead.textContent='Sorumlu';
-      const phoneHead=document.createElement('th');
-      phoneHead.textContent='Telefon';
-      headRow.insertBefore(responsibleHead,actionHead);
-      headRow.insertBefore(phoneHead,actionHead);
+
+      if(!headers.includes('Sorumlu')){
+        const th=document.createElement('th');
+        th.textContent='Sorumlu';
+        headRow.insertBefore(th,actionHead);
+      }
+      if(!headers.includes('Telefon')){
+        const th=document.createElement('th');
+        th.textContent='Telefon';
+        headRow.insertBefore(th,actionHead);
+      }
 
       bodyRows.forEach(row=>{
         const btn=row.querySelector('.rc-edit');
@@ -193,12 +257,14 @@
         const m=src.match(/editConcreteFromCombined\(['"]?([^'")]+)['"]?\)/);
         const rec=m?map.get(String(m[1])):null;
         const actionCell=row.lastElementChild;
-        const responsible=document.createElement('td');
-        const phone=document.createElement('td');
-        responsible.textContent=rec?.sorumlu_kisi||'';
-        phone.textContent=rec?.telefon||'';
-        row.insertBefore(responsible,actionCell);
-        row.insertBefore(phone,actionCell);
+        const currentHeaders=[...headRow.children].map(th=>(th.textContent||'').trim());
+        const responsibleIndex=currentHeaders.indexOf('Sorumlu');
+        const phoneIndex=currentHeaders.indexOf('Telefon');
+        while(row.children.length<headRow.children.length){
+          row.insertBefore(document.createElement('td'),actionCell);
+        }
+        if(responsibleIndex>=0)row.children[responsibleIndex].textContent=rec?.sorumlu_kisi||'';
+        if(phoneIndex>=0)row.children[phoneIndex].textContent=rec?.telefon||'';
       });
 
       table.style.minWidth='1120px';
@@ -388,13 +454,4 @@
     observer.observe(document.documentElement,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-})();
-
-/* BETONEXA_STABLE_TRACKING_ACTIONS_LOADER */
-(function(){
-  if(document.querySelector('script[data-betonexa-tracking-actions]'))return;
-  const s=document.createElement('script');
-  s.dataset.betonexaTrackingActions='1';
-  s.src='./tracking-actions.js?v=20260820-stable1';
-  document.head.appendChild(s);
 })();
