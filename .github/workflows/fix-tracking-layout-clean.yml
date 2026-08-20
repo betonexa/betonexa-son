@@ -19,7 +19,6 @@ jobs:
           p=Path('menu-layout.js')
           s=p.read_text(encoding='utf-8')
 
-          # Remove today's extra loader so there is only ONE layout authority.
           marker='/* BETONEXA_STABLE_TRACKING_ACTIONS_LOADER */'
           if marker in s:
               s=s.split(marker)[0].rstrip()+"\n"
@@ -67,7 +66,6 @@ jobs:
       }
     }
 
-    // Remove only summary chips, never the whole filter header.
     if(beton){
       const bwrap=beton.parentElement!==host&&beton.parentElement?.children.length===1?beton.parentElement:beton;
       if(bwrap!==host)bwrap.remove(); else beton.remove();
@@ -77,7 +75,6 @@ jobs:
       if(cwrap!==host)cwrap.remove(); else cimento.remove();
     }
 
-    // If a previous action container exists, do not let it compete for position.
     report.querySelectorAll('.tracking-export-actions,.tracking-final-actions').forEach(el=>{
       if(el!==host)el.style.setProperty('display','none','important');
     });
@@ -97,7 +94,6 @@ jobs:
     host.style.setProperty('background','transparent','important');
     host.style.setProperty('border','0','important');
 
-    // Remove old absolute layout and extra top space.
     report.style.removeProperty('padding-top');
     report.style.removeProperty('position');
 
@@ -134,7 +130,6 @@ jobs:
     const bodyRows=[...table.querySelectorAll('tbody tr')];
     if(!headRow||!bodyRows.length)return;
 
-    // First clean accidental duplicate Sorumlu / Telefon columns from earlier patches.
     let headers=[...headRow.children].map(th=>(th.textContent||'').trim());
     const removeDuplicateHeader=(label)=>{
       const indexes=headers.map((h,i)=>h===label?i:-1).filter(i=>i>=0);
@@ -201,7 +196,6 @@ jobs:
 
           p.write_text(s,encoding='utf-8')
 
-          # Cache-bust only the existing menu-layout script reference. No other index edits.
           idx=Path('index.html')
           h=idx.read_text(encoding='utf-8')
           h,n=re.subn(r'(<script\s+src=["\']\./menu-layout\.js)(?:\?v=[^"\']+)?(["\']\s*>\s*</script>)',r'\1?v=20260820-clean-final\2',h,count=1)
@@ -216,3 +210,4 @@ jobs:
           git add menu-layout.js index.html
           git diff --cached --quiet || git commit -m 'Stabilize tracking buttons and remove duplicate contact columns'
           git push
+# trigger 2
