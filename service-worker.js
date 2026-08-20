@@ -11,6 +11,7 @@ const ASSETS=[
   './cimento-mobile-fix.css',
   './contracts-module.js',
   './normalization.js',
+  './contract-calculations.js',
   './menu-layout.js',
   './records-cement-addon.js'
 ];

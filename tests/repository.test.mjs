@@ -24,7 +24,7 @@ test('service worker uygulamanın yerel modüllerini önbelleğe alır',async()=
   const worker=await read('service-worker.js');
   for(const asset of [
     'cimento-module.js','cimento-history.js','cimento-enhancements.js',
-    'contracts-module.js','normalization.js','menu-layout.js','records-cement-addon.js'
+    'contracts-module.js','normalization.js','contract-calculations.js','menu-layout.js','records-cement-addon.js'
   ])assert.match(worker,new RegExp(asset.replace('.','\\.')));
   assert.doesNotMatch(worker,/r\|\|caches\.match\('\.\/index\.html'\)/);
 });
@@ -43,6 +43,35 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
   assert.equal(grouped.length,1);
   assert.equal(grouped[0].name,'Şen Beton');
   assert.equal(grouped[0].total,75);
+});
+
+test('sözleşme gerçekleşen ve kalan m³ hesapları tarihe göre doğrudur',async()=>{
+  await import('../normalization.js');
+  await import('../contract-calculations.js');
+  const names=globalThis.BetonexaNames,contracts=globalThis.BetonexaContracts;
+  const contract={firma:'Şen Beton',santiye:'Işıklar',sozlesme_tarihi:'2026-01-01',devir_m3:100,devir_tarihi:'2026-06-30',toplam_sozlesme_m3:500};
+  const records=[
+    {firma:'ŞEN-BETON',santiye:'ışıklar',tarih:'2026-06-30',metraj:25},
+    {firma:'şen beton',santiye:'IŞIKLAR',tarih:'2026-07-01',metraj:30},
+    {firma:'Başka Firma',santiye:'Işıklar',tarih:'2026-07-02',metraj:50}
+  ];
+  const progress=contracts.progress(contract,records,names);
+  assert.equal(progress.afterCarry,30);
+  assert.equal(progress.realized,130);
+  assert.equal(progress.remaining,370);
+  assert.equal(progress.overrun,0);
+});
+
+test('sözleşme girişi hatalı devir ve tarihleri reddeder',async()=>{
+  await import('../contract-calculations.js');
+  const errors=globalThis.BetonexaContracts.validate({
+    firma:'Önerge',santiye:'Işıklar',sozlesme_tarihi:'2026-08-01',
+    sabitlik_bitis_tarihi:'2026-07-01',toplam_sozlesme_m3:100,devir_m3:120,
+    devir_tarihi:null,alis_fiyati:10,satis_fiyati:20,vade_gunu:30
+  });
+  assert.ok(errors.some(error=>error.includes('aşamaz')));
+  assert.ok(errors.some(error=>error.includes('devir tarihi')));
+  assert.ok(errors.some(error=>error.includes('önce olamaz')));
 });
 
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{

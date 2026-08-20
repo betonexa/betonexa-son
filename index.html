@@ -15,6 +15,7 @@
  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
  <script src="./normalization.js"></script>
+ <script src="./contract-calculations.js"></script>
  <style>
 
 :root {
@@ -2090,31 +2091,11 @@ function contractM3(v){
 }
 
 function contractShipmentTotal(contract){
-  const companyKey=analysisCanonicalKey(contract.firma);
-  const siteKey=analysisCanonicalKey(contract.santiye);
-
-  return records
-    .filter(r=>{
-      if(analysisCanonicalKey(r.firma)!==companyKey)return false;
-      if(analysisCanonicalKey(r.santiye)!==siteKey)return false;
-
-      if(contract.devir_tarihi && r.tarih){
-        return r.tarih>contract.devir_tarihi;
-      }
-
-      return true;
-    })
-    .reduce((sum,r)=>sum+Number(r.metraj||0),0);
+  return window.BetonexaContracts.shipmentTotal(contract,records,window.BetonexaNames);
 }
 
 function contractProgressValues(contract){
-  const carry=Number(contract.devir_m3||0);
-  const afterCarry=contractShipmentTotal(contract);
-  const realized=carry+afterCarry;
-  const total=Number(contract.toplam_sozlesme_m3||0);
-  const remaining=Math.max(0,total-realized);
-
-  return {realized,remaining};
+  return window.BetonexaContracts.progress(contract,records,window.BetonexaNames);
 }
 
 function contractFixedStatus(contract){
@@ -2273,6 +2254,7 @@ function renderContractDetail(contract){
     <div><strong>Devir:</strong> ${contractM3(contract.devir_m3)}</div>
     <div><strong>Gerçekleşen:</strong> ${contractM3(progress.realized)}</div>
     <div><strong>Kalan:</strong> ${contractM3(progress.remaining)}</div>
+    ${progress.overrun>0?`<div style="color:var(--danger)"><strong>Sözleşme aşımı:</strong> ${contractM3(progress.overrun)}</div>`:""}
     ${contract.santiye_adresi
       ?`<div style="margin-top:10px"><strong>📍 Adres:</strong> ${esc(contract.santiye_adresi)}</div>`
       :""
@@ -2394,13 +2376,8 @@ function clearContractForm(){
 }
 
 async function saveContract(){
-  const company=$("contractCompany").value.trim();
-  const site=$("contractSite").value.trim();
-
-  if(!company||!site){
-    alert("Firma ve şantiye bilgisi zorunludur.");
-    return;
-  }
+  const company=window.BetonexaNames.label($("contractCompany").value);
+  const site=window.BetonexaNames.label($("contractSite").value);
 
   const payload={
     firma:company,
@@ -2416,6 +2393,12 @@ async function saveContract(){
     devir_tarihi:$("contractCarryDate").value||null,
     aktif:true
   };
+
+  const validationErrors=window.BetonexaContracts.validate(payload);
+  if(validationErrors.length){
+    alert(validationErrors.join("\n"));
+    return;
+  }
 
   setLoading(true);
 
