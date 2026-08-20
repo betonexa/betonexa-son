@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.20-stable';
+const CACHE='betonexa-2026.08.20-layout-restore1';
 const ASSETS=[
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS=[
   './normalization.js',
   './contract-calculations.js',
   './menu-layout.js',
+  './tracking-finalizer.js',
   './records-cement-addon.js'
 ];
 

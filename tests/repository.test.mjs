@@ -24,7 +24,7 @@ test('service worker uygulamanın yerel modüllerini önbelleğe alır',async()=
   const worker=await read('service-worker.js');
   for(const asset of [
     'cimento-module.js','cimento-history.js','cimento-enhancements.js',
-    'contracts-module.js','normalization.js','contract-calculations.js','menu-layout.js','records-cement-addon.js'
+    'contracts-module.js','normalization.js','contract-calculations.js','menu-layout.js','tracking-finalizer.js','records-cement-addon.js'
   ])assert.match(worker,new RegExp(asset.replace('.','\\.')));
   assert.doesNotMatch(worker,/r\|\|caches\.match\('\.\/index\.html'\)/);
 });
@@ -81,6 +81,15 @@ test('sevkiyat takibi çıktı düğmeleri yarınki sevkiyat düzenini kullanır
   for(const id of ['pdfBtn','excelBtn','printBtn'])assert.match(layout,new RegExp(id));
   assert.match(layout,/justify-content','flex-end','important'/);
   assert.match(layout,/gap','8px','important'/);
+});
+
+test('çalışan son yerleşim düzelticisi yeni sürüm adresiyle en sonda yüklenir',async()=>{
+  const html=await read('index.html');
+  const finalizer=await read('tracking-finalizer.js');
+  assert.match(html,/tracking-finalizer\.js\?v=20260820-restore1/);
+  assert.ok(html.indexOf('tracking-finalizer.js?v=20260820-restore1')>html.indexOf('menu-layout.js'));
+  assert.match(finalizer,/trackingExportFinalHost/);
+  assert.match(finalizer,/host\.className='tomorrow-actions'/);
 });
 
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{
