@@ -114,59 +114,57 @@
     const print=document.getElementById('printBtn');
     if(!report||!pdf||!excel||!print)return;
 
-    let host=report.querySelector('.tracking-export-slot');
+    let host=report.querySelector('#trackingExportFinalHost');
 
     if(!host){
-      const all=[...report.querySelectorAll('*')];
       const text=el=>(el.textContent||'').replace(/\s+/g,' ').trim();
-      const isBeton=el=>/^.*\b\d+\s*beton\b/i.test(text(el));
-      const isCimento=el=>/^.*\b\d+\s*çimento\b/i.test(text(el));
-
-      const betonLeaf=all
-        .filter(isBeton)
-        .filter(el=>![...el.children].some(isBeton))
-        .sort((a,b)=>text(a).length-text(b).length)[0];
-      const cimentoLeaf=all
-        .filter(isCimento)
-        .filter(el=>![...el.children].some(isCimento))
-        .sort((a,b)=>text(a).length-text(b).length)[0];
+      const directBadge=re=>[...report.querySelectorAll('div,span,strong')]
+        .filter(el=>re.test(text(el)))
+        .filter(el=>![...el.children].some(child=>re.test(text(child))))
+        .sort((a,b)=>text(a).length-text(b).length)[0]||null;
+      const betonLeaf=directBadge(/\b\d+\s*beton\b/i);
+      const cimentoLeaf=directBadge(/\b\d+\s*çimento\b/i);
 
       if(!betonLeaf||!cimentoLeaf)return;
 
-      const badgeRoot=(leaf,other)=>{
+      const badgeRoot=leaf=>{
         let cur=leaf;
         while(cur.parentElement&&cur.parentElement!==report){
           const p=cur.parentElement;
           const t=text(p);
-          if(p.contains(other))break;
-          if(/Sevkiyat Filtreleri/i.test(t))break;
-          if(/Bugün/.test(t)&&/Yarın/.test(t)&&/Bu Hafta/.test(t))break;
+          if(/Sevkiyat Filtreleri/i.test(t)||(/Bugün/.test(t)&&/Yarın/.test(t)&&/Bu Hafta/.test(t)))break;
+          if(p.children.length>3)break;
           cur=p;
         }
         return cur;
       };
 
-      const betonBadge=badgeRoot(betonLeaf,cimentoLeaf);
-      const cimentoBadge=badgeRoot(cimentoLeaf,betonLeaf);
-      const parent=betonBadge.parentElement;
+      const betonBadge=badgeRoot(betonLeaf);
+      const cimentoBadge=badgeRoot(cimentoLeaf);
+      let parent=betonBadge.parentElement;
+      if(parent!==cimentoBadge.parentElement){
+        const common=[...report.querySelectorAll('*')].find(el=>
+          [...el.children].includes(betonBadge)&&[...el.children].includes(cimentoBadge));
+        if(common)parent=common;
+      }
       if(!parent)return;
 
       host=document.createElement('div');
-      host.className='tomorrow-actions tracking-export-slot';
+      host.id='trackingExportFinalHost';
       parent.insertBefore(host,betonBadge);
 
       if(betonBadge.isConnected)betonBadge.remove();
       if(cimentoBadge.isConnected)cimentoBadge.remove();
     }
 
-    const oldParent=pdf.parentElement;
+    const oldParents=new Set([pdf.parentElement,excel.parentElement,print.parentElement]);
     [pdf,excel,print].forEach(btn=>{
       if(btn.parentElement!==host)host.appendChild(btn);
     });
 
-    if(oldParent&&oldParent!==host&&!oldParent.querySelector('button')){
-      oldParent.style.setProperty('display','none','important');
-    }
+    oldParents.forEach(oldParent=>{
+      if(oldParent&&oldParent!==host&&!oldParent.querySelector('button'))oldParent.style.setProperty('display','none','important');
+    });
 
     host.className='tomorrow-actions tracking-export-slot';
     host.style.setProperty('display','flex','important');

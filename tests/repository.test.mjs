@@ -74,6 +74,15 @@ test('sözleşme girişi hatalı devir ve tarihleri reddeder',async()=>{
   assert.ok(errors.some(error=>error.includes('önce olamaz')));
 });
 
+test('sevkiyat takibi çıktı düğmeleri yarınki sevkiyat düzenini kullanır',async()=>{
+  const layout=await read('menu-layout.js');
+  assert.match(layout,/trackingExportFinalHost/);
+  assert.match(layout,/host\.className='tomorrow-actions tracking-export-slot'/);
+  for(const id of ['pdfBtn','excelBtn','printBtn'])assert.match(layout,new RegExp(id));
+  assert.match(layout,/justify-content','flex-end','important'/);
+  assert.match(layout,/gap','8px','important'/);
+});
+
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{
   const directory=new URL('../.github/workflows/',import.meta.url);
   const files=await readdir(directory);
