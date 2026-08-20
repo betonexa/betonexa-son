@@ -24,9 +24,25 @@ test('service worker uygulamanın yerel modüllerini önbelleğe alır',async()=
   const worker=await read('service-worker.js');
   for(const asset of [
     'cimento-module.js','cimento-history.js','cimento-enhancements.js',
-    'contracts-module.js','menu-layout.js','records-cement-addon.js'
+    'contracts-module.js','normalization.js','menu-layout.js','records-cement-addon.js'
   ])assert.match(worker,new RegExp(asset.replace('.','\\.')));
   assert.doesNotMatch(worker,/r\|\|caches\.match\('\.\/index\.html'\)/);
+});
+
+test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
+  const names=(await import('../normalization.js')).default||globalThis.BetonexaNames;
+  assert.equal(names.label('  ŞEN   BETON  '),'Şen Beton');
+  assert.equal(names.label('önerge inş.'),'Önerge İnşaat');
+  assert.equal(names.key('ÖNERGE İNŞ.'),names.key('onerge insaat'));
+  assert.equal(names.key('IŞIKLAR'),names.key('ışıklar'));
+  const grouped=names.group([
+    {firma:'Şen Beton',metraj:25},
+    {firma:'şen   beton',metraj:30},
+    {firma:'ŞEN-BETON',metraj:20}
+  ],row=>row.firma,row=>row.metraj);
+  assert.equal(grouped.length,1);
+  assert.equal(grouped[0].name,'Şen Beton');
+  assert.equal(grouped[0].total,75);
 });
 
 test('GitHub iş akışları depo içeriğini otomatik değiştirmez',async()=>{

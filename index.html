@@ -14,6 +14,7 @@
  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
+ <script src="./normalization.js"></script>
  <style>
 
 :root {
@@ -3282,33 +3283,11 @@ function analysisRecords(){
   });
 }
 function analysisCanonicalKey(value){
-  return String(value || "Belirtilmemiş")
-    .trim()
-    .replace(/\s+/g," ")
-    .toLocaleLowerCase("tr-TR")
-    .replace(/ş/g,"s")
-    .replace(/ğ/g,"g")
-    .replace(/ç/g,"c")
-    .replace(/ö/g,"o")
-    .replace(/ü/g,"u")
-    .replace(/ı/g,"i")
-    .replace(/[’'`´]/g,"")
-    .replace(/[.\-_/\\(),:;]+/g," ")
-    .replace(/\s+/g," ")
-    .trim()
-    .replace(/\s/g,"");
+  return window.BetonexaNames.key(value||"Belirtilmemiş");
 }
 
 function analysisDisplayName(value){
-  const clean=String(value || "Belirtilmemiş")
-    .trim()
-    .replace(/\s+/g," ");
-
-  // Firma/şantiye adlarını okunaklı başlık biçiminde göster.
-  // Örn. "ŞEN BETON" => "Şen Beton"
-  return clean
-    .toLocaleLowerCase("tr-TR")
-    .replace(/(^|[\s\-\/])([\p{L}])/gu,(m,sep,ch)=>sep+ch.toLocaleUpperCase("tr-TR"));
+  return window.BetonexaNames.label(value||"Belirtilmemiş");
 }
 
 function groupAnalysis(items,keyFn){

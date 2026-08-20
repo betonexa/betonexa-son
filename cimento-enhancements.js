@@ -5,8 +5,8 @@
   const db=()=>typeof window.ensureDb==='function'?window.ensureDb():null;
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const norm=s=>String(s||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' ');
-  const title=s=>String(s||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('tr-TR').replace(/(^|[\s\-\/])([\p{L}])/gu,(m,a,b)=>a+b.toLocaleUpperCase('tr-TR'));
-  const canonical=s=>norm(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/[.,;:()'"`]/g,' ').replace(/\bins\b/g,'insaat').replace(/\s+/g,' ').trim();
+  const title=s=>window.BetonexaNames.label(s);
+  const canonical=s=>window.BetonexaNames.key(s);
   const prettier=(oldV,newV)=>{if(!oldV)return newV;if(!newV)return oldV;const score=v=>String(v).replace(/[.]/g,'').length+(String(v).toLocaleLowerCase('tr-TR').includes('inşaat')?20:0);return score(newV)>score(oldV)?newV:oldV};
   const fmt=n=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
   let suggestions={firma:[],yer:['Şantiye']};
