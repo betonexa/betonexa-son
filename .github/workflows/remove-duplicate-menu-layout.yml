@@ -18,7 +18,7 @@ jobs:
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
           pattern=r'(?:\s*<script\s+src=["\']\./menu-layout\.js(?:\?v=[^"\']+)?["\']\s*>\s*</script>\s*)+'
-          replacement='\n<script src="./menu-layout.js?v=20260820-single-final"></script>\n'
+          replacement='\n<script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>\n'
           s,n=re.subn(pattern,replacement,s,count=1)
           if n!=1:
               raise SystemExit('menu-layout script group not found')
@@ -29,6 +29,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git diff --cached --quiet || git commit -m 'Remove duplicate menu-layout script loader'
+          git diff --cached --quiet || git commit -m 'Refresh menu layout cache for tracking fix'
           git push
-# trigger
+# trigger direct
