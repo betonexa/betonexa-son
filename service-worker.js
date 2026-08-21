@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.21-home-button-header-v1';
+const CACHE='betonexa-2026.08.21-header-stripe-fix-v1';
 const ASSETS=[
   './',
   './index.html',
