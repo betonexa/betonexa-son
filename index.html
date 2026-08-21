@@ -1526,6 +1526,21 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 }
 </style>
 
+<style>
+/* Ana Sayfa — sade karşılama ve bölüm seçimi */
+#homePage.home-welcome{min-height:calc(100vh - 130px);display:grid;place-items:center;padding:36px 20px}
+#homePage.home-welcome.hidden{display:none!important}
+.home-welcome-card{width:min(940px,100%);padding:34px;border:1px solid rgba(255,255,255,.72);border-radius:28px;background:rgba(255,247,239,.58);box-shadow:0 24px 70px rgba(31,20,39,.20);backdrop-filter:blur(15px);text-align:center}
+.home-logo-glow{width:104px;height:104px;margin:0 auto 12px;border-radius:30px;display:grid;place-items:center;background:rgba(255,255,255,.76);box-shadow:0 0 0 0 rgba(103,52,189,.28);animation:homeLogoPulse 2.8s ease-in-out infinite}
+.home-logo-glow img{width:82px;height:82px;border-radius:22px}
+.home-welcome-card h2{margin:0;color:var(--purple-dark);font-size:34px}.home-welcome-card>p{margin:7px 0 24px;color:var(--muted);font-weight:700}
+.home-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.home-action{min-height:92px;border:1px solid rgba(103,52,189,.15);border-radius:18px;background:rgba(255,255,255,.78);color:#272231;padding:14px 12px;font:800 17px/1.2 Arial;cursor:pointer;box-shadow:0 8px 18px rgba(73,42,115,.06);transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.home-action span{display:block;margin-bottom:7px;font-size:28px}.home-action:hover{transform:translateY(-3px);background:#fff;box-shadow:0 13px 27px rgba(73,42,115,.15)}
+@keyframes homeLogoPulse{0%,100%{box-shadow:0 0 0 0 rgba(103,52,189,.20)}50%{box-shadow:0 0 0 14px rgba(103,52,189,0),0 0 30px rgba(103,52,189,.22)}}
+@media(max-width:700px){#homePage.home-welcome{padding:18px 12px;min-height:calc(100vh - 92px)}.home-welcome-card{padding:24px 14px;border-radius:22px}.home-logo-glow{width:84px;height:84px}.home-logo-glow img{width:66px;height:66px}.home-welcome-card h2{font-size:27px}.home-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.home-action{min-height:82px;font-size:14px}.home-action span{font-size:24px}}
+</style>
+
 </head>
 <body>
 <div id="loading" class="loading hidden">Yükleniyor…</div>
@@ -1585,10 +1600,30 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
  <button class="btn btn-light" data-page="contracts">📑 Sözleşmeler</button>
  <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
- <button class="btn btn-light active" data-page="dashboard">🏠 Ana Sayfa</button>
+ <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
+ <button class="btn btn-light active" data-page="home">🏠 Ana Sayfa</button>
  </nav>
 
- <section id="dashboardPage" class="panel">
+ <section id="homePage" class="home-welcome">
+  <div class="home-welcome-card">
+   <div class="home-logo-glow"><img src="./icon-192.png" alt="Betonexa"></div>
+   <h2>Betonexa</h2>
+   <p>Bugün ne yapmak istersiniz?</p>
+   <div class="home-actions">
+    <button type="button" class="home-action" data-home-page="concrete"><span>🚚</span>Beton</button>
+    <button type="button" class="home-action" data-home-page="cement"><span>🏗️</span>Çimento</button>
+    <button type="button" class="home-action" data-home-page="records"><span>📋</span>Sevkiyat Takibi</button>
+    <button type="button" class="home-action" data-home-page="tomorrow"><span>📅</span>Yarınki Sevkiyatlar</button>
+    <button type="button" class="home-action" data-home-page="calendar"><span>🗓️</span>Takvim</button>
+    <button type="button" class="home-action" data-home-page="analysis"><span>📊</span>Analiz</button>
+    <button type="button" class="home-action" data-home-page="contracts"><span>📑</span>Sözleşmeler</button>
+    <button type="button" class="home-action" data-home-page="dashboard"><span>📈</span>Dashboard</button>
+    <button type="button" class="home-action" data-home-page="settings"><span>⚙️</span>Ayarlar</button>
+   </div>
+  </div>
+ </section>
+
+ <section id="dashboardPage" class="panel hidden">
  <div class="dashboard-head">
  <div>
  <h2>Bugünün Operasyon Özeti</h2>
@@ -3697,6 +3732,7 @@ function printPlan(){
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 function showPage(p){
+  $("homePage").classList.toggle("hidden",p!=="home");
   $("dashboardPage").classList.toggle("hidden",p!=="dashboard");
   $("tomorrowPage").classList.toggle("hidden",p!=="tomorrow");
   $("recordsPage").classList.toggle("hidden",p!=="records");
@@ -3704,6 +3740,8 @@ function showPage(p){
   $("analysisPage").classList.toggle("hidden",p!=="analysis");
  $("contractsPage").classList.toggle("hidden",p!=="contracts");
   $("settingsPage").classList.toggle("hidden",p!=="settings");
+  document.querySelector("main.content>.kpis")?.classList.toggle("hidden",p==="home");
+  document.querySelector("main.content>.tabs")?.classList.toggle("hidden",p==="home");
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
   if(p==="dashboard")renderDashboard();
   if(p==="tomorrow")renderTomorrowReport();
@@ -3747,7 +3785,7 @@ async function login(){
     sessionStorage.setItem("betonexa_login","1");
     $("login").classList.add("hidden");
     $("app").classList.remove("hidden");
-    showPage("dashboard");
+    showPage("home");
     await loadRecords();
   }catch(error){
     sessionStorage.removeItem("betonexa_login");
@@ -3869,6 +3907,7 @@ $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRef
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+document.querySelectorAll("[data-home-page]").forEach(b=>b.addEventListener("click",()=>{const page=b.dataset.homePage;if(page==="concrete"||page==="records"){showPage("records");setTimeout(()=>document.querySelector(`[data-page="${page}"]`)?.click(),0)}else{showPage(page);if(page==="cement")setTimeout(()=>document.querySelector('[data-page="cement"]')?.click(),0)}}));
 document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
 window.removeSettingItem=removeSettingItem;
