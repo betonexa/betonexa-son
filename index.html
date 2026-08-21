@@ -1579,16 +1579,16 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
  </section>
  <nav class="tabs">
- <button class="btn btn-light active" data-page="records">🚚 Sevkiyatlar</button>
+ <button class="btn btn-light" data-page="records">🚚 Sevkiyatlar</button>
  <button class="btn btn-light" data-page="tomorrow">📅 Yarınki Sevkiyatlar</button>
  <button class="btn btn-light" data-page="calendar">📅 Haftalık Takvim</button>
  <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
  <button class="btn btn-light" data-page="contracts">📑 Sözleşmeler</button>
  <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
- <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
+ <button class="btn btn-light active" data-page="dashboard">🏠 Ana Sayfa</button>
  </nav>
 
- <section id="dashboardPage" class="panel hidden">
+ <section id="dashboardPage" class="panel">
  <div class="dashboard-head">
  <div>
  <h2>Bugünün Operasyon Özeti</h2>
@@ -1687,7 +1687,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <div id="tomorrowReport"></div>
  </section>
 
- <section id="recordsPage" class="panel">
+ <section id="recordsPage" class="panel hidden">
  <div class="dashboard-head"><div><h2>Yeni Sevkiyat Ekle</h2><small>Sevkiyat bilgilerini doldurarak kaydedebilirsin.</small></div></div>
  <form id="shipmentForm">
  <input id="editId" type="hidden">
@@ -3747,7 +3747,7 @@ async function login(){
     sessionStorage.setItem("betonexa_login","1");
     $("login").classList.add("hidden");
     $("app").classList.remove("hidden");
-    showPage("records");
+    showPage("dashboard");
     await loadRecords();
   }catch(error){
     sessionStorage.removeItem("betonexa_login");
