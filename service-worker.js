@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.21-contract-history-crud-v1';
+const CACHE='betonexa-2026.08.21-login-fullwidth-v1';
 const ASSETS=[
   './',
   './index.html',
