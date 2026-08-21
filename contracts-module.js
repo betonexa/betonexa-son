@@ -55,8 +55,14 @@ function addStyles(){
     #contractsList .contract-history-row:first-child{border-top:0}
     #contractsList .contract-history-empty{padding:9px 0;color:#7a7187;font-size:12px}
     #contractsList .contract-inline-loading{padding:15px 0;color:#7a7187;font-size:12px}
-    #contractsPage .settings-grid>.settings-box:nth-child(2) .settings-body>div:nth-of-type(3),
-    #contractsPage .settings-grid>.settings-box:nth-child(2) .settings-body>div:nth-of-type(4){display:none!important}
+    #contractsPage .settings-grid{grid-template-columns:minmax(0,1fr)!important}
+    #contractsPage .contract-list-box{width:100%;max-width:none}
+    #contractsPage .contract-editor-box{display:none}
+    #contractsPage .contract-editor-box.is-visible{display:block}
+    #contractsPage .contract-editor-box .contract-legacy-history,
+    #contractsPage .contract-editor-box .contract-legacy-progress{display:none!important}
+    #contractsPage .contract-editor-toolbar{display:flex;justify-content:flex-end;margin:-4px 0 14px}
+    #contractsPage .contract-editor-close{border:1px solid rgba(103,52,189,.18);border-radius:10px;background:#fff;color:#4d2393;padding:8px 13px;font-weight:800;cursor:pointer}
     @media(max-width:700px){
       #contractsList .contract-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       #contractsList .contract-detail-cell.wide{grid-column:span 2}
@@ -110,15 +116,24 @@ async function loadInlineContract(id,detail){
       ${contract.santiye_adresi?detailCell('Şantiye Adresi',contract.santiye_adresi,true):''}
     </div>
     <div class="contract-progress-grid">${progressValues.map(x=>`<div>${esc(x.label)}<strong>${esc(x.value)}</strong></div>`).join('')}</div>
-    <div class="contract-inline-head"><h4>💰 Fiyat Geçmişi</h4><button type="button" class="contract-inline-add">+ Eski Fiyat Ekle</button></div>
+    <div class="contract-inline-head"><h4>💰 Fiyat Geçmişi</h4><div><button type="button" class="contract-inline-add contract-inline-edit">Düzenle</button> <button type="button" class="contract-inline-add contract-inline-history-add">+ Eski Fiyat Ekle</button></div></div>
     <div class="contract-inline-history">${historyHtml}</div>`;
-  detail.querySelector('.contract-inline-add')?.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(typeof window.selectContract==='function')await window.selectContract(Number(id));const form=$('contractHistoryForm');if(!form)return;detail.appendChild(form);form.style.display=form.style.display==='none'?'block':'none';if(form.style.display==='block')form.scrollIntoView({behavior:'smooth',block:'nearest'})});
+  detail.querySelector('.contract-inline-edit')?.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(typeof window.selectContract==='function')await window.selectContract(Number(id));showContractEditor('Sözleşmeyi Düzenle')});
+  detail.querySelector('.contract-inline-history-add')?.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(typeof window.selectContract==='function')await window.selectContract(Number(id));const form=$('contractHistoryForm');if(!form)return;detail.appendChild(form);form.style.display=form.style.display==='none'?'block':'none';if(form.style.display==='block')form.scrollIntoView({behavior:'smooth',block:'nearest'})});
 }
 function toggleInlineCard(wrap,id,detail){
   const opening=!wrap.classList.contains('is-open');document.querySelectorAll('#contractsList .contract-card-wrap.is-open').forEach(x=>{if(x!==wrap)x.classList.remove('is-open')});wrap.classList.toggle('is-open',opening);if(opening)setTimeout(()=>loadInlineContract(id,detail),0)
 }
 function decorateCards(){$('contractDeleteBtn')?.remove();const list=$('contractsList');if(!list)return;[...list.querySelectorAll('.contract-card')].forEach(card=>{if(card.closest('.contract-card-wrap'))return;const id=cardId(card);if(!id)return;const wrap=document.createElement('div');wrap.className='contract-card-wrap';card.parentNode.insertBefore(wrap,card);wrap.appendChild(card);const detail=document.createElement('div');detail.className='contract-inline-detail';wrap.appendChild(detail);card.addEventListener('click',()=>toggleInlineCard(wrap,id,detail));const del=document.createElement('button');del.type='button';del.className='contract-list-delete';del.title='Sözleşmeyi Sil';del.textContent='🗑️';del.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();deleteContract(id,del)});wrap.appendChild(del)})}
 function observeContracts(){const list=$('contractsList');if(!list||list.dataset.deleteObserver==='1')return;list.dataset.deleteObserver='1';new MutationObserver(()=>requestAnimationFrame(decorateCards)).observe(list,{childList:true,subtree:false})}
+function showContractEditor(title){const editor=document.querySelector('#contractsPage .contract-editor-box');if(!editor)return;editor.classList.add('is-visible');const heading=editor.querySelector(':scope>h3');if(heading)heading.textContent='🏗️ '+title;editor.scrollIntoView({behavior:'smooth',block:'start'})}
+function hideContractEditor(){document.querySelector('#contractsPage .contract-editor-box')?.classList.remove('is-visible')}
+function setupContractLayout(){
+  const boxes=document.querySelectorAll('#contractsPage .settings-grid>.settings-box');if(boxes.length<2)return;const listBox=boxes[0],editor=boxes[1];listBox.classList.add('contract-list-box');editor.classList.add('contract-editor-box');
+  const body=editor.querySelector('.settings-body');if(body&&!body.querySelector('.contract-editor-toolbar')){const toolbar=document.createElement('div');toolbar.className='contract-editor-toolbar';toolbar.innerHTML='<button type="button" class="contract-editor-close">✕ Formu Kapat</button>';toolbar.querySelector('button').onclick=hideContractEditor;body.prepend(toolbar)}
+  const history=$('contractPriceHistory')?.parentElement;const progress=$('contractProgress')?.parentElement;if(history)history.classList.add('contract-legacy-history');if(progress)progress.classList.add('contract-legacy-progress');
+  const newBtn=$('contractNewBtn');if(newBtn&&newBtn.dataset.inlineEditor!=='1'){newBtn.dataset.inlineEditor='1';newBtn.addEventListener('click',()=>setTimeout(()=>showContractEditor('Yeni Sözleşme'),0))}
+}
 
 function blocks(){const box=$('recordsCombinedView');if(!box)return{};const all=[...box.querySelectorAll('.rc-block')];return{box,concrete:all.find(x=>/Beton Sevkiyatları/i.test(x.querySelector('h3')?.textContent||'')),cement:all.find(x=>/Çimento Sevkiyatları/i.test(x.querySelector('h3')?.textContent||''))}}
 function concreteRows(){const b=blocks().concrete;return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9):[]}
@@ -203,6 +218,6 @@ function ensureFilters(){
   refreshOptions();applyFilters();return true;
 }
 function observeRecords(){const host=$('recordsPage');if(!host||host.dataset.unifiedFilterObserver==='1')return;host.dataset.unifiedFilterObserver='1';let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(ensureFilters,120)}).observe(host,{childList:true,subtree:true})}
-function init(){addStyles();if($('contractsPage')){decorateCards();observeContracts()}forceLegacyAll();observeRecords();ensureFilters();document.querySelector('[data-page="records"]')?.addEventListener('click',()=>setTimeout(ensureFilters,180))}
+function init(){addStyles();if($('contractsPage')){setupContractLayout();decorateCards();observeContracts()}forceLegacyAll();observeRecords();ensureFilters();document.querySelector('[data-page="records"]')?.addEventListener('click',()=>setTimeout(ensureFilters,180))}
 let tries=0,t=setInterval(()=>{init();if(++tries>80)clearInterval(t)},250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
