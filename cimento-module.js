@@ -77,4 +77,4 @@
   function init(){injectStyles();injectUi();}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 (function loadCementHistoryModule(){if(document.querySelector('script[src="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js";script.defer=true;document.head.appendChild(script)})();
-(function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20260824-filter-rewrite1";script.defer=true;document.head.appendChild(script)})();
+(function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20260824-filter-rewrite2";script.defer=true;document.head.appendChild(script)})();

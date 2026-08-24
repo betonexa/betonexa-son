@@ -8,10 +8,11 @@ const asciiKey=v=>norm(v).replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u
 function titleTr(v){return String(v||'').split(/(\s+|-)/).map(p=>/^[\s-]+$/.test(p)?p:(p.charAt(0).toLocaleUpperCase('tr-TR')+p.slice(1).toLocaleLowerCase('tr-TR'))).join('')}
 function canonicalParts(value){
   const raw=String(value??'').trim().replace(/\s+/g,' ');
-  const expanded=raw.toLocaleLowerCase('tr-TR')
-    .replace(/(^|[\s\-/])(?:inş|ins)\s*\.(?=\s|$|[\-/])/gu,'$1inşaat');
+  const lowered=raw.toLocaleLowerCase('tr-TR');
+  const expanded=lowered.replace(/(^|[\s\-/])(?:inş|ins)(?=[^\p{L}\p{N}]|$)[^\p{L}\p{N}]*/gu,'$1inşaat ' ).trim();
   const label=titleTr(expanded);
-  return{label,key:asciiKey(label)};
+  const key=asciiKey(raw).replace(/(^|\s)ins(?=\s|$)/g,'$1insaat');
+  return{label,key};
 }
 function canonicalLabel(value){return canonicalParts(value).label}
 function canonicalKey(value){return canonicalParts(value).key}

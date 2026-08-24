@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-filter-rewrite-v1';
+const CACHE='betonexa-2026.08.24-filter-rewrite-v2';
 const ASSETS=[
   './',
   './index.html',
