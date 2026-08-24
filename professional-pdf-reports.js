@@ -171,6 +171,10 @@
     }catch(error){alert(error.message||String(error));}
   }
 
+  async function savePrepared(bounds,data,fileName='Betonexa-Sevkiyat-Raporu.pdf'){
+    try{const doc=await buildReport(bounds,data);doc.save(fileName)}catch(error){alert(error.message||String(error))}
+  }
+
   function replacePdfButton(id,kind){
     const old=$(id);if(!old||old.dataset.professionalPdf==='1')return false;
     const button=old.cloneNode(true);button.dataset.professionalPdf='1';old.replaceWith(button);
@@ -186,5 +190,5 @@
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-  root.BetonexaProfessionalPdf=Object.freeze({buildReport,save});
+  root.BetonexaProfessionalPdf=Object.freeze({buildReport,save,savePrepared});
 })(typeof window!=='undefined'?window:null);
