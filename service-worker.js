@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-remember-session-v4';
+const CACHE='betonexa-2026.08.24-remember-session-v5';
 const ASSETS=[
   './',
   './index.html',
