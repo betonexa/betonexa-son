@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-filter-rewrite-v2';
+const CACHE='betonexa-2026.08.24-cement-pending-v1';
 const ASSETS=[
   './',
   './index.html',

@@ -152,7 +152,7 @@
       doc.autoTable({
         ...tableBase(font),startY:y,
         head:[['No','Tarih','Firma','Teslim Yeri / Şantiye','Araç','Tonaj (ton)'].map(text)],
-        body:data.cement.map((item,index)=>[String(index+1),trDate(item.tarih),label(item.firma),label(item.teslim_yeri||'Şantiye'),String(Number(item.arac_sayisi||0)),item.toplam_tonaj==null?'-':fmt(item.toplam_tonaj)].map(text)),
+        body:data.cement.map((item,index)=>[String(index+1),trDate(item.tarih),label(item.firma),label(item.teslim_yeri||'Şantiye'),String(Number(item.arac_sayisi||0)),item.toplam_tonaj==null?'Tonaj bilgisi bekleniyor':fmt(item.toplam_tonaj)].map(text)),
         columnStyles:{0:{cellWidth:12,halign:'center'},1:{cellWidth:38,halign:'center'},2:{cellWidth:52},3:{cellWidth:75},4:{cellWidth:48,halign:'center'},5:{cellWidth:48,halign:'center'}}
       });
       y=(doc.lastAutoTable?.finalY||y+10)+2.3;
