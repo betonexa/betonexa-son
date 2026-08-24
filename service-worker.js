@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-automatic-backup-v1';
+const CACHE='betonexa-2026.08.24-reference-pdf-v1';
 const ASSETS=[
   './',
   './index.html',
@@ -15,6 +15,7 @@ const ASSETS=[
   './menu-layout.js',
   './tracking-finalizer.js',
   './backup-manager.js',
+  './professional-pdf-reports.js',
   './records-cement-addon.js'
 ];
 
