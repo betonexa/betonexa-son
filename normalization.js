@@ -46,20 +46,14 @@
   return Object.freeze({clean,label,key,group});
 });
 
-/*
- * Betonexa — "Beni hatırla" kalıcı oturum düzeltmesi
- *
- * Parola hiçbir zaman localStorage/sessionStorage içine yazılmaz.
- * Supabase'in kendi güvenli oturum/refresh-token mekanizması korunur.
- * Kullanıcı "Beni hatırla" seçtiğinde zaten kaydedilen
- * betonexaRememberedUsername anahtarı, kalıcı oturum tercihi olarak kullanılır.
- */
+/* Betonexa — kalıcı "Beni hatırla" oturumu */
 (function(root){
   'use strict';
   if(!root || !root.supabase || typeof root.supabase.createClient!=='function')return;
   if(root.__betonexaRememberAuthPatch)return;
   root.__betonexaRememberAuthPatch=true;
 
+  const patchStartedAt=Date.now();
   const originalCreateClient=root.supabase.createClient.bind(root.supabase);
 
   function wantsRememberedSession(){
@@ -71,24 +65,38 @@
   }
 
   root.supabase.createClient=function(){
-    const client=originalCreateClient.apply(null,arguments);
+    const args=[...arguments];
+    const existingOptions=args[2]||{};
+    const existingAuth=existingOptions.auth||{};
+
+    args[2]={
+      ...existingOptions,
+      auth:{
+        persistSession:true,
+        autoRefreshToken:true,
+        detectSessionInUrl:true,
+        ...existingAuth
+      }
+    };
+
+    const client=originalCreateClient.apply(null,args);
     root.BetonexaAuthClient=client;
 
     if(client?.auth && !client.auth.__betonexaRememberAuthPatched){
       const originalSignOut=client.auth.signOut.bind(client.auth);
-      let bootSignOutBypassed=false;
+      let startupSignOutBypassed=false;
 
       client.auth.signOut=async function(options){
         const isLocalSignOut=!options || options.scope===undefined || options.scope==='local';
-        const isInitialPageBoot=document.readyState==='loading';
+        const withinStartupWindow=(Date.now()-patchStartedAt)<10000;
 
         if(
-          !bootSignOutBypassed &&
-          isInitialPageBoot &&
+          !startupSignOutBypassed &&
+          withinStartupWindow &&
           isLocalSignOut &&
           wantsRememberedSession()
         ){
-          bootSignOutBypassed=true;
+          startupSignOutBypassed=true;
           return {error:null};
         }
 
@@ -102,14 +110,14 @@
   };
 
   async function restoreRememberedSession(){
-    if(!wantsRememberedSession())return;
+    if(!wantsRememberedSession())return false;
 
     const client=root.BetonexaAuthClient;
-    if(!client?.auth || typeof client.auth.getSession!=='function')return;
+    if(!client?.auth || typeof client.auth.getSession!=='function')return false;
 
     try{
       const {data,error}=await client.auth.getSession();
-      if(error || !data?.session)return;
+      if(error || !data?.session)return false;
 
       try{sessionStorage.setItem('betonexa_login','1')}catch(_){}
 
@@ -120,18 +128,25 @@
 
       if(typeof root.showPage==='function')root.showPage('home');
       if(typeof root.loadRecords==='function')await root.loadRecords();
+      return true;
     }catch(error){
       console.warn('Hatırlanan oturum geri yüklenemedi:',error);
+      return false;
     }
   }
 
-  function scheduleRestore(){
-    setTimeout(restoreRememberedSession,0);
+  function startRestoreLoop(){
+    let tries=0;
+    const timer=setInterval(async()=>{
+      tries+=1;
+      const restored=await restoreRememberedSession();
+      if(restored || tries>=20)clearInterval(timer);
+    },250);
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',scheduleRestore,{once:true});
+    document.addEventListener('DOMContentLoaded',startRestoreLoop,{once:true});
   }else{
-    scheduleRestore();
+    startRestoreLoop();
   }
 })(typeof window!=='undefined'?window:null);
