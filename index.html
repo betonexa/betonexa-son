@@ -14,54 +14,6 @@
  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
- <script>
- /* Şantiye adlarını filtre kurulmadan önce kesin olarak tekilleştirir. */
- (function(){
-   const clean=value=>String(value??'').trim().replace(/\s+/g,' ');
-   const label=value=>{
-     let text=clean(value).toLocaleLowerCase('tr-TR')
-       .replace(/(^|[\s\-/])(?:inş|ins)\s*\.?(?=\s|$|[\-/])/giu,'$1inşaat');
-     return text.replace(/(^|[\s\-/])([\p{L}\p{N}])/gu,
-       (match,separator,character)=>separator+character.toLocaleUpperCase('tr-TR'));
-   };
-   const key=value=>label(value).toLocaleLowerCase('tr-TR').normalize('NFD')
-     .replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/ß/g,'ss')
-     .replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
-   window.BetonexaNames={clean,label,key,group(items,valueOf,totalOf=()=>0){
-     const groups=new Map();
-     for(const item of items||[]){
-       const raw=clean(valueOf(item))||'Belirtilmemiş',canonical=key(raw)||'belirtilmemis';
-       if(!groups.has(canonical))groups.set(canonical,{name:label(raw),count:0,total:0,records:[]});
-       const current=groups.get(canonical);current.count++;current.total+=Number(totalOf(item)||0);current.records.push(item);
-     }
-     return [...groups.values()].sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,'tr'));
-   }};
-   let repairing=false;
-   const repairSiteSelect=()=>{
-     const select=document.getElementById('shipmentFilterSite');
-     if(!select||repairing)return;
-     repairing=true;
-     const selected=key(select.value),seen=new Set(),options=[];
-     [...select.options].forEach((option,index)=>{
-       if(index===0){options.push({value:'',text:option.textContent||'Tüm Şantiyeler'});return;}
-       const canonical=key(option.value||option.textContent);if(!canonical||seen.has(canonical))return;
-       seen.add(canonical);options.push({value:label(option.value||option.textContent),text:label(option.textContent)});
-     });
-     const signature=options.map(x=>x.value+'|'+x.text).join('\n');
-     const current=[...select.options].map(x=>x.value+'|'+x.textContent).join('\n');
-     if(signature!==current){
-       select.innerHTML='';
-       options.forEach(item=>{const option=document.createElement('option');option.value=item.value;option.textContent=item.text;select.appendChild(option)});
-       const match=[...select.options].find(option=>key(option.value)===selected);select.value=match?match.value:'';
-     }
-     repairing=false;
-   };
-   document.addEventListener('DOMContentLoaded',()=>{
-     repairSiteSelect();
-     new MutationObserver(repairSiteSelect).observe(document.body,{childList:true,subtree:true});
-   },{once:true});
- })();
- </script>
  <script src="./normalization.js?v=20260824-site-dedupe2"></script>
  <script src="./contract-calculations.js"></script>
  <style>
@@ -4078,7 +4030,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260824-site-dedupe3"></script>
+<script src="./cimento-module.js?v=20260824-filter-rewrite1"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->

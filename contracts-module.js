@@ -6,14 +6,16 @@ const norm=v=>String(v||'').trim().toLocaleLowerCase('tr-TR').replace(/\s+/g,' '
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const asciiKey=v=>norm(v).replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
 function titleTr(v){return String(v||'').split(/(\s+|-)/).map(p=>/^[\s-]+$/.test(p)?p:(p.charAt(0).toLocaleUpperCase('tr-TR')+p.slice(1).toLocaleLowerCase('tr-TR'))).join('')}
-function canonicalLabel(v){
-  if(window.BetonexaNames?.label)return window.BetonexaNames.label(v);
-  return titleTr(String(v||'').trim().replace(/(^|[\s\-/])(?:inş|ins)\s*\.?(?=\s|$|[\-/])/giu,'$1inşaat'));
+function canonicalParts(value){
+  const raw=String(value??'').trim().replace(/\s+/g,' ');
+  const expanded=raw.toLocaleLowerCase('tr-TR')
+    .replace(/(^|[\s\-/])(?:inş|ins)\s*\.(?=\s|$|[\-/])/gu,'$1inşaat');
+  const label=titleTr(expanded);
+  return{label,key:asciiKey(label)};
 }
-function canonicalKey(v){
-  if(window.BetonexaNames?.key)return window.BetonexaNames.key(v);
-  return asciiKey(canonicalLabel(v));
-}
+function canonicalLabel(value){return canonicalParts(value).label}
+function canonicalKey(value){return canonicalParts(value).key}
+window.BetonexaShipmentFilterNames=Object.freeze({parts:canonicalParts,label:canonicalLabel,key:canonicalKey});
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function trDate(v){return v?v.split('-').reverse().join('.'):''}
 function monday(d){const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x}
@@ -171,8 +173,21 @@ function blocks(){const box=$('recordsCombinedView');if(!box)return{};const all=
 function concreteRows(){const b=blocks().concrete;return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9):[]}
 function cementRows(){const b=blocks().cement;return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=6):[]}
 function rowIso(row){const t=(row.children[1]?.textContent||'').trim();let m=t.match(/(\d{2})\.(\d{2})\.(\d{4})/);if(m)return`${m[3]}-${m[2]}-${m[1]}`;m=t.match(/(\d{4})-(\d{2})-(\d{2})/);return m?m[0]:''}
-function uniqueLabels(values){const map=new Map();values.forEach(raw=>{raw=String(raw||'').trim();if(!raw)return;const label=canonicalLabel(raw),key=canonicalKey(label);if(!map.has(key))map.set(key,label)});return[...map.values()].sort((a,b)=>a.localeCompare(b,'tr'))}
-function fillSelect(id,values,allLabel,canonical=true){const el=$(id);if(!el)return;const old=el.value,key=canonical?canonicalKey(old):norm(old);el.innerHTML=`<option value="">${allLabel}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');const same=[...el.options].find(o=>(canonical?canonicalKey(o.value):norm(o.value))===key);el.value=same?same.value:''}
+function uniqueLabels(values){
+  const unique=new Map();
+  for(const value of values){
+    const item=canonicalParts(value);
+    if(item.key&&!unique.has(item.key))unique.set(item.key,item.label);
+  }
+  return [...unique.values()].sort((a,b)=>a.localeCompare(b,'tr'));
+}
+function fillSelect(id,values,allLabel,canonical=true){
+  const select=$(id);if(!select)return;
+  const selectedKey=canonical?canonicalKey(select.value):norm(select.value);
+  select.replaceChildren(new Option(allLabel,''),...values.map(value=>new Option(value,value)));
+  const selected=[...select.options].find(option=>(canonical?canonicalKey(option.value):norm(option.value))===selectedKey);
+  select.value=selected?.value||'';
+}
 
 function forceLegacyAll(){
   const range=$('exportRange');if(range&&range.value!=='all'){range.value='all';range.dispatchEvent(new Event('change',{bubbles:true}))}
