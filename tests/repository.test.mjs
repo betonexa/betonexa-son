@@ -127,3 +127,13 @@ test('istemci kodunda Supabase yönetici anahtarı bulunmaz',async()=>{
     assert.doesNotMatch(content,/service[_-]?role/i,`${file} yönetici anahtarı işareti içeriyor`);
   }
 });
+
+test('otomatik yedekleme tüm iş tablolarını kapsar ve gizli anahtar saklamaz',async()=>{
+  const backup=await read('backup-manager.js');
+  for(const table of ['sevkiyatlar','cimento_sevkiyatlar','sozlesmeler','sozlesme_fiyat_gecmisi']){
+    assert.match(backup,new RegExp(`['\"]${table}['\"]`));
+  }
+  assert.match(backup,/MAX_SNAPSHOTS=30/);
+  assert.doesNotMatch(backup,/service_role|secret[_-]?key|refresh_token|access_token/i);
+  assert.match(await read('index.html'),/backup-manager\.js\?v=20260824-backup1/);
+});
