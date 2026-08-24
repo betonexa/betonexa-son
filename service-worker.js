@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-site-dedupe-v3';
+const CACHE='betonexa-2026.08.24-site-dedupe-v4';
 const ASSETS=[
   './',
   './index.html',
