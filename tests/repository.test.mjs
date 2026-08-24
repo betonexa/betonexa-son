@@ -149,5 +149,10 @@ test('yarınki ve tüm sevkiyat PDFleri aynı profesyonel rapor motorunu kullan�
   assert.match(pdf,/Sayfa/);
   assert.match(pdf,/replacePdfButton\('tomorrowPdfBtn','tomorrow'\)/);
   assert.match(pdf,/replacePdfButton\('pdfBtn','all'\)/);
-  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260824-reference1/);
+  assert.match(pdf,/savePrepared/);
+  const contracts=await read('contracts-module.js');
+  assert.match(contracts,/BetonexaProfessionalPdf\.savePrepared/);
+  assert.doesNotMatch(contracts,/Filtrelenmiş (Beton|Çimento|Sevkiyat)/);
+  assert.doesNotMatch(contracts,/Filtrelenmis-Sevkiyatlar\.(pdf|xlsx)/);
+  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260824-reference2/);
 });
