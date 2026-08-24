@@ -173,7 +173,11 @@
       }
 
       const backup=readSessionBackup();
-      if(!backup || typeof client.auth.setSession!=='function')return false;
+      if(!backup || typeof client.auth.setSession!=='function'){
+        /* Eski e-posta tercihi tek başına oturum değildir; kutuyu yanıltıcı bırakma. */
+        try{localStorage.removeItem('betonexaRememberedUsername')}catch(_){}
+        return false;
+      }
 
       const restored=await client.auth.setSession({
         access_token:backup.access_token,
@@ -181,6 +185,7 @@
       });
       if(restored?.error || !restored?.data?.session){
         clearSessionBackup();
+        try{localStorage.removeItem('betonexaRememberedUsername')}catch(_){}
         return false;
       }
 
