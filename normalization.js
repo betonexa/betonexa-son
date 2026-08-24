@@ -193,6 +193,9 @@
     }
   }
 
+  /* index.html açılış akışı gecikmeden aynı güvenli geri yüklemeyi kullanabilsin. */
+  root.BetonexaRestoreRememberedSession=restoreRememberedSession;
+
   function startRestoreLoop(){
     let tries=0;
     const timer=setInterval(async()=>{
