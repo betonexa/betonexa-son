@@ -14,7 +14,7 @@
  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js?v=betonexa-20260805-1"></script>
- <script src="./normalization.js"></script>
+ <script src="./normalization.js?v=20260824-remember4"></script>
  <script src="./contract-calculations.js"></script>
  <style>
 
@@ -1559,7 +1559,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
      <input id="rememberUsername" type="checkbox">
      <span>Beni hatırla</span>
    </label>
-   <small>E-posta adresim bu cihazda görünsün</small>
+   <small>Bu cihazda oturumum açık kalsın</small>
  </div>
 <button id="loginBtn" class="btn btn-primary">Giriş Yap</button>
  <button id="forgotPasswordBtn" type="button" class="forgot-link">Şifremi Unuttum</button>
@@ -3923,23 +3923,29 @@ $("exportDate").addEventListener("change",updateExportDateDisplay);
 $("exportDate").addEventListener("input",updateExportDateDisplay);
 
 const analysisNow=new Date();$("analysisStart").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth(),1));$("analysisEnd").value=iso(new Date(analysisNow.getFullYear(),analysisNow.getMonth()+1,0));
-(async function requireFreshLogin(){
+(async function restoreLoginOrShowForm(){
   const client = ensureDb();
+  if($("loginPass")) $("loginPass").value = "";
+
+  try{
+    const remembered=!!localStorage.getItem("betonexaRememberedUsername");
+
+    if(client && remembered && typeof window.BetonexaRestoreRememberedSession==="function"){
+      const restored=await window.BetonexaRestoreRememberedSession();
+      if(restored)return;
+    }
+
+    /* Beni hatırla seçilmemişse eski yerel oturumla otomatik giriş yapma. */
+    if(client && !remembered){
+      await client.auth.signOut({ scope: "local" });
+    }
+  }catch(e){
+    console.warn("Oturum geri yüklenemedi:", e);
+  }
 
   sessionStorage.removeItem("betonexa_login");
   $("login").classList.remove("hidden");
   $("app").classList.add("hidden");
-
-  if($("loginPass")) $("loginPass").value = "";
-
-  try{
-    if(client){
-      await client.auth.signOut({ scope: "local" });
-    }
-  }catch(e){
-    console.warn("Eski yerel oturum temizlenemedi:", e);
-  }
-
   setTimeout(() => $("loginPass")?.focus(), 50);
 })();
 if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
