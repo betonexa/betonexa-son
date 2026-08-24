@@ -137,3 +137,17 @@ test('otomatik yedekleme tüm iş tablolarını kapsar ve gizli anahtar saklamaz
   assert.doesNotMatch(backup,/service_role|secret[_-]?key|refresh_token|access_token/i);
   assert.match(await read('index.html'),/backup-manager\.js\?v=20260824-backup1/);
 });
+
+test('yarınki ve tüm sevkiyat PDFleri aynı profesyonel rapor motorunu kullanır',async()=>{
+  const pdf=await read('professional-pdf-reports.js');
+  assert.match(pdf,/SEVKİYAT RAPORU/);
+  assert.match(pdf,/BETON SEVKİYATLARI/);
+  assert.match(pdf,/ÇİMENTO SEVKİYATLARI/);
+  assert.match(pdf,/Firma Toplamı/);
+  assert.match(pdf,/TOPLAM BETON/);
+  assert.match(pdf,/TOPLAM ÇİMENTO/);
+  assert.match(pdf,/Sayfa/);
+  assert.match(pdf,/replacePdfButton\('tomorrowPdfBtn','tomorrow'\)/);
+  assert.match(pdf,/replacePdfButton\('pdfBtn','all'\)/);
+  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260824-reference1/);
+});
