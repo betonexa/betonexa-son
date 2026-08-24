@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-reference-pdf-v2';
+const CACHE='betonexa-2026.08.24-site-dedupe-v1';
 const ASSETS=[
   './',
   './index.html',

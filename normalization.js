@@ -12,7 +12,7 @@
     if(!text)return '';
     text=text
       .toLocaleLowerCase('tr-TR')
-      .replace(/(^|\s)(?:inş|ins)\s*\.?(?=\s|$)/gu,'$1inşaat');
+      .replace(/(^|[\s\-/])(?:inş|ins)\s*\.?(?=\s|$|[\-/])/gu,'$1inşaat');
     return text.replace(/(^|[\s\-/])([\p{L}\p{N}])/gu,
       (match,separator,character)=>separator+character.toLocaleUpperCase('tr-TR'));
   }
