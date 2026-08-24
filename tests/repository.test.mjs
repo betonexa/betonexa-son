@@ -34,6 +34,8 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
   assert.equal(names.label('  ŞEN   BETON  '),'Şen Beton');
   assert.equal(names.label('önerge inş.'),'Önerge İnşaat');
   assert.equal(names.key('ÖNERGE İNŞ.'),names.key('onerge insaat'));
+  assert.equal(names.label('Haktan İnş.'),'Haktan İnşaat');
+  assert.equal(names.key('Haktan İnş.'),names.key('Haktan İnşaat'));
   assert.equal(names.key('IŞIKLAR'),names.key('ışıklar'));
   const grouped=names.group([
     {firma:'Şen Beton',metraj:25},
@@ -43,6 +45,16 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
   assert.equal(grouped.length,1);
   assert.equal(grouped[0].name,'Şen Beton');
   assert.equal(grouped[0].total,75);
+  assert.equal(names.group([
+    {santiye:'Haktan İnş.'},{santiye:'Haktan İnşaat'}
+  ],row=>row.santiye).length,1);
+});
+
+test('şantiye tekilleştirme dosyaları önbellekten eski sürümle açılmaz',async()=>{
+  const html=await read('index.html');
+  const cement=await read('cimento-module.js');
+  assert.match(html,/normalization\.js\?v=20260824-site-dedupe1/);
+  assert.match(cement,/contracts-module\.js\?v=20260824-site-dedupe1/);
 });
 
 test('sözleşme gerçekleşen ve kalan m³ hesapları tarihe göre doğrudur',async()=>{
