@@ -47,17 +47,18 @@
 });
 
 /* Betonexa — kalıcı "Beni hatırla" oturumu
-   Parola saklanmaz. Yalnızca Supabase oturum tokenları, Supabase'in
-   kendi kalıcı oturum mantığına ek yedek olarak bu cihazda tutulur. */
+   Parola saklanmaz. Supabase oturumu cihazda kalıcı tutulur.
+   Otomatik açılış signOut çağrıları engellenir; yalnızca kullanıcı
+   gerçek Çıkış düğmesine bastığında oturum kapatılır. */
 (function(root){
   'use strict';
   if(!root || !root.supabase || typeof root.supabase.createClient!=='function')return;
   if(root.__betonexaRememberAuthPatch)return;
   root.__betonexaRememberAuthPatch=true;
 
-  const SESSION_BACKUP_KEY='betonexaRememberedSessionV2';
-  const patchStartedAt=Date.now();
+  const SESSION_BACKUP_KEY='betonexaRememberedSessionV3';
   const originalCreateClient=root.supabase.createClient.bind(root.supabase);
+  let userRequestedLogout=false;
 
   function wantsRememberedSession(){
     try{return !!localStorage.getItem('betonexaRememberedUsername')}catch(_){return false}
@@ -89,6 +90,12 @@
     try{localStorage.removeItem(SESSION_BACKUP_KEY)}catch(_){}
   }
 
+  /* Kullanıcının gerçek Çıkış tıklamasını, uygulamanın otomatik signOut'undan ayır. */
+  document.addEventListener('click',function(event){
+    const target=event.target?.closest?.('#logoutBtn');
+    if(target)userRequestedLogout=true;
+  },true);
+
   root.supabase.createClient=function(){
     const args=[...arguments];
     const existingOptions=args[2]||{};
@@ -109,7 +116,6 @@
     if(client?.auth && !client.auth.__betonexaRememberAuthPatched){
       const originalSignIn=client.auth.signInWithPassword.bind(client.auth);
       const originalSignOut=client.auth.signOut.bind(client.auth);
-      let startupSignOutHandled=false;
 
       client.auth.signInWithPassword=async function(credentials){
         const result=await originalSignIn(credentials);
@@ -121,20 +127,17 @@
 
       client.auth.signOut=async function(options){
         const isLocalSignOut=!options || options.scope===undefined || options.scope==='local';
-        const withinStartupWindow=(Date.now()-patchStartedAt)<15000;
 
-        /* index.html içindeki eski requireFreshLogin açılışta bir kez signOut çağırıyor.
-           Hatırlanan kullanıcıda bu çağrının yedeği silmesine izin verme. */
-        if(!startupSignOutHandled && withinStartupWindow && isLocalSignOut && wantsRememberedSession()){
-          startupSignOutHandled=true;
-          const result=await originalSignOut(options);
-          /* Eski kod oturumu silse bile birkaç ms sonra yedekten geri kurulacak. */
-          setTimeout(()=>restoreRememberedSession(true),50);
-          return result;
+        /* Hatırlanan kullanıcıda, gerçek Çıkış tıklaması dışındaki yerel signOut'ları engelle. */
+        if(isLocalSignOut && wantsRememberedSession() && !userRequestedLogout){
+          return {error:null};
         }
 
-        /* Bu noktadaki signOut gerçek kullanıcı çıkışıdır. */
-        clearSessionBackup();
+        if(userRequestedLogout){
+          clearSessionBackup();
+          userRequestedLogout=false;
+        }
+
         return originalSignOut(options);
       };
 
@@ -154,13 +157,13 @@
     if(typeof root.loadRecords==='function')await root.loadRecords();
   }
 
-  async function restoreRememberedSession(forceFromBackup){
+  async function restoreRememberedSession(){
     if(!wantsRememberedSession())return false;
     const client=root.BetonexaAuthClient;
     if(!client?.auth)return false;
 
     try{
-      if(!forceFromBackup && typeof client.auth.getSession==='function'){
+      if(typeof client.auth.getSession==='function'){
         const current=await client.auth.getSession();
         if(!current?.error && current?.data?.session){
           saveSessionBackup(current.data.session);
@@ -194,8 +197,8 @@
     let tries=0;
     const timer=setInterval(async()=>{
       tries+=1;
-      const restored=await restoreRememberedSession(false);
-      if(restored || tries>=30)clearInterval(timer);
+      const restored=await restoreRememberedSession();
+      if(restored || tries>=40)clearInterval(timer);
     },250);
   }
 
