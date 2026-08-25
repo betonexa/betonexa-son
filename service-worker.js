@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.25-live-sync-v1';
+const CACHE='betonexa-2026.08.25-mobile-date-v1';
 const ASSETS=[
   './',
   './index.html',

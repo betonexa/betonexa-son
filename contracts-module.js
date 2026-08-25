@@ -109,7 +109,7 @@ function addStyles(){
     #shipmentFilterResult .sqf-badge-cement{background:rgba(184,119,33,.10);border-color:rgba(184,119,33,.16);color:#765015}
     #shipmentQuickFilters .sqf-hidden{display:none!important}
     @media(max-width:1100px){#shipmentQuickFilters .sqf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:520px){#shipmentQuickFilters{padding:12px}#shipmentQuickFilters .sqf-grid{grid-template-columns:1fr}#shipmentQuickFilters .sqf-actions .btn{flex:1}#shipmentQuickFilters .sqf-clear{margin-left:0}#shipmentFilterResult{justify-content:flex-start}}
+    @media(max-width:520px){#shipmentQuickFilters{padding:12px}#shipmentQuickFilters .sqf-grid{grid-template-columns:minmax(0,1fr);width:100%}#shipmentQuickFilters .sqf-grid>label{min-width:0;max-width:100%;width:100%}#shipmentFilterStart,#shipmentFilterEnd{display:block;min-width:0;max-width:100%;width:100%}#shipmentQuickFilters .sqf-actions .btn{flex:1}#shipmentQuickFilters .sqf-clear{margin-left:0}#shipmentFilterResult{justify-content:flex-start}}
   `;document.head.appendChild(s)}
 }
 
