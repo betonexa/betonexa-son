@@ -52,6 +52,23 @@ body {
 body::before,
 body::after { content: none !important; display: none !important; }
 
+/* iPhone PWA: kaydırılan içerik durum çubuğunun altında görünmesin. */
+@media (max-width: 700px) {
+  #app::before {
+    content: "";
+    position: fixed;
+    z-index: 1000000;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: rgba(247, 240, 237, .82);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    pointer-events: none;
+  }
+}
+
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 .hidden { display: none !important; }
