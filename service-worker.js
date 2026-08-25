@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.24-cement-pending-v2';
+const CACHE='betonexa-2026.08.25-live-sync-v1';
 const ASSETS=[
   './',
   './index.html',
@@ -16,7 +16,8 @@ const ASSETS=[
   './tracking-finalizer.js',
   './backup-manager.js',
   './professional-pdf-reports.js',
-  './records-cement-addon.js'
+  './records-cement-addon.js',
+  './live-sync.js'
 ];
 
 self.addEventListener('install',event=>{
