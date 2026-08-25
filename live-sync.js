@@ -9,6 +9,7 @@
   let refreshTimer=null;
   let refreshRunning=false;
   let refreshQueued=false;
+  let lastDataSignature=null;
 
   const client=()=>typeof window.ensureDb==="function"?window.ensureDb():null;
   const appIsOpen=()=>{
@@ -16,11 +17,37 @@
     return !!app&&!app.classList.contains("hidden");
   };
 
-  async function refreshShipmentViews(){
+  function stableRows(rows){
+    return [...(rows||[])].sort((a,b)=>String(a?.id??"").localeCompare(String(b?.id??""),"tr",{numeric:true}));
+  }
+
+  async function shipmentDataSignature(){
+    const db=client();
+    if(!db)return null;
+    const [concreteResult,cementResult]=await Promise.all([
+      db.from("sevkiyatlar").select("*").order("id",{ascending:true}),
+      db.from("cimento_sevkiyatlar").select("*").order("id",{ascending:true})
+    ]);
+    if(concreteResult.error||cementResult.error)throw concreteResult.error||cementResult.error;
+    return JSON.stringify({
+      concrete:stableRows(concreteResult.data),
+      cement:stableRows(cementResult.data)
+    });
+  }
+
+  async function refreshShipmentViews(options={}){
     if(!appIsOpen()||document.visibilityState==="hidden")return;
     if(refreshRunning){refreshQueued=true;return;}
     refreshRunning=true;
     try{
+      let signature=null;
+      try{signature=await shipmentDataSignature();}
+      catch(error){console.warn("Canlı veri değişikliği kontrol edilemedi.",error);return;}
+      if(signature===null)return;
+      const firstCheck=lastDataSignature===null;
+      const dataChanged=signature!==lastDataSignature;
+      lastDataSignature=signature;
+      if(!options.force&&(firstCheck||!dataChanged))return;
       const jobs=[];
       if(typeof window.loadRecords==="function")jobs.push(window.loadRecords());
       if(typeof window.loadCementShipments==="function")jobs.push(window.loadCementShipments());
@@ -63,7 +90,7 @@
     }
   }
 
-  window.refreshShipmentViews=refreshShipmentViews;
+  window.refreshShipmentViews=options=>refreshShipmentViews(options||{});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
   else init();
 })();
