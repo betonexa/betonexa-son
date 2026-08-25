@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.25-filter-state-v1';
+const CACHE='betonexa-2026.08.25-filter-flash-v1';
 const ASSETS=[
   './',
   './index.html',

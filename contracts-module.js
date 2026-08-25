@@ -277,6 +277,7 @@ function ensureFilters(){
   refreshOptions();applyFilters();return true;
 }
 function observeRecords(){const host=$('recordsPage');if(!host||host.dataset.unifiedFilterObserver==='1')return;host.dataset.unifiedFilterObserver='1';let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(ensureFilters,120)}).observe(host,{childList:true,subtree:true})}
+document.addEventListener('betonexa:records-rendered',()=>{refreshOptions();applyFilters()});
 function init(){addStyles();if($('contractsPage')){setupContractLayout();decorateCards();observeContracts()}forceLegacyAll();observeRecords();ensureFilters();document.querySelector('[data-page="records"]')?.addEventListener('click',()=>setTimeout(ensureFilters,180))}
 let tries=0,t=setInterval(()=>{init();if(++tries>80)clearInterval(t)},250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

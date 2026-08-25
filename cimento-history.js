@@ -38,7 +38,7 @@
 
 (function loadCementMobileFix(){if(document.getElementById("cementMobileFixCss"))return;const link=document.createElement("link");link.id="cementMobileFixCss";link.rel="stylesheet";link.href="./cimento-mobile-fix.css?v=20260817-2";document.head.appendChild(link)})();
 (function loadCementEnhancements(){if(document.querySelector('script[src^="./cimento-enhancements.js"]'))return;const s=document.createElement("script");s.src="./cimento-enhancements.js?v=20260817-2";s.defer=true;document.head.appendChild(s)})();
-(function loadRecordsCementAddon(){if(document.querySelector('script[src^="./records-cement-addon.js"]'))return;const s=document.createElement("script");s.src="./records-cement-addon.js?v=20260825-filter-state1";s.defer=true;document.head.appendChild(s)})();
+(function loadRecordsCementAddon(){if(document.querySelector('script[src^="./records-cement-addon.js"]'))return;const s=document.createElement("script");s.src="./records-cement-addon.js?v=20260825-filter-flash1";s.defer=true;document.head.appendChild(s)})();
 
 /* Yarınki Sevkiyatlar birleşik PDF: başlık/karakter temizliği. */
 (function removeTomorrowPdfTitle(){
