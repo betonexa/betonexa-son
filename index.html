@@ -2892,16 +2892,21 @@ function groupTomorrow(){
 }
 function renderTomorrowReport(){
   if(!$("tomorrowPage"))return;
+  const report=$("tomorrowReport");
+  const cementSection=$("tomorrowCementSection");
+  const refreshCement=!$("tomorrowPage").classList.contains("hidden");
   const date=tomorrowDateString();
   const d=new Date(date+"T00:00:00");
   $("tomorrowDateLabel").textContent=d.toLocaleDateString("tr-TR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
   const groups=groupTomorrow();
   if(!groups.length){
-    $("tomorrowReport").innerHTML='<div class="tomorrow-empty">Yarın için planlanmış sevkiyat bulunmuyor.</div>';
+    report.innerHTML='<div class="tomorrow-empty">Yarın için planlanmış beton sevkiyatı bulunmuyor.</div>';
+    if(cementSection)report.appendChild(cementSection);
+    if(refreshCement&&typeof window.renderTomorrowCementAddon==="function")window.renderTomorrowCementAddon();
     return;
   }
   let grand=0;
-  $("tomorrowReport").innerHTML=groups.map(([company,items])=>{
+  report.innerHTML=groups.map(([company,items])=>{
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);
     grand+=subtotal;
     return `<section class="tomorrow-company">
@@ -2922,6 +2927,8 @@ function renderTomorrowReport(){
       </table></div>
     </section>`;
   }).join("")+`<div class="tomorrow-total"><span>GENEL TOPLAM</span><strong>${m3(grand)} m³</strong></div>`;
+  if(cementSection)report.appendChild(cementSection);
+  if(refreshCement&&typeof window.renderTomorrowCementAddon==="function")window.renderTomorrowCementAddon();
 }
 function tomorrowExportRows(){
   const rows=[];
@@ -4047,7 +4054,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260825-mobile-date2"></script>
+<script src="./cimento-module.js?v=20260825-tomorrow-stable1"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
