@@ -2540,7 +2540,7 @@ async function loadRecords(){
   const {data,error}=await client.from(TABLE).select("*").order("tarih",{ascending:true}).order("saat",{ascending:true});
   setLoading(false);
   if(error){setStatus("Veriler alınamadı: "+error.message,true);return}
-  records=data||[];renderTable();renderKpis();renderCalendar();renderAnalysis();renderDashboard();renderTomorrowReport();refreshFormOptions();renderSettings();
+  records=(data||[]).filter(r=>r.durum!=="iptal");renderTable();renderKpis();renderCalendar();renderAnalysis();renderDashboard();renderTomorrowReport();refreshFormOptions();renderSettings();
 }
 
 function selectedConcreteProperties(){
@@ -2614,6 +2614,15 @@ async function saveShipment(e){
   if(!p.tarih||!p.saat||!p.santral||!p.beton_sinifi||!Number.isFinite(p.metraj)){setStatus("Zorunlu alanları doldurun.",true);return}
   if(p.pompa_var_mi&&!p.pompa_tipi){setStatus("Pompa tipini seçin.",true);return}
   setLoading(true);const id=$("editId").value;
+  if(id){
+    const current=records.find(r=>String(r.id)===String(id));
+    const planned=Number(current?.planlanan_metraj??current?.metraj??p.metraj);
+    p.planlanan_metraj=planned;
+    p.durum=(current?.durum==="iptal"||current?.durum==="tamamlandi")?current.durum:(Number(p.metraj)!==planned?"miktar_degisti":"planlandi");
+  }else{
+    p.planlanan_metraj=p.metraj;
+    p.durum="planlandi";
+  }
   let result;
 
 if(id){
@@ -4623,6 +4632,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 <script src="./tracking-finalizer.js?v=20260820-restore1"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
 <script src="./professional-pdf-reports.js?v=20260824-cement-pending1"></script>
+<script src="./shipment-status.js?v=20260825-status1"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
 <!-- Betonexa sayfası burada kapanır. Sonradan eklenen yamaların kapanış etiketleri
      dışına taşmasını önlemek için body/html etiketleri dosyanın en sonunda tutulur. -->

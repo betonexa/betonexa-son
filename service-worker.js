@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.25-change-gate-v1';
+const CACHE='betonexa-2026.08.25-shipment-status-v1';
 const ASSETS=[
   './',
   './index.html',
@@ -16,6 +16,7 @@ const ASSETS=[
   './tracking-finalizer.js',
   './backup-manager.js',
   './professional-pdf-reports.js',
+  './shipment-status.js',
   './records-cement-addon.js',
   './live-sync.js'
 ];

@@ -48,7 +48,7 @@
     if(concreteResult.error)throw new Error('Beton kayıtları alınamadı: '+concreteResult.error.message);
     if(cementResult.error)throw new Error('Çimento kayıtları alınamadı: '+cementResult.error.message);
     const inRange=row=>!bounds.start||(row.tarih>=bounds.start&&row.tarih<=bounds.end);
-    return {concrete:(concreteResult.data||[]).filter(inRange),cement:(cementResult.data||[]).filter(inRange)};
+    return {concrete:(concreteResult.data||[]).filter(row=>inRange(row)&&row.durum!=="iptal"),cement:(cementResult.data||[]).filter(row=>inRange(row)&&row.durum!=="iptal")};
   }
 
   function groupConcrete(items){
