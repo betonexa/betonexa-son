@@ -17,6 +17,18 @@
     (values||[]).forEach(value=>{const name=title(value),key=canonical(name);if(key)unique.set(key,prettier(unique.get(key),name))});
     return [...unique.values()].sort((a,b)=>a.localeCompare(b,'tr'));
   }
+  function dedupeRenderedMenus(root=document){
+    root.querySelectorAll?.('.betonexa-auto-menu,.cement-pair-menu').forEach(menu=>{
+      const kept=new Map();
+      [...menu.querySelectorAll('.betonexa-auto-option,.cement-pair-option')].forEach(button=>{
+        const name=title(button.textContent),key=canonical(name);
+        if(!key)return;
+        if(!kept.has(key)){kept.set(key,button);button.textContent=name;return}
+        const first=kept.get(key),preferred=prettier(first.textContent,name);
+        first.textContent=preferred;button.remove();
+      });
+    });
+  }
 
   function addStyles(){
     if($('cementEnhStyles'))return;
@@ -62,7 +74,7 @@
       const q=canonical(input.value);if(!q){menu.classList.add('hidden');return}
       const matches=uniqueSuggestionValues(values()).filter(v=>canonical(v).startsWith(q)).slice(0,12);
       if(!matches.length){menu.classList.add('hidden');return}
-      menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');menu.classList.remove('hidden');
+      menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');dedupeRenderedMenus(menu);menu.classList.remove('hidden');
       [...menu.querySelectorAll('.betonexa-auto-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')}));
     };
     input.addEventListener('input',render);input.addEventListener('focus',()=>{if(input.value.trim())render()});
@@ -103,6 +115,17 @@
   function bindConcreteAutocomplete(){
     createMenuForInput($('firma'),'concreteFirmaMenu',()=>concreteSuggestions.firma);
     createMenuForInput($('santiye'),'concreteSantiyeMenu',()=>concreteSuggestions.santiye);
+  }
+
+  function guardRenderedSuggestionMenus(){
+    if(document.documentElement.dataset.betonexaSuggestionGuard==='1')return;
+    document.documentElement.dataset.betonexaSuggestionGuard='1';
+    let queued=false;
+    new MutationObserver(mutations=>{
+      if(queued||!mutations.some(item=>item.addedNodes.length))return;
+      queued=true;requestAnimationFrame(()=>{queued=false;dedupeRenderedMenus(document)});
+    }).observe(document.documentElement,{childList:true,subtree:true});
+    dedupeRenderedMenus(document);
   }
 
   function resetCementDraft(){
@@ -182,6 +205,6 @@
   }
 
   function bindAnalysis(){document.addEventListener('click',e=>{const b=e.target.closest?.('[data-page="analysis"]');if(b)setTimeout(renderAnalysis,180)});['analysisStart','analysisEnd'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(renderAnalysis,50)))}
-  function init(){addStyles();trackEditIds();bindPageCleanup();let n=0;const t=setInterval(()=>{n++;if($('cementPage')){clearInterval(t);loadSuggestions();fillLists();bindConcreteAutocomplete();enablePendingTonnage();observeDisplays();patchAllDisplays()}else if(n>80)clearInterval(t)},100);bindAnalysis();if($('analysisPage')&&!$('analysisPage').classList.contains('hidden'))renderAnalysis()}
+  function init(){addStyles();guardRenderedSuggestionMenus();trackEditIds();bindPageCleanup();let n=0;const t=setInterval(()=>{n++;if($('cementPage')){clearInterval(t);loadSuggestions();fillLists();bindConcreteAutocomplete();enablePendingTonnage();observeDisplays();patchAllDisplays()}else if(n>80)clearInterval(t)},100);bindAnalysis();if($('analysisPage')&&!$('analysisPage').classList.contains('hidden'))renderAnalysis()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
