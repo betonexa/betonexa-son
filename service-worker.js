@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.26-stable-status-v2';
+const CACHE='betonexa-2026.08.26-form-pdf-v3';
 const ASSETS=[
   './',
   './index.html',
