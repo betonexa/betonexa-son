@@ -114,3 +114,139 @@
   }).observe(document.documentElement,{childList:true,subtree:true});
 })();
 
+(function(){
+  'use strict';
+
+  const CEMENT_TABLE='cimento_sevkiyatlar';
+  let trackingEditId=null;
+  let saveBound=false;
+
+  const $=id=>document.getElementById(id);
+  const db=()=>typeof window.ensureDb==='function'?window.ensureDb():null;
+  const label=value=>typeof window.BetonexaNames?.label==='function'?window.BetonexaNames.label(value):String(value||'').trim();
+
+  function setStatus(message,isError=false){
+    const el=$('cementStatus');
+    if(!el)return;
+    el.textContent=message||'';
+    el.style.color=isError?'var(--danger)':'var(--success)';
+  }
+
+  function parseTonnage(value){
+    const raw=String(value??'').trim();
+    if(!raw||raw==='-'||raw==='0'||raw==='0,00'||raw==='0.00')return null;
+    const n=Number(raw.replace(/\./g,'').replace(',','.'));
+    return Number.isFinite(n)&&n>0?n:NaN;
+  }
+
+  function clearTrackingEdit(){
+    trackingEditId=null;
+    window.__cementPendingEditId=null;
+  }
+
+  function bindSaveBridge(){
+    const save=$('cementSaveBtn');
+    if(!save||saveBound)return;
+    saveBound=true;
+
+    save.addEventListener('click',async event=>{
+      if(!trackingEditId)return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const tarih=$('cementDate')?.value||'';
+      const firma=label($('cementCompany')?.value||'');
+      const teslimYeri=label($('cementDelivery')?.value||'');
+      const arac=Number($('cementVehicleCount')?.value);
+      const tonaj=parseTonnage($('cementTonnage')?.value);
+
+      if(!tarih||!firma||!teslimYeri||!Number.isInteger(arac)||arac<1||Number.isNaN(tonaj)){
+        setStatus('Tarih, firma, teslim yeri, araç sayısı ve tonaj bilgisini kontrol et.',true);
+        return;
+      }
+
+      const client=db();
+      if(!client){setStatus('Veritabanı bağlantısı yüklenemedi.',true);return;}
+
+      save.disabled=true;
+      setStatus('Güncelleniyor…');
+      const id=trackingEditId;
+      const {error}=await client.from(CEMENT_TABLE).update({
+        tarih,
+        firma,
+        teslim_yeri:teslimYeri,
+        arac_sayisi:arac,
+        toplam_tonaj:tonaj
+      }).eq('id',id);
+      save.disabled=false;
+
+      if(error){setStatus('Çimento sevkiyatı güncellenemedi: '+error.message,true);return;}
+
+      clearTrackingEdit();
+      if($('cementSaveBtn'))$('cementSaveBtn').textContent='Sevkiyatı Kaydet';
+      $('cementCancelBtn')?.classList.add('hidden');
+      if($('cementDate'))$('cementDate').value='';
+      ['cementCompany','cementDelivery','cementVehicleCount','cementTonnage'].forEach(key=>{if($(key))$(key).value='';});
+      setStatus('Çimento sevkiyatı güncellendi.');
+
+      try{if(typeof window.loadCementShipments==='function')await window.loadCementShipments();}catch(e){}
+      try{if(typeof window.refreshRecordsCombined==='function')await window.refreshRecordsCombined();}catch(e){}
+    },true);
+
+    $('cementCancelBtn')?.addEventListener('click',()=>clearTrackingEdit(),true);
+  }
+
+  function fillEditForm(record){
+    bindSaveBridge();
+    trackingEditId=String(record.id);
+    window.__cementPendingEditId=String(record.id);
+
+    if($('cementDate'))$('cementDate').value=record.tarih||'';
+    if($('cementCompany'))$('cementCompany').value=record.firma||'';
+    if($('cementDelivery'))$('cementDelivery').value=record.teslim_yeri||'';
+    if($('cementVehicleCount'))$('cementVehicleCount').value=record.arac_sayisi??'';
+    if($('cementTonnage'))$('cementTonnage').value=record.toplam_tonaj==null?'-':record.toplam_tonaj;
+    if($('cementSaveBtn'))$('cementSaveBtn').textContent='Değişiklikleri Kaydet';
+    $('cementCancelBtn')?.classList.remove('hidden');
+    setStatus('Seçilen çimento sevkiyatı düzenleniyor.');
+    window.scrollTo({top:0,behavior:'auto'});
+  }
+
+  async function openTrackingCementEdit(id){
+    const client=db();
+    if(!client){alert('Veritabanı bağlantısı yüklenemedi.');return;}
+
+    const {data,error}=await client.from(CEMENT_TABLE).select('*').eq('id',id).single();
+    if(error||!data){alert('Çimento sevkiyatı bulunamadı'+(error?.message?': '+error.message:'.'));return;}
+
+    const cementBtn=document.querySelector('.tabs [data-page="cement"]')||$('cementTabBtn');
+    if(cementBtn)cementBtn.click();
+
+    let tries=0;
+    const timer=setInterval(()=>{
+      tries++;
+      if($('cementPage')&&$('cementDate')&&$('cementCompany')&&$('cementSaveBtn')){
+        clearInterval(timer);
+        fillEditForm(data);
+      }else if(tries>40){
+        clearInterval(timer);
+        alert('Çimento düzenleme formu açılamadı.');
+      }
+    },50);
+  }
+
+  document.addEventListener('click',event=>{
+    const btn=event.target.closest?.('#recordsCombinedView .rc-edit');
+    if(!btn)return;
+    const code=btn.getAttribute('onclick')||'';
+    const match=code.match(/editCementFromCombined\(['"]?([^'")]+)['"]?\)/);
+    if(!match)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openTrackingCementEdit(match[1]);
+  },true);
+
+  window.editCementFromCombined=openTrackingCementEdit;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindSaveBridge,{once:true});
+  else bindSaveBridge();
+})();
