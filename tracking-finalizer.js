@@ -75,3 +75,89 @@
   if(page) new MutationObserver(schedule).observe(page,{childList:true,subtree:true});
   else new MutationObserver(()=>{const p=document.getElementById('recordsPage');if(p){ schedule(); new MutationObserver(schedule).observe(p,{childList:true,subtree:true}); }}).observe(document.documentElement,{childList:true,subtree:true});
 })();
+
+(function(){
+  'use strict';
+  const TABLE='cimento_sevkiyatlar';
+  const $=id=>document.getElementById(id);
+  let editingId=null;
+  let editingRecord=null;
+
+  function db(){return typeof window.ensureDb==='function'?window.ensureDb():null;}
+  function isCementEdit(btn){
+    if(!btn?.matches?.('.rc-edit'))return false;
+    const block=btn.closest('.rc-block');
+    return !!block && /Çimento/i.test(block.querySelector('h3')?.textContent||'');
+  }
+  function rowId(btn){
+    const row=btn.closest('tr');
+    const select=row?.querySelector('.shipment-status-select[data-shipment-type="cement"][data-shipment-id]');
+    if(select?.dataset.shipmentId)return select.dataset.shipmentId;
+    const code=btn.getAttribute('onclick')||'';
+    return code.match(/editCementFromCombined\(['"]?([^'")]+)['"]?\)/)?.[1]||null;
+  }
+  function showPage(){
+    const page=$('cementPage');if(!page)return false;
+    document.querySelectorAll('main.content > section.panel').forEach(s=>s.classList.add('hidden'));
+    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    page.classList.remove('hidden');
+    ($('cementTabBtn')||document.querySelector('.tabs [data-page="cement"]'))?.classList.add('active');
+    return true;
+  }
+  function fill(r){
+    editingId=String(r.id);editingRecord=r;window.__cementPendingEditId=editingId;
+    if($('cementDate'))$('cementDate').value=r.tarih||'';
+    if($('cementCompany'))$('cementCompany').value=r.firma||'';
+    if($('cementDelivery'))$('cementDelivery').value=r.teslim_yeri||'Şantiye';
+    if($('cementVehicleCount'))$('cementVehicleCount').value=r.arac_sayisi??'';
+    if($('cementTonnage'))$('cementTonnage').value=r.toplam_tonaj==null?'0':r.toplam_tonaj;
+    if($('cementSaveBtn'))$('cementSaveBtn').textContent='Değişiklikleri Kaydet';
+    $('cementCancelBtn')?.classList.remove('hidden');
+    const h=document.querySelector('#cementPage .cement-head h2');if(h)h.textContent='🏗️ Çimento Sevkiyatını Düzenle';
+    if($('cementStatus'))$('cementStatus').textContent='Tamamlanmış kayıt düzenleniyor.';
+  }
+  async function open(id){
+    const c=db();if(!c)return;
+    const {data,error}=await c.from(TABLE).select('*').eq('id',id).limit(1);
+    if(error||!data?.[0]){alert('Çimento sevkiyatı bulunamadı'+(error?.message?': '+error.message:'.'));return;}
+    if(!showPage())return;
+    fill(data[0]);
+    setTimeout(()=>{if(editingId===String(id))fill(data[0]);},0);
+    setTimeout(()=>{if(editingId===String(id))fill(data[0]);},150);
+  }
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?.('button');
+    if(!isCementEdit(btn))return;
+    const id=rowId(btn);if(!id)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    open(id);
+  },true);
+
+  document.addEventListener('click',async e=>{
+    if(!editingId||!e.target.closest?.('#cementSaveBtn'))return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    const tarih=$('cementDate')?.value||'';
+    const firma=String($('cementCompany')?.value||'').trim();
+    const teslim=String($('cementDelivery')?.value||'').trim()||'Şantiye';
+    const arac=Number($('cementVehicleCount')?.value);
+    const raw=String($('cementTonnage')?.value??'').trim().replace(',','.');
+    const ton=(raw===''||Number(raw)===0)?null:Number(raw);
+    if(!tarih||!firma||!Number.isInteger(arac)||arac<1||(ton!==null&&!Number.isFinite(ton))){alert('Çimento sevkiyat bilgilerini kontrol et.');return;}
+    const c=db();if(!c)return;
+    const save=$('cementSaveBtn');if(save)save.disabled=true;
+    const payload={tarih,firma,teslim_yeri:teslim,arac_sayisi:arac,toplam_tonaj:ton};
+    const {error}=await c.from(TABLE).update(payload).eq('id',editingId);
+    if(save)save.disabled=false;
+    if(error){alert('Çimento sevkiyatı güncellenemedi: '+error.message);return;}
+    editingId=null;editingRecord=null;window.__cementPendingEditId=null;
+    if(save)save.textContent='Sevkiyatı Kaydet';
+    $('cementCancelBtn')?.classList.add('hidden');
+    if($('cementStatus'))$('cementStatus').textContent='Çimento sevkiyatı güncellendi.';
+    try{if(typeof window.refreshRecordsCombined==='function')await window.refreshRecordsCombined();}catch(_){}
+  },true);
+
+  document.addEventListener('click',e=>{
+    if(!e.target.closest?.('#cementCancelBtn'))return;
+    editingId=null;editingRecord=null;window.__cementPendingEditId=null;
+  },true);
+})();
