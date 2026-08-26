@@ -1751,8 +1751,8 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <option value="">Seçiniz</option><option>Işıkkent</option><option>Torbalı</option><option>Gaziemir</option><option>Özbek</option><option>Çeşme</option><option>Çiğli</option><option>Koyundere</option><option>Aliağa</option><option>Zeytindağ</option><option>Akhisar</option><option>Aydın</option><option>Tekirdağ</option><option>Kıraç</option><option>Çorlu</option>
  </select></div>
 
- <div class="field"><label>Firma</label><input id="firma" list="firmaList"><datalist id="firmaList"></datalist></div>
- <div class="field"><label>Şantiye</label><input id="santiye"></div>
+ <div class="field"><label>Firma</label><input id="firma" list="firmaList" autocomplete="off"><datalist id="firmaList"></datalist></div>
+ <div class="field"><label>Şantiye</label><input id="santiye" autocomplete="off"></div>
  <div class="field"><label>Beton sınıfı</label><select id="betonSinifi" required>
  <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option>
  </select></div>
@@ -1782,7 +1782,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
 
  <div class="contact-row">
- <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" placeholder="Sorumlu kişi adı"></div>
+ <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" name="betonexa_sorumlu_kisi" autocomplete="new-password" autocapitalize="sentences" placeholder="Sorumlu kişi adı"></div>
  <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="05XX XXX XX XX"></div>
  </div>
  <div class="form-actions">
