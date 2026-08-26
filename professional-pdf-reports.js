@@ -12,6 +12,16 @@
   const monday=date=>{const result=new Date(date),day=(result.getDay()+6)%7;result.setDate(result.getDate()-day);result.setHours(0,0,0,0);return result};
   const trDate=value=>value?new Date(value+'T00:00:00').toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
   const longDate=value=>value?new Date(value+'T00:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'}):'';
+  const STATUS_LABELS={planlandi:'Planlandı',miktar_degisti:'Miktar Değişti',tamamlandi:'Tamamlandı',iptal:'İptal'};
+  const statusLabel=row=>STATUS_LABELS[row?.durum]||(row?.tamamlandi?'Tamamlandı':'Planlandı');
+  function amountText(row,plannedKey,currentKey,unit,plus=false){
+    const current=row?.[currentKey],planned=row?.[plannedKey];
+    if(current==null)return 'Bilgi bekleniyor';
+    const currentText=`${fmt(current)}${plus?'+':''} ${unit}`;
+    if(planned==null||Math.abs(Number(planned)-Number(current))<.001)return currentText;
+    const difference=Number(current)-Number(planned),sign=difference>0?'+':'';
+    return `İlk: ${fmt(planned)} ${unit}\nGüncel: ${currentText}\nFark: ${sign}${fmt(difference)} ${unit}`;
+  }
 
   async function fontPack(doc){
     try{
@@ -133,11 +143,11 @@
         const total=group.items.reduce((sum,item)=>sum+Number(item.metraj||0),0);y=companyBand(doc,text,group.name,total,y);
         doc.autoTable({
           ...tableBase(font),startY:y,
-          head:[['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Özellik','Pompa','Metraj (m³)','Sorumlu','Telefon'].map(text)],
+          head:[['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Özellik','Pompa','Miktar','Durum','Sorumlu','Telefon'].map(text)],
           body:group.items.map((item,index)=>[
-            String(index+1),trDate(item.tarih),(item.saat||'').slice(0,5),label(item.santral),label(item.firma),label(item.santiye),label(item.beton_sinifi),label(item.beton_ozelligi)||'-',item.pompa_var_mi?label(item.pompa_tipi||'Pompalı'):'Pompasız',`${fmt(item.metraj)}${item.metraj_plus?'+':''}`,label(item.sorumlu_kisi||''),item.telefon||''
+            String(index+1),trDate(item.tarih),(item.saat||'').slice(0,5),label(item.santral),label(item.firma),label(item.santiye),label(item.beton_sinifi),label(item.beton_ozelligi)||'-',item.pompa_var_mi?label(item.pompa_tipi||'Pompalı'):'Pompasız',amountText(item,'planlanan_metraj','metraj','m³',item.metraj_plus),statusLabel(item),label(item.sorumlu_kisi||''),item.telefon||''
           ].map(text)),
-          columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:20,halign:'center'},2:{cellWidth:13,halign:'center'},3:{cellWidth:25},4:{cellWidth:22},5:{cellWidth:34},6:{cellWidth:14,halign:'center'},7:{cellWidth:17,halign:'center'},8:{cellWidth:17,halign:'center'},9:{cellWidth:22,halign:'center'},10:{cellWidth:23},11:{cellWidth:38}}
+          columnStyles:{0:{cellWidth:7,halign:'center'},1:{cellWidth:17,halign:'center'},2:{cellWidth:11,halign:'center'},3:{cellWidth:20},4:{cellWidth:18},5:{cellWidth:27},6:{cellWidth:12,halign:'center'},7:{cellWidth:15,halign:'center'},8:{cellWidth:14,halign:'center'},9:{cellWidth:29,halign:'center'},10:{cellWidth:22,halign:'center'},11:{cellWidth:20},12:{cellWidth:27}}
         });
         y=(doc.lastAutoTable?.finalY||y+10)+2.3;
       }
@@ -151,9 +161,9 @@
       y=sectionTitle(doc,text,'ÇİMENTO SEVKİYATLARI','Ç',y);
       doc.autoTable({
         ...tableBase(font),startY:y,
-        head:[['No','Tarih','Firma','Teslim Yeri / Şantiye','Araç','Tonaj (ton)'].map(text)],
-        body:data.cement.map((item,index)=>[String(index+1),trDate(item.tarih),label(item.firma),label(item.teslim_yeri||'Şantiye'),String(Number(item.arac_sayisi||0)),item.toplam_tonaj==null?'Tonaj bilgisi bekleniyor':fmt(item.toplam_tonaj)].map(text)),
-        columnStyles:{0:{cellWidth:12,halign:'center'},1:{cellWidth:38,halign:'center'},2:{cellWidth:52},3:{cellWidth:75},4:{cellWidth:48,halign:'center'},5:{cellWidth:48,halign:'center'}}
+        head:[['No','Tarih','Firma','Teslim Yeri / Şantiye','Araç','Miktar','Durum'].map(text)],
+        body:data.cement.map((item,index)=>[String(index+1),trDate(item.tarih),label(item.firma),label(item.teslim_yeri||'Şantiye'),String(Number(item.arac_sayisi||0)),amountText(item,'planlanan_tonaj','toplam_tonaj','ton'),statusLabel(item)].map(text)),
+        columnStyles:{0:{cellWidth:9,halign:'center'},1:{cellWidth:25,halign:'center'},2:{cellWidth:42},3:{cellWidth:68},4:{cellWidth:24,halign:'center'},5:{cellWidth:58,halign:'center'},6:{cellWidth:36,halign:'center'}}
       });
       y=(doc.lastAutoTable?.finalY||y+10)+2.3;
       const vehicles=data.cement.reduce((sum,item)=>sum+Number(item.arac_sayisi||0),0),tons=data.cement.reduce((sum,item)=>sum+(item.toplam_tonaj==null?0:Number(item.toplam_tonaj||0)),0);

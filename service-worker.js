@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.25-shipment-status-v1';
+const CACHE='betonexa-2026.08.26-status-amount-v1';
 const ASSETS=[
   './',
   './index.html',
