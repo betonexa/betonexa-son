@@ -26,7 +26,8 @@
       .replace(/ß/g,'ss')
       .replace(/[^a-z0-9]+/g,' ')
       .trim()
-      .replace(/\s+/g,' ');
+      .replace(/\s+/g,' ')
+      .replace(/(^|\s)ins(?=\s|$)/g,'$1insaat');
   }
 
   function group(items,valueOf,totalOf=()=>0){

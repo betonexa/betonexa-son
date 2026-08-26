@@ -10,7 +10,7 @@
   const prettier=(oldV,newV)=>{if(!oldV)return newV;if(!newV)return oldV;const score=v=>String(v).replace(/[.]/g,'').length+(String(v).toLocaleLowerCase('tr-TR').includes('inşaat')?20:0);return score(newV)>score(oldV)?newV:oldV};
   const fmt=n=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
   let suggestions={firma:[],yer:['Şantiye']};
-  let concreteSuggestions={firma:[],santiye:[]};
+  let concreteSuggestions={firma:[],santiye:[],sorumlu:[]};
   let nullTonnageIds=new Set();
   function uniqueSuggestionValues(values){
     const unique=new Map();
@@ -49,15 +49,15 @@
     const c=db();if(!c)return;
     const [a,b]=await Promise.all([
       c.from(CEMENT).select('id,firma,teslim_yeri,toplam_tonaj'),
-      c.from(CONCRETE).select('firma,santiye')
+      c.from(CONCRETE).select('firma,santiye,sorumlu_kisi')
     ]);
     nullTonnageIds=new Set((a.data||[]).filter(x=>x.toplam_tonaj==null).map(x=>String(x.id)));
-    const allFirma=new Map(),betonFirma=new Map(),betonSite=new Map();
+    const allFirma=new Map(),betonFirma=new Map(),betonSite=new Map(),betonResponsible=new Map();
     const addFirma=(map,v)=>{if(v){const V=title(v),key=canonical(V);map.set(key,prettier(map.get(key),V))}};
     (a.data||[]).forEach(x=>addFirma(allFirma,x.firma));
-    (b.data||[]).forEach(x=>{addFirma(allFirma,x.firma);addFirma(betonFirma,x.firma);addFirma(betonSite,x.santiye)});
+    (b.data||[]).forEach(x=>{addFirma(allFirma,x.firma);addFirma(betonFirma,x.firma);addFirma(betonSite,x.santiye);addFirma(betonResponsible,x.sorumlu_kisi)});
     suggestions={firma:[...allFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:['Şantiye']};
-    concreteSuggestions={firma:uniqueSuggestionValues([...betonFirma.values()]),santiye:uniqueSuggestionValues([...betonSite.values()])};
+    concreteSuggestions={firma:uniqueSuggestionValues([...betonFirma.values()]),santiye:uniqueSuggestionValues([...betonSite.values()]),sorumlu:uniqueSuggestionValues([...betonResponsible.values()])};
     fillLists();bindConcreteAutocomplete();patchAllDisplays();
   }
 
@@ -115,6 +115,7 @@
   function bindConcreteAutocomplete(){
     createMenuForInput($('firma'),'concreteFirmaMenu',()=>concreteSuggestions.firma);
     createMenuForInput($('santiye'),'concreteSantiyeMenu',()=>concreteSuggestions.santiye);
+    createMenuForInput($('sorumluKisi'),'concreteResponsibleMenu',()=>concreteSuggestions.sorumlu);
   }
 
   function guardRenderedSuggestionMenus(){
@@ -149,7 +150,7 @@
       $('cancelEdit')?.classList.add('hidden');
     }
     if($('status'))$('status').textContent='';
-    $('concreteFirmaMenu')?.classList.add('hidden');$('concreteSantiyeMenu')?.classList.add('hidden');
+    $('concreteFirmaMenu')?.classList.add('hidden');$('concreteSantiyeMenu')?.classList.add('hidden');$('concreteResponsibleMenu')?.classList.add('hidden');
   }
 
   function bindPageCleanup(){

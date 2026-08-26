@@ -18,9 +18,7 @@
     const current=row?.[currentKey],planned=row?.[plannedKey];
     if(current==null)return 'Bilgi bekleniyor';
     const currentText=`${fmt(current)}${plus?'+':''} ${unit}`;
-    if(planned==null||Math.abs(Number(planned)-Number(current))<.001)return currentText;
-    const difference=Number(current)-Number(planned),sign=difference>0?'+':'';
-    return `İlk: ${fmt(planned)} ${unit}\nGüncel: ${currentText}\nFark: ${sign}${fmt(difference)} ${unit}`;
+    return currentText;
   }
 
   async function fontPack(doc){
