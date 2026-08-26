@@ -55,7 +55,7 @@ test('şantiye tekilleştirme dosyaları önbellekten eski sürümle açılmaz',
   const html=await read('index.html');
   const cement=await read('cimento-module.js');
   assert.match(html,/normalization\.js\?v=20260824-site-dedupe2/);
-  assert.match(cement,/contracts-module\.js\?v=20260825-filter-flash1/);
+  assert.match(cement,/contracts-module\.js\?v=20260826-filter-status1/);
 });
 
 test('form seçenekleri, kayıt ve yarınki rapor aynı ad anahtarını kullanır',async()=>{
@@ -189,4 +189,17 @@ test('durum ve değişen miktar ilk çizimde yer ayırır, PDFye aktarılır',as
   assert.match(status,/shipment-status-select\[data-shipment-type\]\[data-shipment-id\]/);
   assert.match(pdf,/\['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Özellik','Pompa','Miktar','Durum','Sorumlu','Telefon'\]/);
   assert.match(pdf,/amountText\(item,'planlanan_metraj','metraj','m³'/);
+});
+
+test('otomatik öneriler son kez tekilleştirilir ve filtreli PDF durum bilgisini korur',async()=>{
+  const cement=await read('cimento-enhancements.js');
+  const contracts=await read('contracts-module.js');
+  const html=await read('index.html');
+  assert.match(cement,/function uniqueSuggestionValues\(values\)/);
+  assert.match(cement,/const matches=uniqueSuggestionValues\(values\(\)\)/);
+  assert.match(html,/id="sorumluKisi"[^>]+autocomplete="new-password"/);
+  assert.match(contracts,/Durum:statusOf\(r\)/);
+  assert.match(contracts,/durum:row\.Durum/);
+  assert.match(contracts,/planlanan_metraj:row\.Planlanan/);
+  assert.match(contracts,/planlanan_tonaj:row\.Planlanan/);
 });
