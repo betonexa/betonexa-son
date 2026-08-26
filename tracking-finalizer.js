@@ -208,8 +208,21 @@
     if($('cementTonnage'))$('cementTonnage').value=record.toplam_tonaj==null?'-':record.toplam_tonaj;
     if($('cementSaveBtn'))$('cementSaveBtn').textContent='Değişiklikleri Kaydet';
     $('cementCancelBtn')?.classList.remove('hidden');
+    const heading=document.querySelector('#cementPage .cement-head h2');
+    if(heading)heading.textContent='Çimento Sevkiyatını Düzenle';
     setStatus('Seçilen çimento sevkiyatı düzenleniyor.');
     window.scrollTo({top:0,behavior:'auto'});
+  }
+
+  function showCementPageWithoutClick(){
+    const page=$('cementPage');
+    const cementBtn=document.querySelector('.tabs [data-page="cement"]')||$('cementTabBtn');
+    if(!page)return false;
+    document.querySelectorAll('main.content > section.panel').forEach(section=>section.classList.add('hidden'));
+    document.querySelectorAll('.tabs button').forEach(button=>button.classList.remove('active'));
+    page.classList.remove('hidden');
+    cementBtn?.classList.add('active');
+    return true;
   }
 
   async function openTrackingCementEdit(id){
@@ -219,20 +232,15 @@
     const {data,error}=await client.from(CEMENT_TABLE).select('*').eq('id',id).single();
     if(error||!data){alert('Çimento sevkiyatı bulunamadı'+(error?.message?': '+error.message:'.'));return;}
 
-    const cementBtn=document.querySelector('.tabs [data-page="cement"]')||$('cementTabBtn');
-    if(cementBtn)cementBtn.click();
+    if(!showCementPageWithoutClick()){
+      alert('Çimento düzenleme formu açılamadı.');
+      return;
+    }
 
-    let tries=0;
-    const timer=setInterval(()=>{
-      tries++;
-      if($('cementPage')&&$('cementDate')&&$('cementCompany')&&$('cementSaveBtn')){
-        clearInterval(timer);
-        fillEditForm(data);
-      }else if(tries>40){
-        clearInterval(timer);
-        alert('Çimento düzenleme formu açılamadı.');
-      }
-    },50);
+    requestAnimationFrame(()=>{
+      fillEditForm(data);
+      setTimeout(()=>fillEditForm(data),80);
+    });
   }
 
   document.addEventListener('click',event=>{
@@ -242,6 +250,7 @@
     const match=code.match(/editCementFromCombined\(['"]?([^'")]+)['"]?\)/);
     if(!match)return;
     event.preventDefault();
+    event.stopPropagation();
     event.stopImmediatePropagation();
     openTrackingCementEdit(match[1]);
   },true);
