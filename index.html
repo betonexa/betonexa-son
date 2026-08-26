@@ -2121,10 +2121,19 @@ function saveAppSettings(){
 function uniqueSorted(values){
   return [...new Set(values.map(x=>String(x||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"tr"));
 }
+function uniqueNames(values){
+  const unique=new Map();
+  values.forEach(value=>{
+    const name=window.BetonexaNames.label(value);
+    const key=window.BetonexaNames.key(value);
+    if(key&&!unique.has(key))unique.set(key,name);
+  });
+  return [...unique.values()].sort((a,b)=>a.localeCompare(b,"tr"));
+}
 function refreshFormOptions(){
-  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(x=>String(x||"").trim()));
-  const recordCompanies=records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(String(x||"").trim()));
-  const companies=uniqueSorted([...appSettings.companies,...recordCompanies]);
+  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(window.BetonexaNames.key));
+  const recordCompanies=records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(window.BetonexaNames.key(x)));
+  const companies=uniqueNames([...appSettings.companies,...recordCompanies]);
   $("firmaList").innerHTML=companies.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
   const current=$("santral").value;
@@ -2489,8 +2498,8 @@ async function saveContract(){
 window.selectContract=selectContract;
  function renderSettings(){
   if(!$("settingsPage"))return;
-  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(x=>String(x||"").trim()));
-  const companies=uniqueSorted([...appSettings.companies,...records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(String(x||"").trim()))]);
+  const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(window.BetonexaNames.key));
+  const companies=uniqueNames([...appSettings.companies,...records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(window.BetonexaNames.key(x)))]);
   const plants=uniqueSorted([...appSettings.plants,...records.map(r=>r.santral)]);
   $("settingsCompanyList").innerHTML=companies.length?companies.map(name=>`
     <div class="settings-item"><b>${esc(name)}</b>
@@ -2506,9 +2515,10 @@ function addSettingItem(type){
   const value=input.value.trim();
   if(!value)return;
   const key=type==="company"?"companies":"plants";
-  appSettings[key]=uniqueSorted([...appSettings[key],value]);
+  appSettings[key]=type==="company"?uniqueNames([...appSettings[key],value]):uniqueSorted([...appSettings[key],value]);
   if(type==="company"){
-    appSettings.hiddenCompanies=(appSettings.hiddenCompanies||[]).filter(x=>x!==value);
+    const valueKey=window.BetonexaNames.key(value);
+    appSettings.hiddenCompanies=(appSettings.hiddenCompanies||[]).filter(x=>window.BetonexaNames.key(x)!==valueKey);
   }
   input.value="";
   saveAppSettings();
@@ -2520,10 +2530,11 @@ function removeSettingItem(type,encoded){
   if(!confirmed)return;
 
   const key=type==="company"?"companies":"plants";
-  appSettings[key]=appSettings[key].filter(x=>x!==value);
+  const valueKey=type==="company"?window.BetonexaNames.key(value):value;
+  appSettings[key]=appSettings[key].filter(x=>(type==="company"?window.BetonexaNames.key(x):x)!==valueKey);
 
   if(type==="company"){
-    appSettings.hiddenCompanies=uniqueSorted([...(appSettings.hiddenCompanies||[]),value]);
+    appSettings.hiddenCompanies=uniqueNames([...(appSettings.hiddenCompanies||[]),value]);
   }
 
   saveAppSettings();
@@ -2594,8 +2605,8 @@ function payload(){
     tarih:$("tarih").value,
     saat:$("saat").value,
     santral:sentenceCaseTR($("santral").value),
-    firma:sentenceCaseTR($("firma").value),
-    santiye:sentenceCaseTR($("santiye").value),
+    firma:window.BetonexaNames.label($("firma").value),
+    santiye:window.BetonexaNames.label($("santiye").value),
     beton_sinifi:$("betonSinifi").value,
     beton_ozelligi:selectedConcreteProperties().join(", "),
     metraj:parseMetrajInput($("metraj").value).number,
@@ -2893,11 +2904,12 @@ function tomorrowRecords(){
 function groupTomorrow(){
   const grouped=new Map();
   tomorrowRecords().forEach(r=>{
-    const key=String(r.firma||"Firma belirtilmemiş").trim()||"Firma belirtilmemiş";
-    if(!grouped.has(key))grouped.set(key,[]);
-    grouped.get(key).push(r);
+    const raw=String(r.firma||"Firma belirtilmemiş").trim()||"Firma belirtilmemiş";
+    const key=analysisCanonicalKey(raw);
+    if(!grouped.has(key))grouped.set(key,{name:analysisDisplayName(raw),items:[]});
+    grouped.get(key).items.push(r);
   });
-  return [...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],"tr"));
+  return [...grouped.values()].map(group=>[group.name,group.items]).sort((a,b)=>a[0].localeCompare(b[0],"tr"));
 }
 function renderTomorrowReport(){
   if(!$("tomorrowPage"))return;
@@ -4632,7 +4644,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 <script src="./tracking-finalizer.js?v=20260820-restore1"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
 <script src="./professional-pdf-reports.js?v=20260826-status-amount1"></script>
-<script src="./shipment-status.js?v=20260826-status-amount1"></script>
+<script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
 <!-- Betonexa sayfası burada kapanır. Sonradan eklenen yamaların kapanış etiketleri
      dışına taşmasını önlemek için body/html etiketleri dosyanın en sonunda tutulur. -->
