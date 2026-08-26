@@ -54,7 +54,7 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
 test('şantiye tekilleştirme dosyaları önbellekten eski sürümle açılmaz',async()=>{
   const html=await read('index.html');
   const cement=await read('cimento-module.js');
-  assert.match(html,/normalization\.js\?v=20260824-site-dedupe2/);
+  assert.match(html,/normalization\.js\?v=20260826-name-key3/);
   assert.match(cement,/contracts-module\.js\?v=20260826-filter-status1/);
 });
 
@@ -176,7 +176,7 @@ test('yarınki ve tüm sevkiyat PDFleri aynı profesyonel rapor motorunu kullan�
   assert.match(contracts,/BetonexaProfessionalPdf\.savePrepared/);
   assert.doesNotMatch(contracts,/Filtrelenmiş (Beton|Çimento|Sevkiyat)/);
   assert.doesNotMatch(contracts,/Filtrelenmis-Sevkiyatlar\.(pdf|xlsx)/);
-  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260826-status-amount1/);
+  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260826-current-only2/);
 });
 
 test('durum ve değişen miktar ilk çizimde yer ayırır, PDFye aktarılır',async()=>{
@@ -199,9 +199,19 @@ test('otomatik öneriler son kez tekilleştirilir ve filtreli PDF durum bilgisin
   assert.match(cement,/const matches=uniqueSuggestionValues\(values\(\)\)/);
   assert.match(cement,/function dedupeRenderedMenus\(root=document\)/);
   assert.match(cement,/guardRenderedSuggestionMenus\(\)/);
-  assert.match(html,/id="sorumluKisi"[^>]+autocomplete="new-password"/);
+  assert.match(html,/id="sorumluKisi"[^>]+autocomplete="off"/);
   assert.match(contracts,/Durum:statusOf\(r\)/);
   assert.match(contracts,/durum:row\.Durum/);
   assert.match(contracts,/planlanan_metraj:row\.Planlanan/);
   assert.match(contracts,/planlanan_tonaj:row\.Planlanan/);
+});
+
+test('sorumlu önerileri yalnızca kayıtlardan gelir ve PDF yalnızca güncel miktarı yazar',async()=>{
+  const cement=await read('cimento-enhancements.js');
+  const pdf=await read('professional-pdf-reports.js');
+  assert.match(cement,/select\('firma,santiye,sorumlu_kisi'\)/);
+  assert.match(cement,/concreteResponsibleMenu/);
+  assert.match(cement,/concreteSuggestions\.sorumlu/);
+  assert.doesNotMatch(pdf,/return `İlk:/);
+  assert.match(pdf,/return currentText/);
 });
