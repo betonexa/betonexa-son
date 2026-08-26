@@ -12,6 +12,11 @@
   let suggestions={firma:[],yer:['Şantiye']};
   let concreteSuggestions={firma:[],santiye:[]};
   let nullTonnageIds=new Set();
+  function uniqueSuggestionValues(values){
+    const unique=new Map();
+    (values||[]).forEach(value=>{const name=title(value),key=canonical(name);if(key)unique.set(key,prettier(unique.get(key),name))});
+    return [...unique.values()].sort((a,b)=>a.localeCompare(b,'tr'));
+  }
 
   function addStyles(){
     if($('cementEnhStyles'))return;
@@ -40,7 +45,7 @@
     (a.data||[]).forEach(x=>addFirma(allFirma,x.firma));
     (b.data||[]).forEach(x=>{addFirma(allFirma,x.firma);addFirma(betonFirma,x.firma);addFirma(betonSite,x.santiye)});
     suggestions={firma:[...allFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:['Şantiye']};
-    concreteSuggestions={firma:[...betonFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),santiye:[...betonSite.values()].sort((a,b)=>a.localeCompare(b,'tr'))};
+    concreteSuggestions={firma:uniqueSuggestionValues([...betonFirma.values()]),santiye:uniqueSuggestionValues([...betonSite.values()])};
     fillLists();bindConcreteAutocomplete();patchAllDisplays();
   }
 
@@ -55,7 +60,7 @@
     const render=async()=>{
       if((values()||[]).length===0)await loadSuggestions();
       const q=canonical(input.value);if(!q){menu.classList.add('hidden');return}
-      const matches=(values()||[]).filter(v=>canonical(v).startsWith(q)).slice(0,12);
+      const matches=uniqueSuggestionValues(values()).filter(v=>canonical(v).startsWith(q)).slice(0,12);
       if(!matches.length){menu.classList.add('hidden');return}
       menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');menu.classList.remove('hidden');
       [...menu.querySelectorAll('.betonexa-auto-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')}));
