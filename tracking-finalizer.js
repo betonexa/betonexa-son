@@ -95,7 +95,10 @@
   document.addEventListener('pointerdown',intercept,true);
   document.addEventListener('click',intercept,true);
 
-  function keepRouter(){if(window.editCementFromCombined!==openEdit)window.editCementFromCombined=openEdit;}
+  function keepRouter(){
+    if(window.editCementFromCombined!==openEdit)window.editCementFromCombined=openEdit;
+    if(window.editCementShipment!==openEdit)window.editCementShipment=openEdit;
+  }
   keepRouter();setInterval(keepRouter,25);
 
   function bindSave(){const save=$('cementSaveBtn');if(!save||save===saveButton)return;saveButton=save;save.addEventListener('click',async e=>{if(!editId)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const tarih=$('cementDate')?.value||'',firma=label($('cementCompany')?.value||''),yer=label($('cementDelivery')?.value||''),arac=Number($('cementVehicleCount')?.value),ton=parseTon($('cementTonnage')?.value);if(!tarih||!firma||!yer||!Number.isInteger(arac)||arac<1||Number.isNaN(ton)){setStatus('Tarih, firma, teslim yeri, araç sayısı ve tonaj bilgisini kontrol et.',true);return;}const client=db();if(!client){setStatus('Veritabanı bağlantısı yüklenemedi.',true);return;}save.disabled=true;setStatus('Güncelleniyor…');const currentId=editId;const {error}=await client.from(TABLE).update({tarih,firma,teslim_yeri:yer,arac_sayisi:arac,toplam_tonaj:ton}).eq('id',currentId);save.disabled=false;if(error){setStatus('Çimento sevkiyatı güncellenemedi: '+error.message,true);return;}editId=null;window.__cementPendingEditId=null;save.textContent='Sevkiyatı Kaydet';$('cementCancelBtn')?.classList.add('hidden');setStatus('Çimento sevkiyatı güncellendi.');try{if(typeof window.loadCementShipments==='function')await window.loadCementShipments();}catch(_){}try{if(typeof window.refreshRecordsCombined==='function')await window.refreshRecordsCombined();}catch(_){}} ,true);$('cementCancelBtn')?.addEventListener('click',()=>{editId=null;window.__cementPendingEditId=null;},true);}
