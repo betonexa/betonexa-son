@@ -37,6 +37,7 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
   assert.equal(names.label('Haktan İnş.'),'Haktan İnşaat');
   assert.equal(names.key('Haktan İnş.'),names.key('Haktan İnşaat'));
   assert.equal(names.key('IŞIKLAR'),names.key('ışıklar'));
+  assert.equal(names.key('Usta'),names.key('USTA'));
   const grouped=names.group([
     {firma:'Şen Beton',metraj:25},
     {firma:'şen   beton',metraj:30},
@@ -53,8 +54,17 @@ test('firma ve şantiye adları tek kuralla normalleşir',async()=>{
 test('şantiye tekilleştirme dosyaları önbellekten eski sürümle açılmaz',async()=>{
   const html=await read('index.html');
   const cement=await read('cimento-module.js');
-  assert.match(html,/normalization\.js\?v=20260824-site-dedupe1/);
-  assert.match(cement,/contracts-module\.js\?v=20260824-site-dedupe1/);
+  assert.match(html,/normalization\.js\?v=20260824-site-dedupe2/);
+  assert.match(cement,/contracts-module\.js\?v=20260825-filter-flash1/);
+});
+
+test('form seçenekleri, kayıt ve yarınki rapor aynı ad anahtarını kullanır',async()=>{
+  const html=await read('index.html');
+  assert.match(html,/function uniqueNames\(values\)/);
+  assert.match(html,/firma:window\.BetonexaNames\.label/);
+  assert.match(html,/santiye:window\.BetonexaNames\.label/);
+  assert.match(html,/const key=analysisCanonicalKey\(raw\)/);
+  assert.doesNotMatch(html,/const key=String\(r\.firma\|\|"Firma belirtilmemiş"\)\.trim/);
 });
 
 test('sözleşme gerçekleşen ve kalan m³ hesapları tarihe göre doğrudur',async()=>{
@@ -106,18 +116,18 @@ test('çalışan son yerleşim düzelticisi yeni sürüm adresiyle en sonda yük
 
 test('sevkiyat takibi beton tablosunda sorumlu ve telefon görünür',async()=>{
   const addon=await read('records-cement-addon.js');
-  assert.match(addon,/<th>Pompa<\/th><th>Sorumlu<\/th><th>Telefon<\/th><th>İşlem<\/th>/);
+  assert.match(addon,/<th>Pompa<\/th><th>Sorumlu<\/th><th>Telefon<\/th><th class="shipment-status-head">Durum<\/th><th>İşlem<\/th>/);
   assert.match(addon,/r\.sorumlu_kisi/);
   assert.match(addon,/r\.telefon/);
   const history=await read('cimento-history.js');
-  assert.match(history,/records-cement-addon\.js\?v=20260820-contact1/);
+  assert.match(history,/records-cement-addon\.js\?v=20260826-stable-status2/);
 });
 
 test('yarınki sevkiyat geçişi içerik kaybolmadan yenilenir',async()=>{
   const html=await read('index.html');
   const cement=await read('cimento-module.js');
   assert.match(html,/scrollbar-gutter:\s*stable/);
-  assert.match(html,/cimento-module\.js\?v=20260820-tomorrow1/);
+  assert.match(html,/cimento-module\.js\?v=20260825-tomorrow-stable1/);
   assert.doesNotMatch(cement,/if\(old\)old\.remove\(\);const items=await tomorrowCementRecords/);
   assert.match(cement,/if\(old\)old\.replaceWith\(section\);else report\.appendChild\(section\)/);
 });
@@ -166,5 +176,17 @@ test('yarınki ve tüm sevkiyat PDFleri aynı profesyonel rapor motorunu kullan�
   assert.match(contracts,/BetonexaProfessionalPdf\.savePrepared/);
   assert.doesNotMatch(contracts,/Filtrelenmiş (Beton|Çimento|Sevkiyat)/);
   assert.doesNotMatch(contracts,/Filtrelenmis-Sevkiyatlar\.(pdf|xlsx)/);
-  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260824-reference2/);
+  assert.match(await read('index.html'),/professional-pdf-reports\.js\?v=20260826-status-amount1/);
+});
+
+test('durum ve değişen miktar ilk çizimde yer ayırır, PDFye aktarılır',async()=>{
+  const addon=await read('records-cement-addon.js');
+  const status=await read('shipment-status.js');
+  const pdf=await read('professional-pdf-reports.js');
+  assert.match(addon,/data-shipment-type/);
+  assert.match(addon,/planlanan_metraj/);
+  assert.match(addon,/box\.dataset\.renderSignature===signature/);
+  assert.match(status,/shipment-status-select\[data-shipment-type\]\[data-shipment-id\]/);
+  assert.match(pdf,/\['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Özellik','Pompa','Miktar','Durum','Sorumlu','Telefon'\]/);
+  assert.match(pdf,/amountText\(item,'planlanan_metraj','metraj','m³'/);
 });
