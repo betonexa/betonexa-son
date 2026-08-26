@@ -197,6 +197,8 @@ test('otomatik öneriler son kez tekilleştirilir ve filtreli PDF durum bilgisin
   const html=await read('index.html');
   assert.match(cement,/function uniqueSuggestionValues\(values\)/);
   assert.match(cement,/const matches=uniqueSuggestionValues\(values\(\)\)/);
+  assert.match(cement,/function dedupeRenderedMenus\(root=document\)/);
+  assert.match(cement,/guardRenderedSuggestionMenus\(\)/);
   assert.match(html,/id="sorumluKisi"[^>]+autocomplete="new-password"/);
   assert.match(contracts,/Durum:statusOf\(r\)/);
   assert.match(contracts,/durum:row\.Durum/);
