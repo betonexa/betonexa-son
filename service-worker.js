@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.08.26-responsible-pdf-v5';
+const CACHE='betonexa-2026.08.26-cement-edit-preview-v1';
 const ASSETS=[
   './',
   './index.html',
