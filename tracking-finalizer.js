@@ -118,7 +118,7 @@
 (function loadCementPalletExportFix(){
   if(document.querySelector('script[src^="./cement-pallet-export-fix.js"]'))return;
   const s=document.createElement('script');
-  s.src='./cement-pallet-export-fix.js?v=20260827-1';
+  s.src='./cement-pallet-export-fix.js?v=20260828-date2';
   s.defer=true;
   document.head.appendChild(s);
 })();
