@@ -44,26 +44,27 @@
     let host=report.querySelector('#trackingExportFinalHost');
 
     if(!host){
-      const betonLeaf=directBadge(report,/\b\d+\s*beton\b/i);
-      const cimentoLeaf=directBadge(report,/\b\d+\s*çimento\b/i);
-      if(!betonLeaf||!cimentoLeaf)return;
-
-      const betonBox=badgeBox(betonLeaf,report);
-      const cimentoBox=badgeBox(cimentoLeaf,report);
-      if(!betonBox||!cimentoBox)return;
-
-      let parent=betonBox.parentElement;
-      if(parent!==cimentoBox.parentElement){
-        const common=[...report.querySelectorAll('*')].find(el=>el.children && [...el.children].includes(betonBox) && [...el.children].includes(cimentoBox));
-        if(common)parent=common;
+      let header=report.querySelector('#trackingExportHeader');
+      if(!header){
+        header=document.createElement('div');
+        header.id='trackingExportHeader';
+        header.className='tomorrow-header';
+        const title=document.createElement('div');
+        title.innerHTML='<h2>📋 Sevkiyat Takibi</h2>';
+        host=document.createElement('div');
+        host.id='trackingExportFinalHost';
+        host.className='tomorrow-actions';
+        header.append(title,host);
+        report.insertBefore(header,report.firstChild);
+      }else{
+        host=header.querySelector('#trackingExportFinalHost');
+        if(!host){
+          host=document.createElement('div');
+          host.id='trackingExportFinalHost';
+          host.className='tomorrow-actions';
+          header.appendChild(host);
+        }
       }
-      if(!parent)return;
-
-      host=document.createElement('div');
-      host.id='trackingExportFinalHost';
-      parent.insertBefore(host,betonBox);
-      if(betonBox.isConnected)betonBox.remove();
-      if(cimentoBox.isConnected)cimentoBox.remove();
     }
 
     const oldParents=new Set([pdf.parentElement,excel.parentElement,print.parentElement]);
