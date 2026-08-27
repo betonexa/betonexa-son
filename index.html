@@ -1752,7 +1752,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </select></div>
 
  <div class="field"><label>Firma</label><input id="firma" list="firmaList" autocomplete="off"><datalist id="firmaList"></datalist></div>
- <div class="field"><label>Şantiye</label><input id="santiye" autocomplete="off"></div>
+ <div class="field"><label>Şantiye</label><input id="santiye" list="santiyeList" autocomplete="off"><datalist id="santiyeList"></datalist></div>
  <div class="field"><label>Beton sınıfı</label><select id="betonSinifi" required>
  <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option>
  </select></div>
@@ -1782,7 +1782,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
 
  <div class="contact-row">
- <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" name="betonexa_sorumlu_kisi" autocomplete="off" autocapitalize="sentences" placeholder="Sorumlu kişi adı"></div>
+ <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" name="betonexa_sorumlu_kisi" list="sorumluKisiList" autocomplete="off" autocapitalize="sentences" placeholder="Sorumlu kişi adı"><datalist id="sorumluKisiList"></datalist></div>
  <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="05XX XXX XX XX"></div>
  </div>
  <div class="form-actions">
@@ -2135,6 +2135,12 @@ function refreshFormOptions(){
   const recordCompanies=records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(window.BetonexaNames.key(x)));
   const companies=uniqueNames([...appSettings.companies,...recordCompanies]);
   $("firmaList").innerHTML=companies.map(x=>`<option value="${esc(x)}"></option>`).join("");
+
+  const sites=uniqueNames(records.map(r=>r.santiye));
+  $("santiyeList").innerHTML=sites.map(x=>`<option value="${esc(x)}"></option>`).join("");
+
+  const responsiblePeople=uniqueNames(records.map(r=>r.sorumlu_kisi));
+  $("sorumluKisiList").innerHTML=responsiblePeople.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
   const current=$("santral").value;
   const recordPlants=records.map(r=>r.santral);
@@ -2660,6 +2666,14 @@ if(result.error){
 
 const saved = result.data;
 
+// Daha önce listeden kaldırılmış bir firma yeni bir sevkiyatta tekrar
+// kullanılırsa onu önerilerde yeniden görünür yap.
+const savedCompanyKey=window.BetonexaNames.key(saved?.firma);
+if(savedCompanyKey&&(appSettings.hiddenCompanies||[]).some(name=>window.BetonexaNames.key(name)===savedCompanyKey)){
+  appSettings.hiddenCompanies=appSettings.hiddenCompanies.filter(name=>window.BetonexaNames.key(name)!==savedCompanyKey);
+  localStorage.setItem("betonexa_settings",JSON.stringify(appSettings));
+}
+
 if(id){
   records = records.map(r =>
     String(r.id) === String(id) ? saved : r
@@ -2675,6 +2689,9 @@ renderAnalysis();
 renderDashboard();
 renderTomorrowReport();
 refreshFormOptions();
+if(typeof window.BetonexaRefreshSuggestions==="function"){
+  await window.BetonexaRefreshSuggestions();
+}
 
 setStatus(id ? "Sevkiyat güncellendi." : "Sevkiyat kaydedildi.");
 clearForm();
