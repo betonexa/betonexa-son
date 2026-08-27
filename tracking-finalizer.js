@@ -36,9 +36,9 @@
     if(!page)return;
     const report=page.querySelector('.records-report')||page;
 
-    const pdf=findButton(report,'PDF İndir','pdfBtn');
-    const excel=findButton(report,'Excel İndir','excelBtn');
-    const print=findButton(report,'Yazdır','printBtn');
+    const pdf=document.getElementById('shipmentFilterPdf')||findButton(report,'PDF İndir','pdfBtn');
+    const excel=document.getElementById('shipmentFilterExcel')||findButton(report,'Excel İndir','excelBtn');
+    const print=document.getElementById('shipmentFilterPrint')||findButton(report,'Yazdır','printBtn');
     if(!pdf||!excel||!print)return;
 
     let host=report.querySelector('#trackingExportFinalHost');
