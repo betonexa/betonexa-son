@@ -70,7 +70,7 @@
 (function loadCementMobileFix(){if(document.getElementById("cementMobileFixCss"))return;const link=document.createElement("link");link.id="cementMobileFixCss";link.rel="stylesheet";link.href="./cimento-mobile-fix.css?v=20260817-2";document.head.appendChild(link)})();
 (function loadCementEnhancements(){if(document.querySelector('script[src^="./cimento-enhancements.js"]'))return;const s=document.createElement("script");s.src="./cimento-enhancements.js?v=20260826-responsible3";s.defer=true;document.head.appendChild(s)})();
 (function loadRecordsCementAddon(){if(document.querySelector('script[src^="./records-cement-addon.js"]'))return;const s=document.createElement("script");s.src="./records-cement-addon.js?v=20260826-stable-status2";s.defer=true;document.head.appendChild(s)})();
-(function loadCementPalletExports(){if(document.querySelector('script[src^="./cement-pallet-exports.js"]'))return;const s=document.createElement("script");s.src="./cement-pallet-exports.js?v=20260827-1";s.defer=true;document.head.appendChild(s)})();
+(function loadCementPalletExports(){if(document.querySelector('script[src^="./cement-pallet-exports.js"]'))return;const s=document.createElement("script");s.src="./cement-pallet-exports.js?v=20260827-2";s.defer=true;document.head.appendChild(s)})();
 
 (function removeTomorrowPdfTitle(){
   let tries=0;
