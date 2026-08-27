@@ -194,7 +194,7 @@ function forceLegacyAll(){
   const range=$('exportRange');if(range&&range.value!=='all'){range.value='all';range.dispatchEvent(new Event('change',{bubbles:true}))}
   ['exportRange','exportDate','exportPdfBtn','exportExcelBtn','exportPrintBtn'].forEach(id=>{const el=$(id);if(!el)return;const wrap=(id==='exportRange'||id==='exportDate')?(el.closest('label')||el.parentElement):el;wrap.style.display='none'});
   [...document.querySelectorAll('#recordsPage label')].forEach(l=>{const t=(l.textContent||'').trim();if(t==='Plan dönemi'||t==='Referans tarihi')l.style.display='none'});
-  [...document.querySelectorAll('#recordsPage button')].forEach(btn=>{if(btn.closest('#shipmentQuickFilters'))return;const t=(btn.textContent||'').trim();if(t==='PDF İndir'||t==='Excel İndir'||t==='Yazdır')btn.style.display='none'});
+  [...document.querySelectorAll('#recordsPage button')].forEach(btn=>{if(btn.closest('#shipmentQuickFilters')||/^shipmentFilter(?:Pdf|Excel|Print)$/.test(btn.id)||btn.closest('#trackingExportHeader'))return;const t=(btn.textContent||'').trim();if(t==='PDF İndir'||t==='Excel İndir'||t==='Yazdır')btn.style.display='none'});
 }
 
 function updateFieldVisibility(){const type=$('shipmentFilterType')?.value||'all';document.querySelectorAll('#shipmentQuickFilters [data-only]').forEach(el=>{const only=el.dataset.only;el.classList.toggle('sqf-hidden',type==='all'||only!==type)})}
@@ -254,6 +254,17 @@ async function pdf(){
 function excel(){const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Çıktı alınacak sevkiyat bulunmuyor.');if(!window.XLSX)return alert('Excel modülü yüklenemedi.');const wb=XLSX.utils.book_new();if(p.concrete.length){const rows=p.concrete.map(x=>({...x,Metraj:parseNumber(x.Metraj)}));rows.push({Firma:'TOPLAM',Metraj:p.m3});XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Beton')}if(p.cement.length){const rows=p.cement.map(x=>({...x,Araç:parseNumber(x.Araç),Tonaj:parseNumber(x.Tonaj)}));rows.push({Firma:'TOPLAM',Araç:p.vehicles,Tonaj:p.tons});XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Çimento')}XLSX.writeFile(wb,'Betonexa-Sevkiyatlar.xlsx')}
 function printRows(){const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Yazdırılacak filtrelenmiş sevkiyat bulunmuyor.');const w=window.open('','_blank');if(!w)return;const table=(heads,rows)=>`<table><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>`;let html=`<!doctype html><meta charset="utf-8"><title>${esc(exportTitle())}</title><style>body{font-family:Arial;padding:22px}table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px}th,td{border:1px solid #bbb;padding:6px}th{background:#6f42c1;color:#fff}h3{margin-top:20px}</style><h2>${esc(exportTitle())}</h2><p>${esc(exportSubline())}</p>`;if(p.concrete.length)html+=`<h3>Beton Sevkiyatları</h3>${table(['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Metraj','Pompa'],p.concrete.map(x=>[x.No,x.Tarih,x.Saat,x.Santral,x.Firma,x['Şantiye'],x.Beton,x.Metraj,x.Pompa]))}<b>BETON TOPLAM: ${p.concrete.length} sevkiyat · ${trNum(p.m3)} m³</b>`;if(p.cement.length)html+=`<h3>Çimento Sevkiyatları</h3>${table(['No','Tarih','Firma','Teslim Yeri','Araç','Tonaj'],p.cement.map(x=>[x.No,x.Tarih,x.Firma,x['Teslim Yeri'],x.Araç,x.Tonaj]))}<b>ÇİMENTO TOPLAM: ${p.cement.length} sevkiyat · ${p.vehicles} araç · ${trNum(p.tons)} ton</b>`;w.document.write(html);w.document.close();setTimeout(()=>w.print(),250)}
 
+function placeFilterExports(){
+  const report=document.querySelector('#recordsPage .records-report');if(!report)return;
+  let header=report.querySelector('#trackingExportHeader');
+  if(!header){header=document.createElement('div');header.id='trackingExportHeader';header.className='tomorrow-header';const title=document.createElement('div');title.innerHTML='<h2>📋 Sevkiyat Takibi</h2>';header.appendChild(title);report.insertBefore(header,report.firstChild)}
+  let host=header.querySelector('#trackingExportFinalHost');
+  if(!host){host=document.createElement('div');host.id='trackingExportFinalHost';host.className='tomorrow-actions tracking-export-slot';header.appendChild(host)}
+  const pdf=$('shipmentFilterPdf'),excel=$('shipmentFilterExcel'),print=$('shipmentFilterPrint');if(!pdf||!excel||!print)return;
+  [pdf,excel,print].forEach(button=>{if(button.parentElement!==host)host.appendChild(button);button.style.removeProperty('display');button.style.setProperty('width','auto','important');button.style.setProperty('margin','0','important');button.style.setProperty('white-space','nowrap','important')});
+  pdf.className='btn btn-primary';excel.className='btn btn-light';print.className='btn btn-light';
+  host.style.setProperty('display','flex','important');host.style.setProperty('gap','8px','important');host.style.setProperty('align-items','center','important');host.style.setProperty('justify-content','flex-end','important');
+}
 function ensureFilters(){
   forceLegacyAll();const{box}=blocks();if(!box)return false;let p=$('shipmentQuickFilters');if(!p){p=document.createElement('div');p.id='shipmentQuickFilters';p.innerHTML=`
     <div class="sqf-head"><strong>🔎 Sevkiyat Filtreleri</strong><span id="shipmentFilterResult"></span></div>
@@ -276,7 +287,7 @@ function ensureFilters(){
     ['shipmentFilterSite','shipmentFilterPlant','shipmentFilterConcrete','shipmentFilterDelivery','shipmentFilterStart','shipmentFilterEnd'].forEach(id=>$(id)?.addEventListener('change',()=>{document.querySelectorAll('#shipmentQuickFilters .sqf-quick button').forEach(b=>b.classList.remove('active'));applyFilters()}));
     $('shipmentFilterClear').onclick=clearFilters;$('shipmentFilterPdf').onclick=pdf;$('shipmentFilterExcel').onclick=excel;$('shipmentFilterPrint').onclick=printRows;
   }else if(p.parentElement!==box)box.insertBefore(p,box.querySelector('.rc-block')||box.firstChild);
-  refreshOptions();applyFilters();return true;
+  placeFilterExports();refreshOptions();applyFilters();return true;
 }
 function observeRecords(){const host=$('recordsPage');if(!host||host.dataset.unifiedFilterObserver==='1')return;host.dataset.unifiedFilterObserver='1';let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(ensureFilters,120)}).observe(host,{childList:true,subtree:true})}
 document.addEventListener('betonexa:records-rendered',()=>{refreshOptions();applyFilters()});
