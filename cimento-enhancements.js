@@ -61,6 +61,10 @@
     fillLists();bindConcreteAutocomplete();patchAllDisplays();
   }
 
+  // Beton sevkiyatı kaydedildikten sonra yeni firma, şantiye ve sorumlu
+  // adlarını sayfa yenilemeden öneri menülerine alır.
+  window.BetonexaRefreshSuggestions=loadSuggestions;
+
   function createMenuForInput(input,id,values,onSelect){
     if(!input)return;
     let menu=$(id);
