@@ -26,6 +26,7 @@
     }catch(_){
       rows=DEFAULT_ROWS.slice();
     }
+    rows=rows.map(row=>({company:normalizeCompany(row.company),term:normalizeTerm(row.term)}));
     save();
   }
   function save(){
