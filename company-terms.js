@@ -22,11 +22,57 @@
     }catch(_){
       rows=DEFAULT_ROWS.slice();
     }
-    rows=rows.map(row=>({company:normalizeCompany(row.company),term:normalizeTerm(row.term)}));
+    rows=rows.map(row=>({id:row.id||null,company:normalizeCompany(row.company),term:normalizeTerm(row.term)}));
     save();
   }
   function save(){
     localStorage.setItem(STORAGE_KEY,JSON.stringify(rows));
+  }
+  function companyKey(value){
+    return normalizeCompany(value).toLocaleLowerCase('tr-TR');
+  }
+  async function cloudContext(){
+    const client=typeof root.ensureDb==='function'?root.ensureDb():null;
+    if(!client)return null;
+    const result=await client.auth.getUser();
+    if(result.error||!result.data?.user)return null;
+    return {client,user:result.data.user};
+  }
+  async function syncFromCloud(){
+    const status=$('companyTermStatus');
+    try{
+      const context=await cloudContext();
+      if(!context)return;
+      const {client,user}=context;
+      const localRows=rows.filter(row=>row.company&&row.term).map(row=>({
+        user_id:user.id,
+        firma:normalizeCompany(row.company),
+        firma_key:companyKey(row.company),
+        vade:normalizeTerm(row.term)
+      }));
+      if(localRows.length){
+        const migrated=await client.from('firma_vadeleri').upsert(localRows,{
+          onConflict:'user_id,firma_key',
+          ignoreDuplicates:true
+        });
+        if(migrated.error)throw migrated.error;
+      }
+      const result=await client.from('firma_vadeleri')
+        .select('id,firma,vade')
+        .eq('user_id',user.id)
+        .order('firma',{ascending:true});
+      if(result.error)throw result.error;
+      rows=(result.data||[]).map(row=>({id:row.id,company:normalizeCompany(row.firma),term:normalizeTerm(row.vade)}));
+      save();
+      render();
+      if(status&&status.textContent==='Kayıtlar eşitleniyor…')status.textContent='';
+    }catch(error){
+      console.warn('Firma vadeleri eşitlenemedi:',error);
+      if(status){
+        status.textContent='Kayıtlar şu anda yalnızca bu cihazda gösteriliyor.';
+        status.style.color='var(--danger)';
+      }
+    }
   }
   function resetForm(){
     editingIndex=-1;
@@ -53,7 +99,7 @@
         </td>
       </tr>`).join('');
   }
-  function upsert(){
+  async function upsert(){
     const company=normalizeCompany($('companyTermCompany').value);
     const term=normalizeTerm($('companyTermValue').value);
     const status=$('companyTermStatus');
@@ -62,19 +108,38 @@
       status.style.color='var(--danger)';
       return;
     }
-    const duplicate=rows.findIndex((row,index)=>index!==editingIndex&&normalizeCompany(row.company)===company);
+    const duplicate=rows.findIndex((row,index)=>index!==editingIndex&&companyKey(row.company)===companyKey(company));
     if(duplicate>=0){
       status.textContent='Bu firma zaten kayıtlı.';
       status.style.color='var(--danger)';
       return;
     }
-    const item={company,term};
+    const previous=editingIndex>=0?rows[editingIndex]:null;
+    const item={id:previous?.id||null,company,term};
     if(editingIndex>=0)rows[editingIndex]=item;
     else rows.push(item);
     rows.sort((a,b)=>a.company.localeCompare(b.company,'tr'));
     save();
     render();
     resetForm();
+    try{
+      const context=await cloudContext();
+      if(!context)return;
+      const {client,user}=context;
+      let result;
+      const payload={user_id:user.id,firma:company,firma_key:companyKey(company),vade:term,updated_at:new Date().toISOString()};
+      if(previous?.id){
+        result=await client.from('firma_vadeleri').update(payload).eq('id',previous.id).eq('user_id',user.id);
+      }else{
+        result=await client.from('firma_vadeleri').upsert(payload,{onConflict:'user_id,firma_key'});
+      }
+      if(result.error)throw result.error;
+      await syncFromCloud();
+    }catch(error){
+      console.warn('Firma vadesi buluta kaydedilemedi:',error);
+      status.textContent='Kayıt cihazda saklandı; bağlantı gelince eşitlenecek.';
+      status.style.color='var(--danger)';
+    }
   }
   function startEdit(index){
     const row=rows[index];
@@ -86,13 +151,25 @@
     $('companyTermCancel').classList.remove('hidden');
     $('companyTermCompany').focus();
   }
-  function remove(index){
+  async function remove(index){
     const row=rows[index];
     if(!row||!confirm(row.company+' kaydı silinsin mi?'))return;
     rows.splice(index,1);
     save();
     render();
     resetForm();
+    if(!row.id)return;
+    try{
+      const context=await cloudContext();
+      if(!context)return;
+      const result=await context.client.from('firma_vadeleri').delete().eq('id',row.id).eq('user_id',context.user.id);
+      if(result.error)throw result.error;
+    }catch(error){
+      console.warn('Firma vadesi buluttan silinemedi:',error);
+      const status=$('companyTermStatus');
+      status.textContent='Silme işlemi buluta aktarılamadı.';
+      status.style.color='var(--danger)';
+    }
   }
   async function downloadPdf(){
     const status=$('companyTermStatus');
@@ -152,6 +229,14 @@
   function init(){
     load();
     render();
+    root.BetonexaCompanyTermsRefresh=async function(){
+      const status=$('companyTermStatus');
+      if(status&&!status.textContent){
+        status.textContent='Kayıtlar eşitleniyor…';
+        status.style.color='var(--muted)';
+      }
+      await syncFromCloud();
+    };
     $('companyTermSave')?.addEventListener('click',upsert);
     $('companyTermCancel')?.addEventListener('click',resetForm);
     $('companyTermsPdf')?.addEventListener('click',downloadPdf);
