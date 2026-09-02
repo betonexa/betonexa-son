@@ -4720,6 +4720,28 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
   box-sizing:border-box !important;
 }
 </style>
+<style id="betonexa-desktop-menu-grid">
+/* Masaüstü ana menü: 5 + 5 dengeli yerleşim. Mobil kurallar korunur. */
+@media (min-width: 1200px){
+  main.content > .tabs{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px;
+  }
+  main.content > .tabs .btn,
+  main.content > .tabs button{
+    width:100%;
+    min-width:0;
+    min-height:58px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    white-space:normal;
+    line-height:1.15;
+  }
+}
+</style>
 <script src="./tracking-finalizer.js?v=20260828-date4"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
 <script src="./professional-pdf-reports.js?v=20260828-date6-cement-groups1"></script>
