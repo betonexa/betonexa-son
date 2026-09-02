@@ -44,14 +44,19 @@
       const context=await cloudContext();
       if(!context)return;
       const {client,user}=context;
-      const localRows=rows.filter(row=>row.company&&row.term).map(row=>({
-        user_id:user.id,
-        firma:normalizeCompany(row.company),
-        firma_key:companyKey(row.company),
-        vade:normalizeTerm(row.term)
-      }));
-      if(localRows.length){
-        const migrated=await client.from('firma_vadeleri').upsert(localRows,{
+      const localMap=new Map();
+      rows.filter(row=>row.company&&row.term).forEach(row=>{
+        const item={
+          user_id:user.id,
+          firma:normalizeCompany(row.company),
+          firma_key:companyKey(row.company),
+          vade:normalizeTerm(row.term)
+        };
+        if(!localMap.has(item.firma_key))localMap.set(item.firma_key,item);
+      });
+      const localRows=[...localMap.values()];
+      for(const item of localRows){
+        const migrated=await client.from('firma_vadeleri').upsert(item,{
           onConflict:'user_id,firma_key',
           ignoreDuplicates:true
         });
@@ -247,6 +252,7 @@
       if(del)remove(Number(del.dataset.index));
     });
     $('companyTermValue')?.addEventListener('keydown',event=>{if(event.key==='Enter')upsert();});
+    setTimeout(()=>syncFromCloud(),1800);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
