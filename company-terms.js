@@ -12,10 +12,6 @@
     const clean=String(value||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('tr-TR');
     return clean.replace(/(^|[\s-])([a-zçğıöşü])/gu,(match,prefix,letter)=>prefix+letter.toLocaleUpperCase('tr-TR'));
   }
-  function pdfCompanyName(value){
-    const parts=normalizeCompany(value).split(' ').filter(Boolean);
-    return parts.length>1?[...parts].reverse().join(' '):parts.join(' ');
-  }
   function normalizeTerm(value){
     return String(value||'').trim().replace(/\s+/g,'').toLocaleUpperCase('tr-TR');
   }
@@ -128,7 +124,7 @@
         startY:35,
         theme:'grid',
         head:[[text('FİRMA ADI'),text('VADE GÜNÜ')]],
-        body:rows.map(row=>[text(pdfCompanyName(row.company)),text(row.term)]),
+        body:rows.map(row=>[text(row.company),text(row.term)]),
         margin:{left:margin,right:margin},
         styles:{font,fontStyle:'normal',fontSize:10,cellPadding:4,textColor:dark,lineColor:line,lineWidth:.15,valign:'middle'},
         headStyles:{font,fontStyle:'normal',fillColor:purple,textColor:white,halign:'center',cellPadding:4},
