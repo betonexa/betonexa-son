@@ -1618,6 +1618,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <button class="btn btn-light" data-page="calendar">📅 Haftalık Takvim</button>
  <button class="btn btn-light" data-page="analysis">📊 Analiz</button>
  <button class="btn btn-light" data-page="contracts">📑 Sözleşmeler</button>
+ <button class="btn btn-light" data-page="companyTerms">💳 Firma Vadeleri</button>
  <button class="btn btn-light" data-page="settings">⚙️ Ayarlar</button>
  <button class="btn btn-light" data-page="dashboard">📈 Dashboard</button>
  </nav>
@@ -1635,6 +1636,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
     <button type="button" class="home-action" data-home-page="calendar"><span>🗓️</span>Takvim</button>
     <button type="button" class="home-action" data-home-page="analysis"><span>📊</span>Analiz</button>
     <button type="button" class="home-action" data-home-page="contracts"><span>📑</span>Sözleşmeler</button>
+    <button type="button" class="home-action" data-home-page="companyTerms"><span>💳</span>Firma Vadeleri</button>
     <button type="button" class="home-action" data-home-page="dashboard"><span>📈</span>Dashboard</button>
     <button type="button" class="home-action" data-home-page="settings"><span>⚙️</span>Ayarlar</button>
    </div>
@@ -2007,7 +2009,65 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
 
   </div>
 </section>
- <section id="settingsPage" class="panel hidden">
+ <section id="companyTermsPage" class="panel hidden">
+  <div class="dashboard-head company-terms-head">
+    <div>
+      <h2>💳 Firma Vadeleri</h2>
+      <small>Firmaların vade günlerini tek listede takip edin.</small>
+    </div>
+    <button id="companyTermsPdf" type="button" class="btn btn-primary">PDF İndir</button>
+  </div>
+  <div class="settings-box company-terms-box">
+    <div class="company-terms-form">
+      <div>
+        <label for="companyTermCompany">Firma Adı</label>
+        <input id="companyTermCompany" type="text" placeholder="Örn. TEYDA ARSTEK" autocomplete="off">
+      </div>
+      <div>
+        <label for="companyTermValue">Vade Günü</label>
+        <input id="companyTermValue" type="text" placeholder="Örn. A90" autocomplete="off">
+      </div>
+      <div class="company-terms-form-actions">
+        <button id="companyTermSave" type="button" class="btn btn-primary">Ekle</button>
+        <button id="companyTermCancel" type="button" class="btn btn-light hidden">Vazgeç</button>
+      </div>
+    </div>
+    <div id="companyTermStatus" class="company-terms-status"></div>
+    <div class="table-wrap company-terms-table-wrap">
+      <table class="company-terms-table">
+        <thead><tr><th>Firma Adı</th><th>Vade Günü</th><th>İşlem</th></tr></thead>
+        <tbody id="companyTermsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<style>
+#companyTermsPage .company-terms-head{margin-bottom:16px}
+#companyTermsPage .company-terms-box{padding:18px}
+.company-terms-form{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,.45fr) auto;gap:12px;align-items:end}
+.company-terms-form label{display:block;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--muted)}
+.company-terms-form input{width:100%;height:44px;border:1px solid rgba(103,52,189,.22);border-radius:12px;padding:0 13px;background:rgba(255,255,255,.8);font:inherit}
+.company-terms-form-actions{display:flex;gap:8px}
+.company-terms-status{min-height:22px;margin:10px 0 4px;font-size:13px;font-weight:700}
+.company-terms-table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid rgba(103,52,189,.16);border-radius:12px}
+.company-terms-table th{background:#6734bd;color:#fff;text-align:left;padding:12px 14px}
+.company-terms-table td{padding:11px 14px;border-top:1px solid rgba(103,52,189,.12);background:rgba(255,255,255,.64)}
+.company-terms-table tbody tr:nth-child(even) td{background:rgba(247,246,252,.88)}
+.company-terms-table th:nth-child(2),.company-terms-table td:nth-child(2){width:180px;text-align:center}
+.company-terms-table th:nth-child(3),.company-terms-table td:nth-child(3){width:190px;text-align:center}
+.company-term-value{font-weight:800;color:#6734bd}
+.company-term-actions{white-space:nowrap}.company-term-actions .btn{padding:7px 10px;font-size:12px}
+.company-terms-empty{text-align:center!important;color:var(--muted);padding:24px!important}
+@media(max-width:700px){
+  .company-terms-form{grid-template-columns:1fr 1fr}
+  .company-terms-form-actions{grid-column:1/-1}
+  .company-terms-table th,.company-terms-table td{padding:10px 8px;font-size:13px}
+  .company-terms-table th:nth-child(2),.company-terms-table td:nth-child(2){width:82px}
+  .company-terms-table th:nth-child(3),.company-terms-table td:nth-child(3){width:105px}
+  .company-term-actions .btn{display:block;width:100%;margin:3px 0}
+}
+</style>
+<section id="settingsPage" class="panel hidden">
  <div class="dashboard-head">
  <div>
  <h2>Ayarlar</h2>
@@ -3802,6 +3862,7 @@ function showPage(p){
   $("calendarPage").classList.toggle("hidden",p!=="calendar");
   $("analysisPage").classList.toggle("hidden",p!=="analysis");
  $("contractsPage").classList.toggle("hidden",p!=="contracts");
+  $("companyTermsPage").classList.toggle("hidden",p!=="companyTerms");
   $("settingsPage").classList.toggle("hidden",p!=="settings");
   document.querySelector("main.content>.kpis")?.classList.toggle("hidden",p==="home");
   document.querySelector("main.content>.tabs")?.classList.toggle("hidden",p==="home");
@@ -3810,6 +3871,7 @@ function showPage(p){
   if(p==="dashboard")renderDashboard();
   if(p==="tomorrow")renderTomorrowReport();
  if(p==="contracts")loadContracts();
+  if(p==="companyTerms")window.BetonexaCompanyTermsRefresh?.();
   if(p==="analysis")renderAnalysis();
   if(p==="settings")renderSettings();
 }
@@ -4661,6 +4723,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 <script src="./tracking-finalizer.js?v=20260828-date4"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
 <script src="./professional-pdf-reports.js?v=20260828-date6-cement-groups1"></script>
+<script src="./company-terms.js?v=20260902-1"></script>
 <script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
 <!-- Betonexa sayfası burada kapanır. Sonradan eklenen yamaların kapanış etiketleri
