@@ -6,7 +6,7 @@
   const label=v=>window.BetonexaNames?.label?.(v)||String(v??'').trim();
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  const trDate=v=>v?new Date(v+'T00:00:00').toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}):'';
+  const trDate=v=>{const raw=String(v??'').trim(),match=raw.match(/^(\d{4})-(\d{2})-(\d{2})/),date=match?new Date(Number(match[1]),Number(match[2])-1,Number(match[3])):new Date(raw);return Number.isNaN(date.getTime())?'':date.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'});};
   const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
   const monday=d=>{const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x};
   const status=r=>({planlandi:'Planlandı',miktar_degisti:'Miktar Değişti',tamamlandi:'Tamamlandı',iptal:'İptal'})[r?.durum]||(r?.tamamlandi?'Tamamlandı':'Planlandı');
