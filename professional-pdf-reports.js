@@ -17,8 +17,19 @@
   const addDays=(date,days)=>{const result=new Date(date);result.setDate(result.getDate()+days);return result};
   const monday=date=>{const result=new Date(date),day=(result.getDay()+6)%7;result.setDate(result.getDate()-day);result.setHours(0,0,0,0);return result};
   
-  const parseDateValue=value=>{if(value instanceof Date)return Number.isNaN(value.getTime())?null:value;const raw=String(value??'').trim(),isoMatch=raw.match(/^(\d{4})-(\d{2})-(\d{2})/),trMatch=raw.match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})/);let date;if(isoMatch)date=new Date(Number(isoMatch[1]),Number(isoMatch[2])-1,Number(isoMatch[3]));else if(trMatch)date=new Date(Number(trMatch[3]),Number(trMatch[2])-1,Number(trMatch[1]));else date=new Date(raw);return Number.isNaN(date.getTime())?null:date;};
-  const trDate=value=>{const date=parseDateValue(value);return date?date.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}):'';};
+  const trDate=value=>{
+    const raw=String(value??'').trim();
+    const isoMatch=raw.match(/(\d{4})-(\d{2})-(\d{2})/);
+    const trMatch=raw.match(/(\d{2})[.\/-](\d{2})[.\/-](\d{4})/);
+    let year,month,day;
+    if(isoMatch){year=Number(isoMatch[1]);month=Number(isoMatch[2]);day=Number(isoMatch[3]);}
+    else if(trMatch){day=Number(trMatch[1]);month=Number(trMatch[2]);year=Number(trMatch[3]);}
+    else return raw;
+    const months=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    const weekdays=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+    const weekday=weekdays[new Date(Date.UTC(year,month-1,day)).getUTCDay()];
+    return `${String(day).padStart(2,'0')} ${months[month-1]} ${year} ${weekday}`;
+  };
   const longDate=trDate;
   const STATUS_LABELS={planlandi:'Planlandı',miktar_degisti:'Miktar Değişti',tamamlandi:'Tamamlandı',iptal:'İptal'};
   const statusLabel=row=>STATUS_LABELS[row?.durum]||(row?.tamamlandi?'Tamamlandı':'Planlandı');
