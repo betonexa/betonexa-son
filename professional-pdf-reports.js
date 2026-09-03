@@ -16,7 +16,9 @@
   const iso=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   const addDays=(date,days)=>{const result=new Date(date);result.setDate(result.getDate()+days);return result};
   const monday=date=>{const result=new Date(date),day=(result.getDay()+6)%7;result.setDate(result.getDate()-day);result.setHours(0,0,0,0);return result};
-  const trDate=value=>value?new Date(value+'T00:00:00').toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}):'';
+  
+  const parseDateValue=value=>{if(value instanceof Date)return Number.isNaN(value.getTime())?null:value;const raw=String(value??'').trim(),isoMatch=raw.match(/^(\d{4})-(\d{2})-(\d{2})/),trMatch=raw.match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})/);let date;if(isoMatch)date=new Date(Number(isoMatch[1]),Number(isoMatch[2])-1,Number(isoMatch[3]));else if(trMatch)date=new Date(Number(trMatch[3]),Number(trMatch[2])-1,Number(trMatch[1]));else date=new Date(raw);return Number.isNaN(date.getTime())?null:date;};
+  const trDate=value=>{const date=parseDateValue(value);return date?date.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}):'';};
   const longDate=trDate;
   const STATUS_LABELS={planlandi:'Planlandı',miktar_degisti:'Miktar Değişti',tamamlandi:'Tamamlandı',iptal:'İptal'};
   const statusLabel=row=>STATUS_LABELS[row?.durum]||(row?.tamamlandi?'Tamamlandı':'Planlandı');
