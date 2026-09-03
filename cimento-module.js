@@ -11,7 +11,8 @@
   const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const todayIso=()=>isoDate(new Date());
   const tomorrowIso=()=>{const d=new Date();d.setDate(d.getDate()+1);return isoDate(d);};
-  const formatDate=value=>value?new Date(value+"T00:00:00").toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";
+  const parseDateValue=value=>{const raw=String(value??"").trim(),match=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);const date=match?new Date(Number(match[1]),Number(match[2])-1,Number(match[3])):new Date(raw);return Number.isNaN(date.getTime())?null:date;};
+  const formatDate=value=>{const date=parseDateValue(value);return date?date.toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";};
   const titleCase=value=>window.BetonexaNames.label(value);
   const cleanPdfHeading=value=>String(value??"").replace(/^[^\p{L}\p{N}]+/u,"").trim();
   const parseTrNumber=value=>{const raw=String(value??"").replace(/[^0-9,.-]/g,"").replace(/\./g,"").replace(",",".");const n=Number(raw);return Number.isFinite(n)?n:0;};
