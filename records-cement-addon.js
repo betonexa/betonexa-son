@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   const CEMENT='cimento_sevkiyatlar',CONCRETE='sevkiyatlar',$=id=>document.getElementById(id),db=()=>typeof window.ensureDb==='function'?window.ensureDb():null;
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])),fmt=v=>Number(v||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}),iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x},monday=d=>{const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x},trDate=v=>{if(!v)return'';return new Date(v+'T00:00:00').toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'})};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])),fmt=v=>Number(v||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}),iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x},monday=d=>{const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x},trDate=v=>v?new Date(v+'T00:00:00').toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',weekday:'long'}):'';
   const STATUS_LABELS={planlandi:'Planlandı',miktar_degisti:'Miktar Değişti',tamamlandi:'Tamamlandı',iptal:'İptal'};
   const statusLabel=r=>STATUS_LABELS[r?.durum]||(r?.tamamlandi?'Tamamlandı':'Planlandı');
   const statusValue=r=>r?.durum||(r?.tamamlandi?'tamamlandi':'planlandi');
