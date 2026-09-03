@@ -7,7 +7,7 @@
   const fmt=v=>Number(v||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
   const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const title=v=>String(v??"").trim().replace(/\s+/g," ").toLocaleLowerCase("tr-TR").replace(/(^|[\s\-\/])([\p{L}])/gu,(m,a,b)=>a+b.toLocaleUpperCase("tr-TR"));
-  const trDate=v=>v?new Date(v+"T00:00:00").toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";
+  const trDate=v=>{const raw=String(v??"").trim(),match=raw.match(/^(\d{4})-(\d{2})-(\d{2})/),date=match?new Date(Number(match[1]),Number(match[2])-1,Number(match[3])):new Date(raw);return Number.isNaN(date.getTime())?"":date.toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"});};
   const parseCount=v=>{const raw=String(v??"").trim();if(raw==="-"||raw==="")return 0;const n=Number(raw);return Number.isInteger(n)&&n>=0?n:NaN};
   const countText=v=>Number(v||0)>0?String(Number(v)):"-";
   let all=[], editId=null;
