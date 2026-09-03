@@ -11,7 +11,7 @@
   const isoDate=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const todayIso=()=>isoDate(new Date());
   const tomorrowIso=()=>{const d=new Date();d.setDate(d.getDate()+1);return isoDate(d);};
-  const formatDate=value=>{if(!value)return "";const d=new Date(value+"T00:00:00");const day=d.toLocaleDateString("tr-TR",{weekday:"long"});const date=value.split("-").reverse().join(".");return `${date} · ${day.charAt(0).toLocaleUpperCase("tr-TR")+day.slice(1)}`;};
+  const formatDate=value=>value?new Date(value+"T00:00:00").toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";
   const titleCase=value=>window.BetonexaNames.label(value);
   const cleanPdfHeading=value=>String(value??"").replace(/^[^\p{L}\p{N}]+/u,"").trim();
   const parseTrNumber=value=>{const raw=String(value??"").replace(/[^0-9,.-]/g,"").replace(/\./g,"").replace(",",".");const n=Number(raw);return Number.isFinite(n)?n:0;};
@@ -80,5 +80,5 @@
   window.editCementShipment=editCementShipment;window.completeCementShipment=completeCementShipment;window.deleteCementShipment=deleteCementShipment;window.loadCementShipments=loadCementShipments;window.renderTomorrowCementAddon=renderTomorrowCementAddon;
   function init(){injectStyles();injectUi();configureTonnageInput();}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
-(function loadCementHistoryModule(){if(document.querySelector('script[src^="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js?v=20260827-pallet4";script.defer=true;document.head.appendChild(script)})();
+(function loadCementHistoryModule(){if(document.querySelector('script[src^="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js?v=20260903-long-date1";script.defer=true;document.head.appendChild(script)})();
 (function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20260827-header-clean3";script.defer=true;document.head.appendChild(script)})();
