@@ -2151,8 +2151,20 @@ function updateExportDateDisplay(){
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
 function monday(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function parseDateValue(value){
+  if(value instanceof Date)return Number.isNaN(value.getTime())?null:value;
+  const raw=String(value??"").trim();
+  const isoMatch=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const trMatch=raw.match(/^(\d{2})[.\/-](\d{2})[.\/-](\d{4})/);
+  let date;
+  if(isoMatch)date=new Date(Number(isoMatch[1]),Number(isoMatch[2])-1,Number(isoMatch[3]));
+  else if(trMatch)date=new Date(Number(trMatch[3]),Number(trMatch[2])-1,Number(trMatch[1]));
+  else date=new Date(raw);
+  return Number.isNaN(date.getTime())?null:date;
+}
 function trDate(s){
-  return s?new Date(s+"T00:00:00").toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";
+  const date=parseDateValue(s);
+  return date?date.toLocaleDateString("tr-TR",{day:"2-digit",month:"long",year:"numeric",weekday:"long"}):"";
 }
 function trDateWithDay(s){return trDate(s)}
 function m3(n){return Number(n||0).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -4151,7 +4163,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260903-long-date1"></script>
+<script src="./cimento-module.js?v=20260903-long-date2"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
@@ -4741,7 +4753,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 </style>
 <script src="./tracking-finalizer.js?v=20260903-long-date1"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
-<script src="./professional-pdf-reports.js?v=20260903-long-date1"></script>
+<script src="./professional-pdf-reports.js?v=20260903-long-date2"></script>
 <script src="./company-terms.js?v=20260902-5"></script>
 <script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
