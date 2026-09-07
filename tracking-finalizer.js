@@ -126,7 +126,7 @@
 (function loadShipmentDateFilterFix(){
   if(document.querySelector('script[src^="./shipment-date-filter-fix.js"]'))return;
   const s=document.createElement('script');
-  s.src='./shipment-date-filter-fix.js?v=20260907-1';
+  s.src='./shipment-date-filter-fix.js?v=20260907-2';
   s.defer=true;
   document.head.appendChild(s);
 })();
