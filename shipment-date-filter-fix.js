@@ -36,6 +36,8 @@
   function concreteRows(){const b=blocks().concrete;return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=9):[]}
   function cementRows(){const b=blocks().cement;return b?[...b.querySelectorAll('.rc-table tbody tr')].filter(r=>r.children.length>=6):[]}
   function matchesDate(row,start,end){const d=rowIso(row);return(!start||d>=start)&&(!end||d<=end)}
+  function setDisplay(row,show){const wanted=show?'':'none';if(row.style.display!==wanted)row.style.display=wanted}
+  function setHtml(el,html){if(el&&el.innerHTML!==html)el.innerHTML=html}
 
   function repair(){
     const start=$('shipmentFilterStart')?.value||'',end=$('shipmentFilterEnd')?.value||'';
@@ -52,27 +54,49 @@
 
     concreteRows().forEach(r=>{
       const ok=type!=='cement'&&(!company||canonicalKey(r.children[4]?.textContent)===company)&&(!site||canonicalKey(r.children[5]?.textContent)===site)&&(!plant||norm(r.children[3]?.textContent)===plant)&&(!concrete||norm(r.children[6]?.textContent)===concrete)&&matchesDate(r,start,end);
-      r.style.display=ok?'':'none';
+      setDisplay(r,ok);
       if(ok){cc++;m3+=parseNumber(r.children[7]?.textContent)}
     });
 
     cementRows().forEach(r=>{
       const ok=type!=='concrete'&&(!company||canonicalKey(r.children[2]?.textContent)===company)&&(!delivery||canonicalKey(r.children[3]?.textContent)===delivery)&&matchesDate(r,start,end);
-      r.style.display=ok?'':'none';
+      setDisplay(r,ok);
       if(ok){zc++;vehicles+=parseNumber(r.children[4]?.textContent);pallets+=parseNumber(r.children[5]?.textContent);tons+=parseNumber(r.children[6]?.textContent)}
     });
 
     if(cb)cb.style.display=type==='cement'?'none':'';
     if(ceb)ceb.style.display=type==='concrete'?'none':'';
-    if(cb?.querySelector('.rc-total'))cb.querySelector('.rc-total').innerHTML=`<span>BETON SEVKİYATI: ${cc}</span><span>GENEL BETON: ${trNum(m3)} m³</span>`;
-    if(ceb?.querySelector('.rc-total'))ceb.querySelector('.rc-total').innerHTML=`<span>ÇİMENTO SEVKİYATI: ${zc}</span><span>TOPLAM ARAÇ: ${vehicles}</span><span>TOPLAM PALET: ${pallets}</span><span>TOPLAM TONAJ: ${trNum(tons)} ton</span>`;
+    setHtml(cb?.querySelector('.rc-total'),`<span>BETON SEVKİYATI: ${cc}</span><span>GENEL BETON: ${trNum(m3)} m³</span>`);
+    setHtml(ceb?.querySelector('.rc-total'),`<span>ÇİMENTO SEVKİYATI: ${zc}</span><span>TOPLAM ARAÇ: ${vehicles}</span><span>TOPLAM PALET: ${pallets}</span><span>TOPLAM TONAJ: ${trNum(tons)} ton</span>`);
   }
 
   let timer;
-  function schedule(){clearTimeout(timer);timer=setTimeout(repair,0)}
+  function schedule(delay=0){clearTimeout(timer);timer=setTimeout(repair,delay)}
+  function scheduleBurst(){schedule(180)}
 
-  document.addEventListener('change',e=>{if(e.target?.closest?.('#shipmentQuickFilters'))schedule()},true);
-  document.addEventListener('click',e=>{if(e.target?.closest?.('#shipmentQuickFilters .sqf-quick'))schedule()},true);
-  document.addEventListener('betonexa:records-rendered',schedule);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
+  document.addEventListener('change',e=>{if(e.target?.closest?.('#shipmentQuickFilters'))scheduleBurst()},true);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#shipmentQuickFilters .sqf-quick'))scheduleBurst()},true);
+  document.addEventListener('betonexa:records-rendered',()=>schedule(180));
+
+  function observe(){
+    const host=$('recordsCombinedView');
+    if(!host||host.dataset.dateFilterFixObserver==='1')return false;
+    host.dataset.dateFilterFixObserver='1';
+    new MutationObserver(mutations=>{
+      if(mutations.some(m=>m.type==='attributes'&&m.attributeName==='style'||m.type==='childList'))schedule(220);
+    }).observe(host,{subtree:true,childList:true,attributes:true,attributeFilter:['style']});
+    return true;
+  }
+
+  const boot=()=>{
+    observe();
+    schedule(250);
+    const page=$('recordsPage');
+    if(page&&!page.dataset.dateFilterFixBootObserver){
+      page.dataset.dateFilterFixBootObserver='1';
+      new MutationObserver(()=>{observe();schedule(250)}).observe(page,{subtree:true,childList:true});
+    }
+  };
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
