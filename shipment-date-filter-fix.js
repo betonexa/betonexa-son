@@ -53,6 +53,12 @@
   }
   function setDisplay(element,show){const wanted=show?'':'none';if(element&&element.style.display!==wanted)element.style.display=wanted}
   function setHtml(element,html){if(element&&element.innerHTML!==html)element.innerHTML=html}
+  function isCancelled(row){
+    const status=row?.querySelector?.('.shipment-status-select');
+    return row?.classList?.contains('shipment-row-cancelled')
+      ||status?.value==='iptal'
+      ||status?.dataset?.status==='iptal';
+  }
 
   function repair(){
     const panel=$('shipmentQuickFilters');
@@ -77,7 +83,7 @@
         &&(!concreteClass||norm(cell(row,'Beton',6))===concreteClass)
         &&matchesDate(row,start,end);
       setDisplay(row,ok);
-      if(ok){concreteCount++;m3+=parseNumber(cell(row,'Metraj',7))}
+      if(ok&&!isCancelled(row)){concreteCount++;m3+=parseNumber(cell(row,'Metraj',7))}
     });
 
     dataRows(cementBlock).forEach(row=>{
@@ -86,7 +92,7 @@
         &&(!delivery||canonicalKey(cell(row,'Teslim Yeri',3))===delivery)
         &&matchesDate(row,start,end);
       setDisplay(row,ok);
-      if(ok){cementCount++;vehicles+=parseNumber(cell(row,'Araç',4));pallets+=parseNumber(cell(row,'Palet',5));tons+=parseNumber(cell(row,'Tonaj',6))}
+      if(ok&&!isCancelled(row)){cementCount++;vehicles+=parseNumber(cell(row,'Araç',4));pallets+=parseNumber(cell(row,'Palet',5));tons+=parseNumber(cell(row,'Tonaj',6))}
     });
 
     setDisplay(concreteBlock,type!=='cement');

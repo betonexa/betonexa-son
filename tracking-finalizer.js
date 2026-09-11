@@ -126,7 +126,7 @@
 (function loadShipmentDateFilterFix(){
   if(document.querySelector('script[src^="./shipment-date-filter-fix.js"]'))return;
   const s=document.createElement('script');
-  s.src='./shipment-date-filter-fix.js?v=20260908-1';
+  s.src='./shipment-date-filter-fix.js?v=20260911-cancelled-totals1';
   s.defer=true;
   document.head.appendChild(s);
 })();
