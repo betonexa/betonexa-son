@@ -489,6 +489,27 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
   font-weight: 850;
 }
 
+.metraj-input-row { display: flex; gap: 8px; align-items: stretch; }
+.metraj-input-row #metraj { flex: 1 1 auto; min-width: 0; }
+.metraj-plus-btn {
+  display: none;
+  flex: 0 0 48px;
+  min-width: 48px;
+  border: 1px solid rgba(103, 52, 189, .28);
+  border-radius: 10px;
+  background: #eee5fb;
+  color: #5d30aa;
+  font-size: 25px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+}
+.metraj-plus-btn.active {
+  background: var(--purple);
+  color: #fff;
+  border-color: var(--purple);
+}
+
 /* Dashboard */
 .dashboard-kpis, .dashboard-leaders, .analysis-summary {
   display: grid;
@@ -853,6 +874,26 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
     min-width: 0 !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+  }
+
+  /* Açılır özellik listesinin alan dışına taşarak dokunulabilmesini sağlar. */
+  #shipmentForm .beton-ozellik-field,
+  #shipmentForm #betonOzellikSelect {
+    overflow: visible !important;
+  }
+  #shipmentForm .beton-ozellik-field { position: relative; z-index: 20; }
+  #shipmentForm #betonOzellikSelect.open { z-index: 30; }
+  #shipmentForm #betonOzellikleri { z-index: 40; }
+
+  /* Mobil sayı klavyesinde + bulunmadığı için dokunmatik + düğmesi gösterilir. */
+  #shipmentForm .metraj-input-row { display: flex !important; }
+  #shipmentForm .metraj-input-row #metraj { flex: 1 1 auto !important; width: auto !important; }
+  #shipmentForm .metraj-plus-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
   #shipmentForm input:not([type="hidden"]),
@@ -1759,7 +1800,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <option value="">Seçiniz</option><option>C 10</option><option>C 12</option><option>C 16</option><option>C 20</option><option>C 25</option><option>C 30</option><option>C 35</option><option>C 40</option><option>C 45</option><option>C 50</option><option>Şap 200</option><option>Şap 300</option><option>Şap 400</option><option>Şap 500</option>
  </select></div>
 
- <div class="field">
+ <div class="field beton-ozellik-field">
  <label>Beton özelliği</label>
  <div class="multi-select" id="betonOzellikSelect">
  <button type="button" class="multi-select-toggle" id="betonOzellikToggle" aria-expanded="false">
@@ -1778,7 +1819,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
  </div>
 
- <div class="field"><label>Metraj (m³)</label><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 40 veya 40+" required></div>
+ <div class="field metraj-field"><label>Metraj (m³)</label><div class="metraj-input-row"><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 40 veya 40+" required><button id="metrajPlusBtn" class="metraj-plus-btn" type="button" aria-pressed="false" title="Miktarı + olarak işaretle">+</button></div></div>
  <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
  <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
  </div>
@@ -2693,7 +2734,24 @@ function payload(){
   };
 }
 function clearForm(){
-  $("shipmentForm").reset();clearConcreteProperties();$("editId").value="";$("cancelEdit").classList.add("hidden");$("saveBtn").textContent="Sevkiyatı Kaydet";$("pumpTypeWrap").classList.add("hidden");$("tarih").value=iso(new Date())
+  $("shipmentForm").reset();clearConcreteProperties();$("editId").value="";$("cancelEdit").classList.add("hidden");$("saveBtn").textContent="Sevkiyatı Kaydet";$("pumpTypeWrap").classList.add("hidden");$("tarih").value=iso(new Date());updateMetrajPlusButton()
+}
+
+function updateMetrajPlusButton(){
+  const button=$("metrajPlusBtn");
+  if(!button)return;
+  const active=String($("metraj")?.value||"").trim().endsWith("+");
+  button.classList.toggle("active",active);
+  button.setAttribute("aria-pressed",String(active));
+}
+
+function toggleMetrajPlus(){
+  const input=$("metraj");
+  if(!input)return;
+  const raw=String(input.value||"").trim();
+  input.value=raw.endsWith("+")?raw.slice(0,-1):raw+"+";
+  updateMetrajPlusButton();
+  input.focus();
 }
 async function saveShipment(e){
   e.preventDefault();const p=payload();
@@ -2767,7 +2825,7 @@ clearForm();
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");updateMetrajPlusButton();$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -3992,6 +4050,8 @@ $("logoutBtn").addEventListener("click", async (e) => {
   window.scrollTo(0, 0);
 });
 $("shipmentForm").addEventListener("submit",saveShipment);
+$("metrajPlusBtn").addEventListener("click",toggleMetrajPlus);
+$("metraj").addEventListener("input",updateMetrajPlusButton);
 $("pdfBtn").addEventListener("click",downloadPdf);
 $("excelBtn").addEventListener("click",downloadExcel);
 $("printBtn").addEventListener("click",printPlan);
