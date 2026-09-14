@@ -19,6 +19,12 @@ function canonicalKey(value){return canonicalParts(value).key}
 window.BetonexaShipmentFilterNames=Object.freeze({parts:canonicalParts,label:canonicalLabel,key:canonicalKey});
 function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function trDate(v){return v?v.split('-').reverse().join('.'):''}
+function trDateWithWeekday(v){
+  if(!v)return '';
+  const d=new Date(v+'T00:00:00');
+  const weekday=Number.isNaN(d.getTime())?'':d.toLocaleDateString('tr-TR',{weekday:'long'});
+  return `${trDate(v)}${weekday?' '+weekday.charAt(0).toLocaleUpperCase('tr-TR')+weekday.slice(1):''}`;
+}
 function monday(d){const x=new Date(d),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function parseNumber(text){const raw=String(text||'').replace(/m³|ton/gi,'').replace(/\+/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,'');const n=Number(raw);return Number.isFinite(n)?n:0}
@@ -244,7 +250,7 @@ async function pdf(){
   const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Çıktı alınacak sevkiyat bulunmuyor.');
   if(!window.BetonexaProfessionalPdf?.savePrepared)return alert('PDF modülü yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
   const start=$('shipmentFilterStart')?.value||'',end=$('shipmentFilterEnd')?.value||'',type=$('shipmentFilterType')?.value||'all',company=$('shipmentFilterCompany')?.value||'';
-  let dateLabel='Tüm kayıtlar';if(start&&end)dateLabel=`${trDate(start)} - ${trDate(end)}`;else if(start)dateLabel=`${trDate(start)} sonrası`;else if(end)dateLabel=`${trDate(end)} tarihine kadar`;
+  let dateLabel='Tüm kayıtlar';if(start&&end)dateLabel=start===end?trDateWithWeekday(start):`${trDate(start)} - ${trDate(end)}`;else if(start)dateLabel=`${trDate(start)} sonrası`;else if(end)dateLabel=`${trDate(end)} tarihine kadar`;
   const typeLabel=type==='concrete'?'Beton Sevkiyatları':type==='cement'?'Çimento Sevkiyatları':'Tüm Sevkiyatlar';
   const splitConcrete=value=>{const match=String(value||'').trim().match(/^(C\s*\d+)\s*(.*)$/i);return{sinif:match?.[1]||value||'',ozellik:match?.[2]||''}};
   const data={concrete:p.concrete.map(row=>{const beton=splitConcrete(row.Beton);return{tarih:pdfIso(row.Tarih),saat:row.Saat,santral:row.Santral,firma:row.Firma,santiye:row['Şantiye'],beton_sinifi:beton.sinif,beton_ozelligi:beton.ozellik,planlanan_metraj:row.Planlanan,metraj:parseNumber(row.Metraj),metraj_plus:/\+/.test(row.Metraj),durum:row.Durum,pompa_var_mi:!/^pompasız$/i.test(row.Pompa),pompa_tipi:row.Pompa,sorumlu_kisi:row.Sorumlu,telefon:row.Telefon}}),cement:p.cement.map(row=>({tarih:pdfIso(row.Tarih),firma:row.Firma,teslim_yeri:row['Teslim Yeri'],arac_sayisi:parseNumber(row.Araç),palet_sayisi:parseNumber(row.Palet),planlanan_tonaj:row.Planlanan,toplam_tonaj:row.Tonaj==='-'?null:parseNumber(row.Tonaj),durum:row.Durum,tamamlandi:row.Durum==='tamamlandi'}))};
