@@ -279,8 +279,8 @@ function ensureFilters(){
     <div class="sqf-grid">
       <label>Sevkiyat Türü<select id="shipmentFilterType"><option value="all">Tümü</option><option value="concrete">Beton</option><option value="cement">Çimento</option></select></label>
       <label>Firma<select id="shipmentFilterCompany"></select></label>
-      <label data-only="concrete">Şantiye<select id="shipmentFilterSite"></select></label>
-      <label data-only="concrete">Santral<select id="shipmentFilterPlant"></select></label>
+      <label>Şantiye<select id="shipmentFilterSite"></select></label>
+      <label>Santral<select id="shipmentFilterPlant"></select></label>
       <label data-only="concrete">Beton Sınıfı<select id="shipmentFilterConcrete"></select></label>
       <label data-only="cement">Teslim Yeri<select id="shipmentFilterDelivery"></select></label>
       <label>Başlangıç Tarihi<input id="shipmentFilterStart" type="date"></label>
