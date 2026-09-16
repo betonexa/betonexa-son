@@ -2710,9 +2710,9 @@ async function editSettingItem(type,encoded){
   const client=ensureDb();
   const column=type==="company"?"firma":type==="site"?"santiye":"santral";
   setLoading(true);
-  const {error}=await client.from(TABLE).update({[column]:newValue}).eq(column,oldValue);
+  const {data:updatedRows,error}=await client.from(TABLE).update({[column]:newValue}).ilike(column,oldValue).select("id");
   if(!error&&type==="site"){
-    const contractResult=await client.from("sozlesmeler").update({santiye:newValue}).eq("santiye",oldValue);
+    const contractResult=await client.from("sozlesmeler").update({santiye:newValue}).ilike("santiye",oldValue);
     if(contractResult.error){
       setLoading(false);
       setStatus("Şantiye adı sevkiyatlarda güncellendi; sözleşmeler güncellenemedi: "+contractResult.error.message,true);
@@ -2724,6 +2724,11 @@ async function editSettingItem(type,encoded){
   setLoading(false);
   if(error){
     setStatus("Ad güncellenemedi: "+error.message,true);
+    return;
+  }
+  if(!updatedRows?.length){
+    setStatus("Bu ada ait kayıt bulunamadı. Liste yenilenip tekrar denenebilir.",true);
+    await loadRecords();
     return;
   }
   saveAppSettings();
