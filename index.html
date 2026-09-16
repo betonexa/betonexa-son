@@ -650,6 +650,8 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
   border-radius: 10px;
   background: rgba(255, 255, 255, .39);
 }
+ .settings-item-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.settings-item-actions .btn{padding:7px 10px}
 .settings-note {
   margin-top: 14px;
   padding: 12px;
@@ -2112,7 +2114,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <div class="dashboard-head">
  <div>
  <h2>Ayarlar</h2>
- <small>Sevkiyat formunda kullanılacak firma ve santral listelerini yönet.</small>
+ <small>Sevkiyat formunda kullanılacak firma, şantiye ve santral listelerini yönet.</small>
  </div>
  </div>
 
@@ -2129,6 +2131,17 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
 
  <div class="settings-box">
+ <h3>🏗️ Şantiyeler</h3>
+ <div class="settings-body">
+ <div class="settings-add">
+ <div><label>Yeni şantiye adı</label><input id="newSiteName" placeholder="Şantiye adını yazınız"></div>
+ <button id="addSiteBtn" type="button" class="btn btn-primary">Ekle</button>
+ </div>
+ <div id="settingsSiteList" class="settings-list"></div>
+ </div>
+ </div>
+
+ <div class="settings-box">
  <h3>🏭 Santraller</h3>
  <div class="settings-body">
  <div class="settings-add">
@@ -2141,7 +2154,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  </div>
 
  <div class="settings-note">
-        Eklediğin firma ve santraller sevkiyat formuna otomatik yansır. Kullanılmış bir kayıt silinse bile eski sevkiyat kayıtları değişmez.
+        Eklediğin firma, şantiye ve santraller sevkiyat formuna otomatik yansır. Şantiye adını düzenlediğinde eski sevkiyat ve sözleşme kayıtları da yeni adla güncellenir.
  </div>
  </section>
  </main>
@@ -2170,7 +2183,7 @@ let selectedAnalysisPump="";
 let analysisMode="company";
 let dashboardCharts={};
 const DEFAULT_PLANTS=["Işıkkent","Torbalı","Gaziemir","Özbek","Çeşme","Çiğli","Koyundere","Aliağa","Zeytindağ","Akhisar","Aydın","Tekirdağ","Kıraç","Çorlu"];
-let appSettings={companies:[],plants:[],hiddenCompanies:[]};
+let appSettings={companies:[],sites:[],plants:[],hiddenCompanies:[],hiddenSites:[]};
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -2216,10 +2229,12 @@ function loadAppSettings(){
   try{
     const saved=JSON.parse(localStorage.getItem("betonexa_settings")||"{}");
     appSettings.companies=Array.isArray(saved.companies)?saved.companies:[];
+    appSettings.sites=Array.isArray(saved.sites)?saved.sites:[];
     appSettings.plants=Array.isArray(saved.plants)?saved.plants:[...DEFAULT_PLANTS];
     appSettings.hiddenCompanies=Array.isArray(saved.hiddenCompanies)?saved.hiddenCompanies:[];
+    appSettings.hiddenSites=Array.isArray(saved.hiddenSites)?saved.hiddenSites:[];
   }catch{
-    appSettings={companies:[],plants:[...DEFAULT_PLANTS],hiddenCompanies:[]};
+    appSettings={companies:[],sites:[],plants:[...DEFAULT_PLANTS],hiddenCompanies:[],hiddenSites:[]};
   }
   if(!appSettings.plants.length)appSettings.plants=[...DEFAULT_PLANTS];
 }
@@ -2246,7 +2261,9 @@ function refreshFormOptions(){
   const companies=uniqueNames([...appSettings.companies,...recordCompanies]);
   $("firmaList").innerHTML=companies.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
-  const sites=uniqueNames(records.map(r=>r.santiye));
+  const hiddenSites=new Set((appSettings.hiddenSites||[]).map(window.BetonexaNames.key));
+  const recordSites=records.map(r=>r.santiye).filter(x=>!hiddenSites.has(window.BetonexaNames.key(x)));
+  const sites=uniqueNames([...appSettings.sites,...recordSites]);
   $("santiyeList").innerHTML=sites.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
   const responsiblePeople=uniqueNames(records.map(r=>r.sorumlu_kisi));
@@ -2615,45 +2632,104 @@ window.selectContract=selectContract;
  function renderSettings(){
   if(!$("settingsPage"))return;
   const hiddenCompanies=new Set((appSettings.hiddenCompanies||[]).map(window.BetonexaNames.key));
+  const hiddenSites=new Set((appSettings.hiddenSites||[]).map(window.BetonexaNames.key));
   const companies=uniqueNames([...appSettings.companies,...records.map(r=>r.firma).filter(x=>!hiddenCompanies.has(window.BetonexaNames.key(x)))]);
+  const sites=uniqueNames([...appSettings.sites,...records.map(r=>r.santiye).filter(x=>!hiddenSites.has(window.BetonexaNames.key(x)))]);
   const plants=uniqueSorted([...appSettings.plants,...records.map(r=>r.santral)]);
   $("settingsCompanyList").innerHTML=companies.length?companies.map(name=>`
     <div class="settings-item"><b>${esc(name)}</b>
-      <button type="button" class="btn btn-danger" onclick="removeSettingItem('company','${encodeURIComponent(name)}')">Sil</button>
+      <span class="settings-item-actions">
+        <button type="button" class="btn btn-light" onclick="editSettingItem('company','${encodeURIComponent(name)}')">Düzenle</button>
+        <button type="button" class="btn btn-danger" onclick="removeSettingItem('company','${encodeURIComponent(name)}')">Sil</button>
+      </span>
     </div>`).join(""):'<div class="analysis-empty">Henüz firma eklenmedi.</div>';
+  $("settingsSiteList").innerHTML=sites.length?sites.map(name=>`
+    <div class="settings-item"><b>${esc(name)}</b>
+      <span class="settings-item-actions">
+        <button type="button" class="btn btn-light" onclick="editSettingItem('site','${encodeURIComponent(name)}')">Düzenle</button>
+        <button type="button" class="btn btn-danger" onclick="removeSettingItem('site','${encodeURIComponent(name)}')">Sil</button>
+      </span>
+    </div>`).join(""):'<div class="analysis-empty">Henüz şantiye eklenmedi.</div>';
   $("settingsPlantList").innerHTML=plants.length?plants.map(name=>`
     <div class="settings-item"><b>${esc(name)}</b>
-      <button type="button" class="btn btn-danger" onclick="removeSettingItem('plant','${encodeURIComponent(name)}')">Sil</button>
+      <span class="settings-item-actions">
+        <button type="button" class="btn btn-light" onclick="editSettingItem('plant','${encodeURIComponent(name)}')">Düzenle</button>
+        <button type="button" class="btn btn-danger" onclick="removeSettingItem('plant','${encodeURIComponent(name)}')">Sil</button>
+      </span>
     </div>`).join(""):'<div class="analysis-empty">Henüz santral eklenmedi.</div>';
 }
 function addSettingItem(type){
-  const input=type==="company"?$("newCompanyName"):$("newPlantName");
+  const input=type==="company"?$("newCompanyName"):type==="site"?$("newSiteName"):$("newPlantName");
   const value=input.value.trim();
   if(!value)return;
-  const key=type==="company"?"companies":"plants";
-  appSettings[key]=type==="company"?uniqueNames([...appSettings[key],value]):uniqueSorted([...appSettings[key],value]);
-  if(type==="company"){
+  const key=type==="company"?"companies":type==="site"?"sites":"plants";
+  appSettings[key]=type==="plant"?uniqueSorted([...appSettings[key],value]):uniqueNames([...appSettings[key],value]);
+  if(type==="company"||type==="site"){
     const valueKey=window.BetonexaNames.key(value);
-    appSettings.hiddenCompanies=(appSettings.hiddenCompanies||[]).filter(x=>window.BetonexaNames.key(x)!==valueKey);
+    const hiddenKey=type==="company"?"hiddenCompanies":"hiddenSites";
+    appSettings[hiddenKey]=(appSettings[hiddenKey]||[]).filter(x=>window.BetonexaNames.key(x)!==valueKey);
   }
   input.value="";
   saveAppSettings();
 }
 function removeSettingItem(type,encoded){
   const value=decodeURIComponent(encoded);
-  const itemLabel=type==="company"?"firmayı":"santrali";
+  const itemLabel=type==="company"?"firmayı":type==="site"?"şantiyeyi":"santrali";
   const confirmed=window.confirm(`"${value}" adlı ${itemLabel} silmek istediğinize emin misiniz?`);
   if(!confirmed)return;
 
-  const key=type==="company"?"companies":"plants";
-  const valueKey=type==="company"?window.BetonexaNames.key(value):value;
-  appSettings[key]=appSettings[key].filter(x=>(type==="company"?window.BetonexaNames.key(x):x)!==valueKey);
+  const key=type==="company"?"companies":type==="site"?"sites":"plants";
+  const valueKey=type==="plant"?value:window.BetonexaNames.key(value);
+  appSettings[key]=(appSettings[key]||[]).filter(x=>(type==="plant"?x:window.BetonexaNames.key(x))!==valueKey);
 
-  if(type==="company"){
-    appSettings.hiddenCompanies=uniqueNames([...(appSettings.hiddenCompanies||[]),value]);
+  if(type==="company"||type==="site"){
+    const hiddenKey=type==="company"?"hiddenCompanies":"hiddenSites";
+    appSettings[hiddenKey]=uniqueNames([...(appSettings[hiddenKey]||[]),value]);
   }
 
   saveAppSettings();
+}
+
+async function editSettingItem(type,encoded){
+  const oldValue=decodeURIComponent(encoded);
+  const itemLabel=type==="company"?"firma":type==="site"?"şantiye":"santral";
+  const entered=window.prompt(`${itemLabel.charAt(0).toUpperCase()+itemLabel.slice(1)} adını düzenleyin:`,oldValue);
+  if(entered===null)return;
+  const newValue=window.BetonexaNames.label(entered);
+  if(!newValue||window.BetonexaNames.key(newValue)===window.BetonexaNames.key(oldValue))return;
+
+  const key=type==="company"?"companies":type==="site"?"sites":"plants";
+  const normalize=type==="plant"?uniqueSorted:uniqueNames;
+  appSettings[key]=normalize([...(appSettings[key]||[]).filter(x=>(type==="plant"?x:window.BetonexaNames.key(x))!==(type==="plant"?oldValue:window.BetonexaNames.key(oldValue))),newValue]);
+
+  if(type==="company"||type==="site"){
+    const hiddenKey=type==="company"?"hiddenCompanies":"hiddenSites";
+    appSettings[hiddenKey]=(appSettings[hiddenKey]||[]).filter(x=>window.BetonexaNames.key(x)!==window.BetonexaNames.key(newValue));
+  }
+
+  const client=ensureDb();
+  const column=type==="company"?"firma":type==="site"?"santiye":"santral";
+  setLoading(true);
+  const {error}=await client.from(TABLE).update({[column]:newValue}).eq(column,oldValue);
+  if(!error&&type==="site"){
+    const contractResult=await client.from("sozlesmeler").update({santiye:newValue}).eq("santiye",oldValue);
+    if(contractResult.error){
+      setLoading(false);
+      setStatus("Şantiye adı sevkiyatlarda güncellendi; sözleşmeler güncellenemedi: "+contractResult.error.message,true);
+      saveAppSettings();
+      await loadRecords();
+      return;
+    }
+  }
+  setLoading(false);
+  if(error){
+    setStatus("Ad güncellenemedi: "+error.message,true);
+    return;
+  }
+  saveAppSettings();
+  setStatus(`"${oldValue}" adı "${newValue}" olarak güncellendi.`);
+  await loadRecords();
+  if(type==="site")await loadContracts();
 }
 
 async function loadRecords(){
@@ -4095,6 +4171,7 @@ document.addEventListener("click",e=>{
 });
 $("dashboardRefresh").addEventListener("click",loadRecords);
 $("addCompanyBtn").addEventListener("click",()=>addSettingItem("company"));
+$("addSiteBtn").addEventListener("click",()=>addSettingItem("site"));
 $("addPlantBtn").addEventListener("click",()=>addSettingItem("plant"));
 $("contractNewBtn").addEventListener("click",clearContractForm);
 $("contractSaveBtn").addEventListener("click",saveContract); 
@@ -4106,6 +4183,7 @@ $("historyToggleBtn").addEventListener("click",()=>{
   $("historyToggleBtn").textContent=isClosed?"− Kapat":"+ Eski Fiyat Ekle";
 }); 
 $("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
+$("newSiteName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("site")});
 $("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
 $("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
@@ -4116,6 +4194,7 @@ document.querySelectorAll("[data-home-page]").forEach(b=>b.addEventListener("cli
 document.querySelectorAll("[data-analysis-mode]").forEach(b=>b.addEventListener("click",()=>setAnalysisMode(b.dataset.analysisMode)));
 $("prevWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,-7);renderCalendar()});$("nextWeek").addEventListener("click",()=>{weekStart=addDays(weekStart,7);renderCalendar()});$("thisWeek").addEventListener("click",()=>{weekStart=monday(new Date());renderCalendar()});
 window.removeSettingItem=removeSettingItem;
+window.editSettingItem=editSettingItem;
 window.editRecord=editRecord;window.deleteRecord=deleteRecord;window.showPage=showPage;window.openInCalendar=openInCalendar;window.selectAnalysisCompany=selectAnalysisCompany;window.selectAnalysisPlant=selectAnalysisPlant;window.selectAnalysisSite=selectAnalysisSite;window.selectAnalysisPump=selectAnalysisPump;window.setAnalysisMode=setAnalysisMode;window.dragStart=dragStart;window.allowDrop=allowDrop;window.dragLeave=dragLeave;window.dropShipment=dropShipment;
 loadAppSettings();refreshFormOptions();
 updateConcretePropertySummary();
