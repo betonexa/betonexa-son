@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.09.11-cancelled-totals-v1';
+const CACHE='betonexa-2026.09.21-mobile-filter-scroll-v1';
 const ASSETS=[
   './',
   './index.html',
