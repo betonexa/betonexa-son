@@ -9,7 +9,7 @@
   const canonical=s=>window.BetonexaNames.key(s);
   const prettier=(oldV,newV)=>{if(!oldV)return newV;if(!newV)return oldV;const score=v=>String(v).replace(/[.]/g,'').length+(String(v).toLocaleLowerCase('tr-TR').includes('inşaat')?20:0);return score(newV)>score(oldV)?newV:oldV};
   const fmt=n=>Number(n||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  let suggestions={firma:[],yer:['Şantiye']};
+  let suggestions={firma:[],yer:[]};
   let concreteSuggestions={firma:[],santiye:[],sorumlu:[]};
   let nullTonnageIds=new Set();
   function uniqueSuggestionValues(values){
@@ -56,7 +56,7 @@
     const addFirma=(map,v)=>{if(v){const V=title(v),key=canonical(V);map.set(key,prettier(map.get(key),V))}};
     (a.data||[]).forEach(x=>addFirma(allFirma,x.firma));
     (b.data||[]).forEach(x=>{addFirma(allFirma,x.firma);addFirma(betonFirma,x.firma);addFirma(betonSite,x.santiye);addFirma(betonResponsible,x.sorumlu_kisi)});
-    suggestions={firma:[...allFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:['Şantiye']};
+    suggestions={firma:[...allFirma.values()].sort((a,b)=>a.localeCompare(b,'tr')),yer:uniqueSuggestionValues((a.data||[]).map(x=>x.teslim_yeri))};
     concreteSuggestions={firma:uniqueSuggestionValues([...betonFirma.values()]),santiye:uniqueSuggestionValues([...betonSite.values()]),sorumlu:uniqueSuggestionValues([...betonResponsible.values()])};
     fillLists();bindConcreteAutocomplete();patchAllDisplays();
   }
@@ -99,12 +99,7 @@
       }
       ci.addEventListener('blur',()=>setTimeout(()=>{const exact=suggestions.firma.find(v=>canonical(v)===canonical(ci.value));if(exact)ci.value=exact;else if(ci.value.trim())ci.value=title(ci.value)},120));
     }
-    createMenuForInput(di,'cementDeliveryMenu',()=>['Şantiye'],()=>{di.value='Şantiye'});
-    if(di&&!di.dataset.siteForceBound){
-      di.dataset.siteForceBound='1';
-      const forceSite=()=>{if(di.value.trim())di.value='Şantiye'};
-      di.addEventListener('change',forceSite);di.addEventListener('blur',forceSite);
-    }
+    createMenuForInput(di,'cementDeliveryMenu',()=>suggestions.yer);
   }
 
   function renderCompanyMenu(query){
@@ -137,7 +132,7 @@
     const page=$('cementPage');if(!page)return;
     window.__cementPendingEditId=null;
     if($('cementDate'))$('cementDate').value=today();
-    ['cementCompany','cementDelivery','cementVehicleCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
+    ['cementCompany','cementType','cementDelivery','cementVehicleCount','cementPalletCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
     if($('cementSaveBtn'))$('cementSaveBtn').textContent='Sevkiyatı Kaydet';
     $('cementCancelBtn')?.classList.add('hidden');
     if($('cementStatus'))$('cementStatus').textContent='';
@@ -179,12 +174,12 @@
     input.type='text';input.inputMode='decimal';input.placeholder='0,00 veya -';save.dataset.pendingBound='1';
     save.addEventListener('click',async e=>{
       const raw=String(input.value||'').trim();
-      if(raw!=='-'){if($('cementDelivery')&&$('cementDelivery').value.trim())$('cementDelivery').value='Şantiye';setTimeout(()=>{window.__cementPendingEditId=null;loadSuggestions()},800);return}
+      if(raw!=='-'){setTimeout(()=>{window.__cementPendingEditId=null;loadSuggestions()},800);return}
       e.preventDefault();e.stopImmediatePropagation();
-      const tarih=$('cementDate')?.value,firma=title($('cementCompany')?.value),yer=$('cementDelivery')?.value.trim()?'Şantiye':'',arac=Number($('cementVehicleCount')?.value);
+      const tarih=$('cementDate')?.value,firma=title($('cementCompany')?.value),yer=title($('cementDelivery')?.value),arac=Number($('cementVehicleCount')?.value);
       if(!tarih||!firma||!yer||!Number.isInteger(arac)||arac<1){const st=$('cementStatus');if(st){st.textContent='Tarih, firma, teslim yeri ve araç sayısını eksiksiz doldur.';st.style.color='var(--danger)'}return}
       const c=db();if(!c)return;save.disabled=true;const editId=window.__cementPendingEditId||null;
-      const payload={tarih,firma,teslim_yeri:'Şantiye',arac_sayisi:arac,toplam_tonaj:null,tamamlandi:false};
+      const payload={tarih,firma,teslim_yeri:yer,cimento_ozelligi:$('cementType')?.value.trim().replace(/\s+/g,' ')||null,arac_sayisi:arac,toplam_tonaj:null,tamamlandi:false};
       const q=editId?c.from(CEMENT).update(payload).eq('id',editId):c.from(CEMENT).insert(payload);const {error}=await q;save.disabled=false;const st=$('cementStatus');
       if(error){if(st){st.textContent='Çimento sevkiyatı kaydedilemedi: '+error.message;st.style.color='var(--danger)'}return}
       window.__cementPendingEditId=null;if(typeof window.loadCementShipments==='function')await window.loadCementShipments();resetCementDraft();
@@ -194,8 +189,8 @@
   }
 
   function rowId(row){const b=row.querySelector('button.edit');if(!b)return null;const m=(b.getAttribute('onclick')||'').match(/'([^']+)'/);return m?m[1]:null}
-  function patchTable(tbodyId,tonIndex=5){const tbody=$(tbodyId);if(!tbody)return;[...tbody.querySelectorAll('tr')].forEach(r=>{const c=r.querySelectorAll('td');if(c.length<=tonIndex)return;const id=rowId(r);if(id&&nullTonnageIds.has(String(id)))c[tonIndex].textContent='-';if(c.length>3)c[3].textContent='Şantiye';})}
-  function patchTomorrow(){const tbody=document.querySelector('#tomorrowCementTable tbody');if(!tbody)return;[...tbody.querySelectorAll('tr')].forEach(r=>{const c=r.querySelectorAll('td');if(c.length>=2)c[1].textContent='Şantiye';if(c.length>=4&&/^(0([,.]00)?\s*ton)$/i.test(c[3].textContent.trim()))c[3].textContent='-';})}
+  function patchTable(tbodyId){const tbody=$(tbodyId);if(!tbody)return;[...tbody.querySelectorAll('tr')].forEach(r=>{const c=r.querySelectorAll('td');const id=rowId(r);const ton=c[c.length-2];if(id&&ton&&nullTonnageIds.has(String(id)))ton.textContent='-';})}
+  function patchTomorrow(){const tbody=document.querySelector('#tomorrowCementTable tbody');if(!tbody)return;[...tbody.querySelectorAll('tr')].forEach(r=>{const ton=r.querySelector('td:last-child');if(ton&&/^(0([,.]00)?\s*ton)$/i.test(ton.textContent.trim()))ton.textContent='-';})}
   function patchAllDisplays(){patchTable('cementRows');patchTable('cementHistoryRows');patchTomorrow()}
   function observeDisplays(){['cementRows','cementHistoryRows'].forEach(id=>{const el=$(id);if(el&&!el.dataset.enhObserve){el.dataset.enhObserve='1';new MutationObserver(()=>setTimeout(patchAllDisplays,0)).observe(el,{childList:true,subtree:true})}});const report=$('tomorrowReport');if(report&&!report.dataset.cementEnhObserve){report.dataset.cementEnhObserve='1';new MutationObserver(()=>setTimeout(patchTomorrow,0)).observe(report,{childList:true,subtree:true})}}
 
