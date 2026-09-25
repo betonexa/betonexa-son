@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.09.25-delivery-name-v1';
+const CACHE='betonexa-2026.09.25-tracking-cement-details-v1';
 const ASSETS=[
   './',
   './index.html',
