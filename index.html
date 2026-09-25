@@ -2175,6 +2175,7 @@ function ensureDb(){
   return null;
 }
 const TABLE="sevkiyatlar";
+window.BetonexaNoteText=value=>String(value??"").trim().replace(/\s+/g," ").split(" ").map(word=>word?word[0].toLocaleUpperCase("tr-TR")+word.slice(1).toLocaleLowerCase("tr-TR"):"").join(" ");
 let records=[];
 let weekStart=monday(new Date());
 let selectedAnalysisCompany="";
@@ -2813,7 +2814,7 @@ function payload(){
     pompa_tipi:$("pompaVar").value==="true"?sentenceCaseTR($("pompaTipi").value):null,
     sorumlu_kisi:sentenceCaseTR($("sorumluKisi").value),
     telefon:phoneFormat($("telefon").value),
-    notlar:$("shipmentNotes").value.trim()
+    notlar:window.BetonexaNoteText($("shipmentNotes").value)
   };
 }
 function clearForm(){
@@ -2908,7 +2909,7 @@ clearForm();
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");updateMetrajPlusButton();$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";$("shipmentNotes").value=r.notlar||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");updateMetrajPlusButton();$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";$("shipmentNotes").value=window.BetonexaNoteText(r.notlar);
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -3170,7 +3171,7 @@ function renderTomorrowReport(){
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
           <td>${metrajDisplay(r)} m³</td>
           <td>${esc(analysisDisplayName(r.sorumlu_kisi))}</td>
-          <td>${esc(r.telefon)}</td><td>${esc(r.notlar||"-")}</td>
+          <td>${esc(r.telefon)}</td><td>${esc(window.BetonexaNoteText(r.notlar)||"-")}</td>
         </tr>`).join("")}</tbody>
       </table></div>
     </section>`;
@@ -4309,7 +4310,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260925-notes1"></script>
+<script src="./cimento-module.js?v=20260925-note-case2"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
@@ -4899,7 +4900,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 </style>
 <script src="./tracking-finalizer.js?v=20260911-cancelled-totals2"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
-<script src="./professional-pdf-reports.js?v=20260925-notes1"></script>
+<script src="./professional-pdf-reports.js?v=20260925-note-case2"></script>
 <script src="./company-terms.js?v=20260902-5"></script>
 <script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
