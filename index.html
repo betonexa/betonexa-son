@@ -1830,6 +1830,7 @@ tbody tr:hover td { background: rgba(230, 218, 242, .63) !important; }
  <div class="field"><label>Sorumlu kişi</label><input id="sorumluKisi" name="betonexa_sorumlu_kisi" list="sorumluKisiList" autocomplete="off" autocapitalize="sentences" placeholder="Sorumlu kişi adı"><datalist id="sorumluKisiList"></datalist></div>
  <div class="field"><label>Telefon</label><input id="telefon" type="tel" inputmode="numeric" maxlength="14" placeholder="05XX XXX XX XX"></div>
  </div>
+ <div class="field shipment-notes-field" style="width:100%"><label for="shipmentNotes">Not</label><textarea id="shipmentNotes" rows="2" placeholder="Sevkiyatla ilgili not (isteğe bağlı)"></textarea></div>
  <div class="form-actions">
  <button class="btn btn-primary" type="submit" id="saveBtn">Sevkiyatı Kaydet</button>
  <button class="btn btn-light hidden" type="button" id="cancelEdit">Düzenlemeyi İptal Et</button>
@@ -2811,7 +2812,8 @@ function payload(){
     pompa_var_mi:$("pompaVar").value==="true",
     pompa_tipi:$("pompaVar").value==="true"?sentenceCaseTR($("pompaTipi").value):null,
     sorumlu_kisi:sentenceCaseTR($("sorumluKisi").value),
-    telefon:phoneFormat($("telefon").value)
+    telefon:phoneFormat($("telefon").value),
+    notlar:$("shipmentNotes").value.trim()
   };
 }
 function clearForm(){
@@ -2906,7 +2908,7 @@ clearForm();
 }
 function editRecord(id){
   const r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");updateMetrajPlusButton();$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";
+  $("editId").value=r.id;$("tarih").value=r.tarih||"";$("saat").value=(r.saat||"").slice(0,5);$("santral").value=r.santral||"";$("firma").value=r.firma||"";$("santiye").value=r.santiye||"";$("betonSinifi").value=r.beton_sinifi||"";setConcreteProperties(r.beton_ozelligi);$("metraj").value=(r.metraj??"")+(r.metraj_plus?"+":"");updateMetrajPlusButton();$("pompaVar").value=String(!!r.pompa_var_mi);$("pumpTypeWrap").classList.toggle("hidden",!r.pompa_var_mi);$("pompaTipi").value=r.pompa_tipi||"";$("sorumluKisi").value=r.sorumlu_kisi||"";$("telefon").value=r.telefon||"";$("shipmentNotes").value=r.notlar||"";
   $("saveBtn").textContent="Değişiklikleri Kaydet";$("cancelEdit").classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})
 }
 async function deleteRecord(id){
@@ -3158,7 +3160,7 @@ function renderTomorrowReport(){
     return `<section class="tomorrow-company">
       <div class="tomorrow-company-head"><h3>🏢 ${esc(analysisDisplayName(company))}</h3><strong>Firma Toplamı: ${m3(subtotal)} m³</strong></div>
       <div class="table-wrap" style="margin-top:0;border:0;border-radius:0"><table class="tomorrow-table">
-        <thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead>
+        <thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th><th>Not</th></tr></thead>
         <tbody>${items.map(r=>`<tr>
           <td>${esc((r.saat||"").slice(0,5))}</td>
           <td>${esc(r.santral)}</td>
@@ -3168,7 +3170,7 @@ function renderTomorrowReport(){
           <td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td>
           <td>${metrajDisplay(r)} m³</td>
           <td>${esc(analysisDisplayName(r.sorumlu_kisi))}</td>
-          <td>${esc(r.telefon)}</td>
+          <td>${esc(r.telefon)}</td><td>${esc(r.notlar||"-")}</td>
         </tr>`).join("")}</tbody>
       </table></div>
     </section>`;
@@ -4307,7 +4309,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260925-tracking-details1"></script>
+<script src="./cimento-module.js?v=20260925-notes1"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
@@ -4897,7 +4899,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 </style>
 <script src="./tracking-finalizer.js?v=20260911-cancelled-totals2"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
-<script src="./professional-pdf-reports.js?v=20260925-cement-type1"></script>
+<script src="./professional-pdf-reports.js?v=20260925-notes1"></script>
 <script src="./company-terms.js?v=20260902-5"></script>
 <script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>
