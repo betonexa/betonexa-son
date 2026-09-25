@@ -82,5 +82,5 @@
   window.editCementShipment=editCementShipment;window.completeCementShipment=completeCementShipment;window.deleteCementShipment=deleteCementShipment;window.loadCementShipments=loadCementShipments;window.renderTomorrowCementAddon=renderTomorrowCementAddon;
   function init(){injectStyles();injectUi();configureTonnageInput();}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
-(function loadCementHistoryModule(){if(document.querySelector('script[src^="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js?v=20260925-note-case2";script.defer=true;document.head.appendChild(script)})();
+(function loadCementHistoryModule(){if(document.querySelector('script[src^="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js?v=20260925-phone-layout1";script.defer=true;document.head.appendChild(script)})();
 (function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20260925-tracking-details1";script.defer=true;document.head.appendChild(script)})();
