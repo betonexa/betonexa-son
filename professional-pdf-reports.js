@@ -9,7 +9,7 @@
   const label=value=>root.BetonexaNames?.label?.(value)||String(value??'').trim();
   const key=value=>root.BetonexaNames?.key?.(value)||String(value??'').trim().toLocaleLowerCase('tr-TR');
   const count=value=>Number(value||0)>0?String(Number(value)):'-';
-  const cementAmount=row=>{for(const field of ['toplam_tonaj','planlanan_tonaj','tonaj','miktar']){const value=row?.[field];if(value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value)))return Number(value)}return null};
+  const cementAmount=row=>{for(const field of ['toplam_tonaj','planlanan_tonaj']){const value=row?.[field];if(value!==null&&value!==undefined&&value!==''&&Number.isFinite(Number(value)))return Number(value)}return null};
   const cementAmountText=row=>{const value=cementAmount(row);return value==null?'Bilgi bekleniyor':`${fmt(value)} ton`};
   const parseDisplayedCount=value=>{const raw=String(value??'').trim();if(!raw||raw==='-')return 0;const number=Number(raw.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));return Number.isFinite(number)?number:0};
   const parseDisplayedTon=value=>{const raw=String(value??'').trim();if(!raw||raw==='-'||/bilgi/i.test(raw))return null;const number=Number(raw.replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''));return Number.isFinite(number)?number:null};
