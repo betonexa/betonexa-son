@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.09.25-phone-layout-v1';
+const CACHE='betonexa-2026.09.29-piece-v1';
 const ASSETS=[
   './',
   './index.html',

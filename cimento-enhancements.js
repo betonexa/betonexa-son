@@ -132,7 +132,7 @@
     const page=$('cementPage');if(!page)return;
     window.__cementPendingEditId=null;
     if($('cementDate'))$('cementDate').value=today();
-    ['cementCompany','cementType','cementDelivery','cementVehicleCount','cementPalletCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
+    ['cementCompany','cementType','cementDelivery','cementVehicleCount','cementPalletCount','cementPieceCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
     if($('cementSaveBtn'))$('cementSaveBtn').textContent='Sevkiyatı Kaydet';
     $('cementCancelBtn')?.classList.add('hidden');
     if($('cementStatus'))$('cementStatus').textContent='';
