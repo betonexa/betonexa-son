@@ -36,7 +36,7 @@
   }
   function ensureCementTypeField(){
     const company=$("cementCompany");if(!company||$("cementType"))return;
-    const field=document.createElement("div");field.className="cement-field";field.innerHTML='<label for="cementType">Çimento özelliği</label><input id="cementType" type="text" list="cementTypeOptions" placeholder="Örn. CEM 4 32.5" autocomplete="off" maxlength="100"><datalist id="cementTypeOptions"><option value="CEM 4 32.5"><option value="CEM 2 52.5"></datalist>';
+    const field=document.createElement("div");field.className="cement-field";field.innerHTML='<label for="cementType">Çimento özelliği</label><input id="cementType" type="text" list="cementTypeOptions" placeholder="Örn. CEM 4 32.5" autocomplete="off" maxlength="100"><datalist id="cementTypeOptions"><option value="CEM 4 32.5"><option value="CEM 2 52.5"><option value="CEM II 42,5 R"></datalist>';
     company.closest(".cement-field")?.insertAdjacentElement("afterend",field);
   }
   function ensureCementTypeHeader(){
