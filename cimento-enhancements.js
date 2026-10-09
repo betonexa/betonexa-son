@@ -76,7 +76,7 @@
     input.dataset.betonexaAutoBound='1';input.removeAttribute('list');input.setAttribute('autocomplete','off');
     const render=async()=>{
       if((values()||[]).length===0)await loadSuggestions();
-      const q=canonical(input.value);if(!q){menu.classList.add('hidden');return}
+      const q=canonical(input.value);
       const matches=uniqueSuggestionValues(values()).filter(v=>canonical(v).startsWith(q));
       if(!matches.length){menu.classList.add('hidden');return}
       menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');dedupeRenderedMenus(menu);menu.classList.remove('hidden');
@@ -85,7 +85,8 @@
         btn.addEventListener('click',()=>{input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')});
       });
     };
-    input.addEventListener('input',render);input.addEventListener('focus',()=>{if(input.value.trim())render()});
+    input.addEventListener('input',render);input.addEventListener('focus',render);
+    input.addEventListener('click',()=>{if(menu.classList.contains('hidden'))render()});
     document.addEventListener('click',e=>{if(!host.contains(e.target))menu.classList.add('hidden')});
   }
 
@@ -98,7 +99,9 @@
         field.style.position='relative';field.style.overflow='visible';
         let menu=$('cementPairMenu');if(!menu){menu=document.createElement('div');menu.id='cementPairMenu';menu.className='cement-pair-menu hidden';field.appendChild(menu)}
         ci.addEventListener('input',async()=>{if(!suggestions.firma.length)await loadSuggestions();renderCompanyMenu(ci.value)});
-        ci.addEventListener('focus',async()=>{if(ci.value.trim()){if(!suggestions.firma.length)await loadSuggestions();renderCompanyMenu(ci.value)}});
+        const openCompanyMenu=async()=>{if(!suggestions.firma.length)await loadSuggestions();renderCompanyMenu(ci.value)};
+        ci.addEventListener('focus',openCompanyMenu);
+        ci.addEventListener('click',()=>{if(menu.classList.contains('hidden'))openCompanyMenu()});
         document.addEventListener('click',e=>{if(!field.contains(e.target))menu.classList.add('hidden')});
       }
       ci.addEventListener('blur',()=>setTimeout(()=>{const exact=suggestions.firma.find(v=>canonical(v)===canonical(ci.value));if(exact)ci.value=exact;else if(ci.value.trim())ci.value=title(ci.value)},120));
@@ -108,7 +111,7 @@
 
   function renderCompanyMenu(query){
     const menu=$('cementPairMenu');if(!menu)return;
-    const q=canonical(query);if(!q){menu.classList.add('hidden');return}
+    const q=canonical(query);
     const matches=suggestions.firma.filter(v=>canonical(v).startsWith(q));
     if(!matches.length){menu.classList.add('hidden');return}
     menu.innerHTML=matches.map(firma=>`<button type="button" class="cement-pair-option"><strong>${firma}</strong></button>`).join('');menu.classList.remove('hidden');

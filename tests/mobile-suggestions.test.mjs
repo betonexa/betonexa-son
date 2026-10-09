@@ -32,16 +32,22 @@ test('tekrar eden öneriler bir kez düzeltilir, sonraki gözlem sabittir',()=>{
   assert.deepEqual(buttons.map(b=>b.writes),writes);
 });
 
-test('öneriler 12 ile kesilmez; basma seçmez, tıklama seçer',async()=>{
+test('boş alana dokunma önerileri açar; yazma filtreler ve yeniden dokunma açar',async()=>{
   const options=[];
-  const menu={classList:{hidden:true,add(){this.hidden=true},remove(){this.hidden=false}},set innerHTML(html){options.length=0;for(const match of html.matchAll(/<button[^>]*>(.*?)<\/button>/g)){const handlers={};options.push({textContent:match[1],addEventListener:(type,handler)=>handlers[type]=handler,handlers})}},querySelectorAll:()=>options};
+  const menu={classList:{hidden:true,add(){this.hidden=true},remove(){this.hidden=false},contains(){return this.hidden}},set innerHTML(html){options.length=0;for(const match of html.matchAll(/<button[^>]*>(.*?)<\/button>/g)){const handlers={};options.push({textContent:match[1],addEventListener:(type,handler)=>handlers[type]=handler,handlers})}},querySelectorAll:()=>options};
   const inputHandlers={};
-  const input={value:'Test',dataset:{},parentElement:{style:{},contains:()=>true},removeAttribute(){},setAttribute(){},addEventListener:(type,handler)=>inputHandlers[type]=handler};
+  const input={value:'',dataset:{},parentElement:{style:{},contains:()=>true},removeAttribute(){},setAttribute(){},addEventListener:(type,handler)=>inputHandlers[type]=handler};
   const values=Array.from({length:30},(_,i)=>'Test '+i);
   const create=source.slice(source.indexOf('  function createMenuForInput('),source.indexOf('  function fillLists('));
   vm.runInNewContext(create+';createMenuForInput(input,"menu",()=>values);',{input,values,$:()=>menu,canonical:v=>v.toLowerCase(),uniqueSuggestionValues:v=>v,dedupeRenderedMenus(){},document:{addEventListener(){}}});
-  await inputHandlers.input();
+  await inputHandlers.focus();
   assert.equal(options.length,30);
+  assert.equal(menu.classList.hidden,false);
+  input.value='Test 2';
+  await inputHandlers.input();
+  assert.equal(options.length,11);
+  input.value='Test';
+  await inputHandlers.input();
   let prevented=false;
   options[20].handlers.mousedown({preventDefault(){prevented=true}});
   assert.equal(prevented,true);
@@ -50,4 +56,8 @@ test('öneriler 12 ile kesilmez; basma seçmez, tıklama seçer',async()=>{
   options[20].handlers.click();
   assert.equal(input.value,'Test 20');
   assert.equal(menu.classList.hidden,true);
+  input.value='';
+  await inputHandlers.click();
+  assert.equal(options.length,30);
+  assert.equal(menu.classList.hidden,false);
 });
