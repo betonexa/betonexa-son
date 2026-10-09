@@ -23,9 +23,9 @@
       [...menu.querySelectorAll('.betonexa-auto-option,.cement-pair-option')].forEach(button=>{
         const name=title(button.textContent),key=canonical(name);
         if(!key)return;
-        if(!kept.has(key)){kept.set(key,button);button.textContent=name;return}
+        if(!kept.has(key)){kept.set(key,button);if(button.textContent!==name)button.textContent=name;return}
         const first=kept.get(key),preferred=prettier(first.textContent,name);
-        first.textContent=preferred;button.remove();
+        if(first.textContent!==preferred)first.textContent=preferred;button.remove();
       });
     });
   }
@@ -37,6 +37,7 @@
       #cementAnalysisAddon h3{margin:0 0 12px}.cement-analysis-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.cement-analysis-card{background:rgba(255,255,255,.55);border:1px solid rgba(103,52,189,.12);border-radius:14px;padding:14px}.cement-analysis-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:6px}.cement-analysis-card strong{font-size:21px}.cement-analysis-table{overflow:auto;border-radius:14px}.cement-analysis-table table{width:100%;border-collapse:collapse;min-width:620px}.cement-analysis-table th,.cement-analysis-table td{padding:9px;border-bottom:1px solid rgba(103,52,189,.1);text-align:left}.cement-analysis-table th{background:#7442c8;color:#fff!important}.cement-tonnage-pending{font-weight:800;color:var(--purple-dark)}
       #recordsPage .field,#cementPage .cement-field{overflow:visible!important}
       .cement-pair-menu,.betonexa-auto-menu{position:absolute;left:0;right:0;top:100%;z-index:99999;background:#fff;border:1px solid rgba(103,52,189,.22);border-radius:12px;box-shadow:0 10px 24px rgba(40,25,70,.16);max-height:220px;overflow:auto;margin-top:4px;padding:0}
+      .cement-pair-menu,.betonexa-auto-menu{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
       .cement-pair-menu.hidden,.betonexa-auto-menu.hidden{display:none}
       .cement-pair-option,.betonexa-auto-option{display:block;width:100%;border:0;background:#fff;text-align:left;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.25;font-weight:700;cursor:pointer;color:#4d2393}
       .cement-pair-option:hover,.cement-pair-option:focus,.betonexa-auto-option:hover,.betonexa-auto-option:focus{background:rgba(103,52,189,.09);outline:none}
@@ -76,10 +77,13 @@
     const render=async()=>{
       if((values()||[]).length===0)await loadSuggestions();
       const q=canonical(input.value);if(!q){menu.classList.add('hidden');return}
-      const matches=uniqueSuggestionValues(values()).filter(v=>canonical(v).startsWith(q)).slice(0,12);
+      const matches=uniqueSuggestionValues(values()).filter(v=>canonical(v).startsWith(q));
       if(!matches.length){menu.classList.add('hidden');return}
       menu.innerHTML=matches.map(v=>`<button type="button" class="betonexa-auto-option">${v}</button>`).join('');dedupeRenderedMenus(menu);menu.classList.remove('hidden');
-      [...menu.querySelectorAll('.betonexa-auto-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')}));
+      [...menu.querySelectorAll('.betonexa-auto-option')].forEach((btn,i)=>{
+        btn.addEventListener('mousedown',e=>e.preventDefault());
+        btn.addEventListener('click',()=>{input.value=matches[i];onSelect?.(matches[i]);menu.classList.add('hidden')});
+      });
     };
     input.addEventListener('input',render);input.addEventListener('focus',()=>{if(input.value.trim())render()});
     document.addEventListener('click',e=>{if(!host.contains(e.target))menu.classList.add('hidden')});
@@ -105,10 +109,13 @@
   function renderCompanyMenu(query){
     const menu=$('cementPairMenu');if(!menu)return;
     const q=canonical(query);if(!q){menu.classList.add('hidden');return}
-    const matches=suggestions.firma.filter(v=>canonical(v).startsWith(q)).slice(0,12);
+    const matches=suggestions.firma.filter(v=>canonical(v).startsWith(q));
     if(!matches.length){menu.classList.add('hidden');return}
     menu.innerHTML=matches.map(firma=>`<button type="button" class="cement-pair-option"><strong>${firma}</strong></button>`).join('');menu.classList.remove('hidden');
-    [...menu.querySelectorAll('.cement-pair-option')].forEach((btn,i)=>btn.addEventListener('mousedown',e=>{e.preventDefault();$('cementCompany').value=matches[i];menu.classList.add('hidden')}));
+    [...menu.querySelectorAll('.cement-pair-option')].forEach((btn,i)=>{
+      btn.addEventListener('mousedown',e=>e.preventDefault());
+      btn.addEventListener('click',()=>{$('cementCompany').value=matches[i];menu.classList.add('hidden')});
+    });
   }
 
   function bindConcreteAutocomplete(){
