@@ -191,7 +191,10 @@ function uniqueLabels(values){
 function fillSelect(id,values,allLabel,canonical=true){
   const select=$(id);if(!select)return;
   const selectedKey=canonical?canonicalKey(select.value):norm(select.value);
-  select.replaceChildren(new Option(allLabel,''),...values.map(value=>new Option(value,value)));
+  const entries=[{text:allLabel,value:''},...values.map(value=>({text:value,value}))];
+  const unchanged=select.options.length===entries.length&&entries.every((entry,i)=>select.options[i].value===entry.value&&select.options[i].text===entry.text);
+  if(unchanged)return;
+  select.replaceChildren(...entries.map(entry=>new Option(entry.text,entry.value)));
   const selected=[...select.options].find(option=>(canonical?canonicalKey(option.value):norm(option.value))===selectedKey);
   select.value=selected?.value||'';
 }
@@ -204,10 +207,11 @@ function forceLegacyAll(){
 }
 
 function updateFieldVisibility(){const type=$('shipmentFilterType')?.value||'all';document.querySelectorAll('#shipmentQuickFilters [data-only]').forEach(el=>{const only=el.dataset.only;el.classList.toggle('sqf-hidden',type==='all'||only!==type)})}
+function normalizeFilterCell(cell){if(!cell)return;const label=canonicalLabel(cell.textContent);if(cell.textContent!==label)cell.textContent=label}
 function refreshOptions(){
   const cr=concreteRows(),ce=cementRows();
-  cr.forEach(r=>{if(r.children[4])r.children[4].textContent=canonicalLabel(r.children[4].textContent);if(r.children[5])r.children[5].textContent=canonicalLabel(r.children[5].textContent)});
-  ce.forEach(r=>{if(r.children[2])r.children[2].textContent=canonicalLabel(r.children[2].textContent);if(r.children[3])r.children[3].textContent=canonicalLabel(r.children[3].textContent)});
+  cr.forEach(r=>{normalizeFilterCell(r.children[4]);normalizeFilterCell(r.children[5])});
+  ce.forEach(r=>{normalizeFilterCell(r.children[2]);normalizeFilterCell(r.children[3])});
   const type=$('shipmentFilterType')?.value||'all';
   const firms=type==='concrete'?cr.map(r=>r.children[4]?.textContent):type==='cement'?ce.map(r=>r.children[2]?.textContent):[...cr.map(r=>r.children[4]?.textContent),...ce.map(r=>r.children[2]?.textContent)];
   fillSelect('shipmentFilterCompany',uniqueLabels(firms),'Tüm Firmalar');
@@ -296,7 +300,7 @@ function ensureFilters(){
   }else if(p.parentElement!==box)box.insertBefore(p,box.querySelector('.rc-block')||box.firstChild);
   placeFilterExports();refreshOptions();applyFilters();return true;
 }
-function observeRecords(){const host=$('recordsPage');if(!host||host.dataset.unifiedFilterObserver==='1')return;host.dataset.unifiedFilterObserver='1';let timer;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(ensureFilters,120)}).observe(host,{childList:true,subtree:true})}
+function observeRecords(){const host=$('recordsPage');if(!host||host.dataset.unifiedFilterObserver==='1')return;host.dataset.unifiedFilterObserver='1';let timer;new MutationObserver(mutations=>{if(!mutations.some(m=>!m.target.closest?.('#shipmentQuickFilters,.rc-total')))return;clearTimeout(timer);timer=setTimeout(ensureFilters,120)}).observe(host,{childList:true,subtree:true})}
 document.addEventListener('betonexa:records-rendered',()=>{refreshOptions();applyFilters()});
 function init(){addStyles();if($('contractsPage')){setupContractLayout();decorateCards();observeContracts()}forceLegacyAll();observeRecords();ensureFilters();document.querySelector('[data-page="records"]')?.addEventListener('click',()=>setTimeout(ensureFilters,180))}
 let tries=0,t=setInterval(()=>{init();if(++tries>80)clearInterval(t)},250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

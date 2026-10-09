@@ -83,4 +83,4 @@
   function init(){injectStyles();injectUi();configureTonnageInput();}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 (function loadCementHistoryModule(){if(document.querySelector('script[src^="./cimento-history.js"]'))return;const script=document.createElement("script");script.src="./cimento-history.js?v=20260929-piece1";script.defer=true;document.head.appendChild(script)})();
-(function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20260929-piece-export-fix1";script.defer=true;document.head.appendChild(script)})();
+(function loadContractsDeleteAddon(){if(document.querySelector('script[src^="./contracts-module.js"]'))return;const script=document.createElement("script");script.src="./contracts-module.js?v=20261009-tracking-scroll1";script.defer=true;document.head.appendChild(script)})();
