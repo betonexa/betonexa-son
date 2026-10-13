@@ -1,0 +1,100 @@
+/* Betonexa — customer-demo palette. Color-only layer; existing layouts stay authoritative. */
+:root {
+  --betonexa-forest: #112b2a;
+  --betonexa-primary: #17352e;
+  --betonexa-ink: #172e2d;
+  --betonexa-muted: #63766f;
+  --betonexa-bg: #f5f6f2;
+  --betonexa-cream: #eeeee5;
+  --betonexa-mint: #d5ecdf;
+  --betonexa-soft: #e9f0e7;
+  --betonexa-orange: #fa9d74;
+  --betonexa-line: #e6e9e3;
+  --purple: var(--betonexa-primary);
+  --purple-dark: var(--betonexa-forest);
+  --purple-soft: var(--betonexa-mint);
+  --ink: var(--betonexa-ink);
+  --muted: var(--betonexa-muted);
+  --glass: #fff;
+  --glass-soft: var(--betonexa-soft);
+  --glass-light: #fff;
+  --line: var(--betonexa-line);
+  --danger: #a44635;
+  --success: #315e46;
+  color-scheme: light;
+  accent-color: var(--betonexa-primary);
+}
+body { background: var(--betonexa-bg) !important; color: var(--ink); }
+.login { background: linear-gradient(140deg, var(--betonexa-forest), #315e46) !important; }
+.login-card { background: var(--betonexa-cream); border-color: #e6e9e3; box-shadow: 0 25px 70px #112b2a24; }
+.login-card .brand small { color: var(--muted); }
+.top { background: var(--betonexa-forest); border-bottom-color: #28463e; box-shadow: 0 6px 22px #112b2a12; }
+.top .brand h1 { color: var(--betonexa-mint); }
+.top .brand span { background: #28463e; color: #d5ecdf; border-color: #456357; }
+.top .btn-light { background: #28463e; color: #d5ecdf; border-color: #456357; }
+.top .btn-light:hover { background: #365b4e; }
+.brand img { filter: none; }
+.home-welcome-card { background: var(--betonexa-cream); border-color: var(--line); box-shadow: 0 15px 45px #112b2a08; }
+.home-logo-glow { background: #fff; }
+.home-action { background: #fff; color: var(--ink); border-color: var(--line); box-shadow: 0 5px 16px #112b2a05; }
+.home-action:hover { background: var(--betonexa-mint); border-color: #bfd4c7; }
+.panel, .kpi, .dashboard-kpi, .dashboard-leader, .dashboard-chart,
+.analysis-card, .analysis-box, .settings-box, .tomorrow-company,
+.records-report, #recordsPage > .dashboard-head, #shipmentForm {
+  background: #fff;
+  border-color: var(--line);
+  box-shadow: 0 8px 26px #112b2a05;
+}
+.kpi:first-child, .dashboard-kpi:first-child, .analysis-card:first-child { background: var(--betonexa-soft); }
+.kpi strong, .dashboard-kpi strong, .dashboard-leader strong, .analysis-card strong { color: var(--betonexa-primary); }
+input, select, textarea, .multi-select-toggle { color: var(--ink); background: #fafbf8; border-color: #c4d8cd; }
+input::placeholder, textarea::placeholder { color: #7b8b80; }
+input:focus, select:focus, textarea:focus { border-color: #557f56; box-shadow: 0 0 0 3px #d5ecdf; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--betonexa-primary); }
+.btn-primary { background: var(--betonexa-primary); color: #fff; box-shadow: 0 6px 16px #112b2a14; }
+.btn-primary:hover { background: #285248; }
+.btn-light { background: #fafbf8; color: #526157; border-color: var(--line); box-shadow: 0 3px 10px #112b2a03; }
+.btn-light:hover { background: var(--betonexa-soft); }
+#saveBtn, #cementSaveBtn, #contractSaveBtn, #loginBtn { background: var(--betonexa-orange); color: #322b20; box-shadow: 0 6px 16px #d78a5920; }
+#saveBtn:hover, #cementSaveBtn:hover, #contractSaveBtn:hover, #loginBtn:hover { background: #f58e60; }
+.tabs .btn { background: #fff; color: var(--ink); box-shadow: 0 3px 12px #112b2a04; }
+.tabs button.active, #analysisPage .analysis-mode-tabs button.active,
+.analysis-mode-tabs button.active, .calendar-view-tabs .active {
+  color: var(--betonexa-forest) !important;
+  background: var(--betonexa-mint) !important;
+  border-color: #bdd5c6 !important;
+  box-shadow: 0 4px 14px #112b2a08 !important;
+}
+#analysisPage .analysis-mode-tabs button { background: #fff !important; color: var(--ink) !important; border-color: var(--line) !important; box-shadow: 0 6px 22px #112b2a05 !important; }
+#analysisPage .analysis-mode-tabs button.active { background: var(--betonexa-mint) !important; }
+.table-wrap { background: #fff; border-color: var(--line); }
+th, .head, .company-terms-table th { background: var(--betonexa-primary); color: #fff; }
+th, td { border-bottom-color: var(--line); }
+tbody tr:nth-child(odd) td { background: #fff; }
+tbody tr:nth-child(even) td { background: #f5f7f1; }
+tbody tr:hover td { background: #e9f0e7 !important; }
+.analysis-box h3, .settings-box h3, .tomorrow-company-head { background: var(--betonexa-soft); color: #315e46; }
+.analysis-company { background: #fff; border-bottom-color: var(--line); color: var(--ink); }
+.analysis-company:hover { background: var(--betonexa-soft); }
+.analysis-company.active { background: var(--betonexa-mint); box-shadow: inset 4px 0 0 var(--betonexa-primary); }
+.analysis-mini, .settings-item, .dashboard-alert { background: #fafbf8; border-color: var(--line); }
+.settings-note { background: var(--betonexa-soft); color: #315e46; }
+.tomorrow-total { background: var(--betonexa-primary); color: #fff; }
+.week, .cell, .time { background: #fff; border-color: var(--line); }
+.event { background: var(--betonexa-mint); color: var(--betonexa-primary); border-left-color: var(--betonexa-primary); }
+.cell.drag-over, #calendarPage .cell.touch-drag-over { background: #e9f0e7 !important; }
+.multi-select-menu, .betonexa-auto-menu, .cement-pair-menu { background: #fff; border-color: #c4d8cd; }
+.multi-select-option:hover, .betonexa-auto-option:hover, .cement-pair-option:hover { background: var(--betonexa-soft); }
+.multi-select-chip, .icon-action.edit { background: var(--betonexa-mint); color: #315e46; border-color: #c4d8cd; }
+.btn-danger, .icon-action.delete { background: #fff0e9; color: #a44635; border-color: #ebc6b9; }
+#contractsList .contract-card { background: #fff; border-color: var(--line); color: var(--ink); }
+#contractsList .contract-card:hover { background: var(--betonexa-soft); border-color: #c4d8cd; }
+#contractsList .contract-card.active { background: var(--betonexa-mint); }
+.contract-card-status { background: var(--betonexa-soft); color: #315e46; }
+.contract-card-status.warning { background: #fff0e5; color: #805128; }
+.contract-card-status.danger { background: #fff0e9; color: #a44635; }
+.cement-summary, .cement-card, .cement-analysis-card, .cement-entry-wrap { background: #fff; border-color: var(--line); }
+.cement-summary strong, .cement-card strong, .cement-analysis-card strong { color: var(--betonexa-primary); }
+:focus-visible { outline: 3px solid #dc8759; outline-offset: 2px; }
+@media (max-width: 700px) { #app::before { background: var(--betonexa-forest); } }
+@media print { body { background: #fff !important; } .top { background: #fff; color: var(--ink); } }

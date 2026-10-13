@@ -2,7 +2,7 @@
   'use strict';
   const note=value=>window.BetonexaNoteText(value);
 
-  const PURPLE=[74,35,181],PURPLE_2=[91,45,195],DARK=[18,25,62],LINE=[211,205,235],SOFT=[247,246,252],WHITE=[255,255,255];
+  const PURPLE=[23,53,46],PURPLE_2=[49,94,70],DARK=[23,46,45],LINE=[230,233,227],SOFT=[245,246,242],WHITE=[255,255,255];
   const $=id=>document.getElementById(id);
   const db=()=>typeof root.ensureDb==='function'?root.ensureDb():root.BetonexaAuthClient;
   const fmt=value=>Number(value||0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});

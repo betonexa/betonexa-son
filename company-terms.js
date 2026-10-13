@@ -195,7 +195,7 @@
         }catch(_){}
       }
       doc.setFont(font,'normal');
-      const purple=[74,35,181],dark=[18,25,62],line=[211,205,235],soft=[247,246,252],white=[255,255,255];
+      const purple=[23,53,46],dark=[23,46,45],line=[230,233,227],soft=[245,246,242],white=[255,255,255];
       const width=doc.internal.pageSize.getWidth(),margin=14;
       doc.setTextColor(...dark);doc.setFontSize(19);doc.text(text('FİRMA VADELERİ'),margin,18);
       doc.setDrawColor(...purple);doc.setLineWidth(.35);doc.line(margin,29,width-margin,29);

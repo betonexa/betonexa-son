@@ -185,8 +185,8 @@
     pdf.className='btn btn-primary';
     excel.className='btn btn-light';
     print.className='btn btn-light';
-    pdf.style.setProperty('background','#6f42c1','important');
-    pdf.style.setProperty('border-color','#6f42c1','important');
+    pdf.style.setProperty('background','#17352e','important');
+    pdf.style.setProperty('border-color','#17352e','important');
     pdf.style.setProperty('color','#fff','important');
     [excel,print].forEach(btn=>{
       btn.style.removeProperty('background');
@@ -337,7 +337,7 @@
       el.style.fontSize='25px';
       el.style.fontWeight='700';
       el.style.lineHeight='1.2';
-      el.style.color='#4f3271';
+      el.style.color='#315e46';
       el.style.margin='0';
     });
   }
