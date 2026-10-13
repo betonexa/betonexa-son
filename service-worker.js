@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.13-mobile-plan-v5';
+const CACHE='betonexa-2026.10.13-cem-425-r-v6';
 const ASSETS=[
   './',
   './index.html',
@@ -13,9 +13,9 @@ const ASSETS=[
   './icon-192.png',
   './icon-512.png',
   './cimento-module.js',
-  './cimento-module.js?v=20261013-mobile-plan2',
+  './cimento-module.js?v=20261013-cem-425-r1',
   './cimento-history.js',
-  './cimento-history.js?v=20261013-mobile-plan2',
+  './cimento-history.js?v=20261013-cem-425-r1',
   './cimento-enhancements.js',
   './cimento-mobile-fix.css',
   './contracts-module.js',
