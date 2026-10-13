@@ -3257,6 +3257,7 @@ async function preparePdfFont(doc){
 }
 
 async function downloadTomorrowPdf(){
+  if(window.BetonexaProfessionalPdf?.save)return window.BetonexaProfessionalPdf.save("tomorrow");
   if(!window.jspdf){alert("PDF modülü yüklenemedi.");return}
   const groups=groupTomorrow();
   if(!groups.length){alert("Yarın için sevkiyat yok.");return}
@@ -3314,7 +3315,7 @@ async function downloadTomorrowPdf(){
   doc.setTextColor(...purple);
   doc.setFontSize(commonFontSize);
   doc.text(
-    text(`YARINKİ SEVKİYATLAR - ${longDate}`),
+    text(`SEVKİYAT PLANI - ${longDate}`),
     marginLeft,
     14
   );
@@ -3400,7 +3401,7 @@ function printTomorrow(){
     const subtotal=items.reduce((s,r)=>s+Number(r.metraj||0),0);grand+=subtotal;
     return `<h3>${esc(company)} — ${m3(subtotal)} m³</h3><table><thead><tr><th>Saat</th><th>Santral</th><th>Şantiye</th><th>Beton</th><th>Özellik</th><th>Pompa</th><th>Metraj</th><th>Sorumlu</th><th>Telefon</th></tr></thead><tbody>${items.map(r=>`<tr><td>${esc((r.saat||"").slice(0,5))}</td><td>${esc(r.santral)}</td><td>${esc(r.santiye)}</td><td>${esc(r.beton_sinifi)}</td><td>${esc(r.beton_ozelligi)}</td><td>${r.pompa_var_mi?esc(r.pompa_tipi||"Pompalı"):"Pompasız"}</td><td>${metrajDisplay(r)} m³</td><td>${esc(r.sorumlu_kisi)}</td><td>${esc(r.telefon)}</td></tr>`).join("")}</tbody></table>`;
   }).join("");
-  w.document.write(`<html><head><title>Yarınki Sevkiyatlar</title><style>body{font-family:Arial;padding:20px}h2{color:#315e46}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #c4d0c4;padding:6px}th{background:#17352e;color:#fff}.total{margin-top:20px;background:#17352e;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>YARINKİ SEVKİYATLAR (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
+  w.document.write(`<html><head><title>Sevkiyat Planı</title><style>body{font-family:Arial;padding:20px}h2{color:#315e46}h3{margin:20px 0 7px}table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #c4d0c4;padding:6px}th{background:#17352e;color:#fff}.total{margin-top:20px;background:#17352e;color:#fff;padding:12px;font-size:18px;font-weight:bold}</style></head><body><h2>SEVKİYAT PLANI (${trDate(tomorrowDateString())})</h2>${sections}<div class="total">GENEL TOPLAM: ${m3(grand)} m³</div></body></html>`);
   w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
 
@@ -4322,7 +4323,7 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
 })();
 </script>
 
-<script src="./cimento-module.js?v=20260929-piece-export-fix1"></script>
+<script src="./cimento-module.js?v=20261013-mobile-plan2"></script>
 <script src="./menu-layout.js?v=20260820-summary-slot-direct"></script>
 
 <!-- BETONEXA MADDE 13-14 — ANALİZ KUTULARI HİZA VE BOŞLUK DÜZENİ -->
@@ -4910,9 +4911,9 @@ if("serviceWorker" in navigator)window.addEventListener("load",async()=>{
   }
 }
 </style>
-<script src="./tracking-finalizer.js?v=20260929-piece1"></script>
+<script src="./tracking-finalizer.js?v=20261013-mobile-plan2"></script>
 <script src="./backup-manager.js?v=20260824-backup1"></script>
-<script src="./professional-pdf-reports.js?v=20261013-future-plan-title1"></script>
+<script src="./professional-pdf-reports.js?v=20261013-mobile-plan2"></script>
 <script src="./company-terms.js?v=20260902-5"></script>
 <script src="./shipment-status.js?v=20260826-stable-status2"></script>
 <script src="./live-sync.js?v=20260825-change-gate1"></script>

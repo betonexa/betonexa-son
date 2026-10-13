@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.13-month-kpis-v4';
+const CACHE='betonexa-2026.10.13-mobile-plan-v5';
 const ASSETS=[
   './',
   './index.html',
@@ -13,7 +13,9 @@ const ASSETS=[
   './icon-192.png',
   './icon-512.png',
   './cimento-module.js',
+  './cimento-module.js?v=20261013-mobile-plan2',
   './cimento-history.js',
+  './cimento-history.js?v=20261013-mobile-plan2',
   './cimento-enhancements.js',
   './cimento-mobile-fix.css',
   './contracts-module.js',
@@ -21,9 +23,12 @@ const ASSETS=[
   './contract-calculations.js',
   './menu-layout.js',
   './tracking-finalizer.js',
+  './tracking-finalizer.js?v=20261013-mobile-plan2',
   './backup-manager.js',
+  './cement-pallet-exports.js?v=20261013-mobile-plan2',
+  './cement-pallet-export-fix.js?v=20261013-mobile-plan2',
   './professional-pdf-reports.js',
-  './professional-pdf-reports.js?v=20261013-future-plan-title1',
+  './professional-pdf-reports.js?v=20261013-mobile-plan2',
   './shipment-status.js',
   './records-cement-addon.js',
   './live-sync.js'
