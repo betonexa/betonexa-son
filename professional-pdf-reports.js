@@ -55,10 +55,10 @@
     const parts=Object.fromEntries(new Intl.DateTimeFormat('en',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now).map(part=>[part.type,part.value]));
     const today=`${parts.year}-${parts.month}-${parts.day}`;
     const items=[...(data?.concrete||[]),...(data?.cement||[])];
-    const isPlan=items.length>0&&items.every(item=>{const date=shipmentDate(item.tarih);return date&&date>today;});
+    const isPlan=bounds?.mode==='tomorrow'||(items.length>0&&items.every(item=>{const date=shipmentDate(item.tarih);return date&&date>today;}));
     return {...bounds,isPlan,documentTitle:isPlan?'SEVKİYAT PLANI':'SEVKİYAT RAPORU',typeLabel:isPlan?String(bounds?.typeLabel||'Sevkiyatlar').replace(/Rapor/g,'Plan'):bounds?.typeLabel,continuationLabel:isPlan?'Plan devamı':'Rapor devamı'};
   }
-  function documentFilename(fileName,bounds,data){return documentMeta(bounds,data).isPlan?fileName.replace(/Sevkiyat-Raporu/g,'Sevkiyat-Plani'):fileName;}
+  function documentFilename(fileName,bounds,data){return documentMeta(bounds,data).isPlan?fileName.replace(/Sevkiyat-Raporu/g,'Sevkiyat-Plani').replace(/Yarinki-Sevkiyatlar/g,'Yarinki-Sevkiyat-Plani'):fileName;}
   function reportHeader(doc,text,bounds){const width=doc.internal.pageSize.getWidth(),margin=7,dateLabel=bounds?.dateLabel||bounds?.label||'',typeLabel=bounds?.typeLabel||(bounds?.mode==='tomorrow'?'Yarınki Sevkiyatlar':'Sevkiyatlar');doc.setTextColor(...DARK);doc.setFontSize(19);doc.text(text(bounds?.documentTitle||'SEVKİYAT RAPORU'),margin,12);doc.setDrawColor(...PURPLE);doc.setLineWidth(.35);doc.line(margin,23,width-margin,23);doc.setFillColor(...PURPLE);doc.roundedRect(margin,15.5,4.4,4.4,.6,.6,'F');doc.setTextColor(...PURPLE);doc.setFontSize(8.2);doc.text(text(dateLabel),margin+6.5,19);const dateWidth=doc.getTextWidth(text(dateLabel));doc.setTextColor(...DARK);doc.text(text('•  '+typeLabel),margin+8+dateWidth,19);}
   function sectionTitle(doc,text,title,letter,y){const width=doc.internal.pageSize.getWidth(),margin=7;doc.setFillColor(...PURPLE);doc.roundedRect(margin,y,width-margin*2,8,1.5,1.5,'F');doc.setFillColor(...PURPLE_2);doc.circle(margin+4.2,y+4,4.6,'F');doc.setTextColor(...WHITE);doc.setFontSize(8.5);doc.text(text(letter),margin+4.2,y+5.2,{align:'center'});doc.setFontSize(9);doc.text(text(title),margin+11,y+5.2);return y+10.5;}
   function continuationHeader(doc,text,title,bounds){reportHeader(doc,text,{...bounds,dateLabel:bounds?.continuationLabel||'Rapor devamı',typeLabel:title});return sectionTitle(doc,text,title,title.startsWith('BETON')?'B':'Ç',27);}
@@ -71,7 +71,7 @@
     data={...data,cement:data.cement||[]};
     bounds=documentMeta(bounds,data);
     if(!root.jspdf?.jsPDF)throw new Error('PDF modülü yüklenemedi.');if(!data.concrete.length&&!data.cement.length)throw new Error('Seçilen dönemde sevkiyat bulunmuyor.');
-    const {jsPDF}=root.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),pack=await fontPack(doc),font=pack.name,text=pack.text;doc.setFont(font,'normal');reportHeader(doc,text,bounds);let y=27;
+    const {jsPDF}=root.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),pack=await fontPack(doc),font=pack.name,text=pack.text;doc.setProperties?.({title:bounds.documentTitle,subject:bounds.typeLabel||'Sevkiyatlar'});doc.setFont(font,'normal');reportHeader(doc,text,bounds);let y=27;
     if(data.concrete.length){y=sectionTitle(doc,text,'BETON SEVKİYATLARI','B',y);for(const group of groupConcrete(data.concrete)){if(y>174){doc.addPage();doc.setFont(font,'normal');y=continuationHeader(doc,text,'BETON SEVKİYATLARI',bounds);}const total=group.items.reduce((sum,item)=>sum+Number(item.metraj||0),0);y=companyBand(doc,text,group.name,total,y);doc.autoTable({...tableBase(font),startY:y,head:[['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Özellik','Pompa','Miktar','Durum','Sorumlu','Telefon','Not'].map(text)],body:group.items.map((item,index)=>[String(index+1),trDate(item.tarih),(item.saat||'').slice(0,5),label(item.santral),label(item.firma),label(item.santiye),label(item.beton_sinifi),label(item.beton_ozelligi)||'-',item.pompa_var_mi?label(item.pompa_tipi||'Pompalı'):'Pompasız',amountText(item,'planlanan_metraj','metraj','m³',item.metraj_plus),statusLabel(item),label(item.sorumlu_kisi||''),item.telefon||'',note(item.notlar)||'-'].map(text)),columnStyles:{0:{cellWidth:7,halign:'center'},1:{cellWidth:35,halign:'center'},2:{cellWidth:11,halign:'center'},3:{cellWidth:20},4:{cellWidth:18},5:{cellWidth:27},6:{cellWidth:12,halign:'center'},7:{cellWidth:15,halign:'center'},8:{cellWidth:14,halign:'center'},9:{cellWidth:29,halign:'center'},10:{cellWidth:22,halign:'center'},11:{cellWidth:20},12:{cellWidth:20},13:{cellWidth:23}}});y=(doc.lastAutoTable?.finalY||y+10)+2.3;}const total=data.concrete.reduce((sum,item)=>sum+Number(item.metraj||0),0);if(y>187){doc.addPage();doc.setFont(font,'normal');y=continuationHeader(doc,text,'BETON SEVKİYATLARI',bounds);}y=summaryBand(doc,text,'TOPLAM BETON',`${data.concrete.length} sevkiyat   •   ${fmt(total)} m³`,y);}
     if(data.cement.length){
       if(y>170){doc.addPage();doc.setFont(font,'normal');reportHeader(doc,text,bounds);y=27;}y=sectionTitle(doc,text,'ÇİMENTO SEVKİYATLARI','Ç',y);
@@ -83,6 +83,12 @@
   async function save(kind){try{const bounds=kind==='tomorrow'?tomorrowPeriod():period(),data=await fetchData(bounds),doc=await buildReport(bounds,data);const name=kind==='tomorrow'?`Betonexa-Yarinki-Sevkiyatlar-${bounds.start}.pdf`:`Betonexa-Sevkiyat-Raporu-${bounds.mode}.pdf`;doc.save(documentFilename(name,bounds,data));}catch(error){alert(error.message||String(error));}}
   async function savePrepared(bounds,data,fileName='Betonexa-Sevkiyat-Raporu.pdf'){try{const doc=await buildReport(bounds,data);doc.save(documentFilename(fileName,bounds,data))}catch(error){alert(error.message||String(error))}}
   function replacePdfButton(id,kind){const old=$(id);if(!old||old.dataset.professionalPdf==='1')return false;const button=old.cloneNode(true);button.dataset.professionalPdf='1';old.replaceWith(button);button.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();save(kind)},true);return true;}
-  function bind(){let tries=0;const timer=setInterval(()=>{tries++;const tomorrow=replacePdfButton('tomorrowPdfBtn','tomorrow'),all=replacePdfButton('pdfBtn','all');if((tomorrow&&all)||tries>100)clearInterval(timer);},100);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();root.BetonexaProfessionalPdf=Object.freeze({buildReport,save,savePrepared,documentMeta});
+  function bind(){
+    document.addEventListener('click',event=>{
+      if(!event.target.closest?.('#tomorrowPdfBtn'))return;
+      event.preventDefault();event.stopImmediatePropagation();save('tomorrow');
+    },true);
+    let tries=0;const timer=setInterval(()=>{tries++;if(replacePdfButton('pdfBtn','all')||tries>100)clearInterval(timer);},100);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();root.BetonexaProfessionalPdf=Object.freeze({buildReport,save,savePrepared,documentMeta,documentFilename});
 })(typeof window!=='undefined'?window:null);
