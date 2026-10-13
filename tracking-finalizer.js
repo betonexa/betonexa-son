@@ -82,9 +82,9 @@
     pdf.className='btn btn-primary';
     excel.className='btn btn-light';
     print.className='btn btn-light';
-    pdf.style.setProperty('background','#17352e','important');
-    pdf.style.setProperty('border-color','#17352e','important');
-    pdf.style.setProperty('color','#fff','important');
+    pdf.style.setProperty('background','#fa9d74','important');
+    pdf.style.setProperty('border-color','#e58b5f','important');
+    pdf.style.setProperty('color','#322b20','important');
     [excel,print].forEach(btn=>{
       btn.style.removeProperty('background');
       btn.style.removeProperty('border-color');
