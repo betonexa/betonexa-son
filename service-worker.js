@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.13-orange-icons-v2';
+const CACHE='betonexa-2026.10.13-future-plan-title-v3';
 const ASSETS=[
   './',
   './index.html',
@@ -23,6 +23,7 @@ const ASSETS=[
   './tracking-finalizer.js',
   './backup-manager.js',
   './professional-pdf-reports.js',
+  './professional-pdf-reports.js?v=20261013-future-plan-title1',
   './shipment-status.js',
   './records-cement-addon.js',
   './live-sync.js'
