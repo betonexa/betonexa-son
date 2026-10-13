@@ -1645,15 +1645,15 @@ tbody tr:hover td { background: rgba(213,236,223,.63) !important; }
  <div style="display:flex;gap:8px"><button id="themeBtn" class="btn btn-light theme-btn" title="Tema değiştir">🌙</button><button id="homeTopBtn" class="btn btn-light home-top-btn hidden" type="button" title="Ana Sayfaya Dön">🏠 <span class="home-top-text">Ana Sayfa</span></button><button id="logoutBtn" class="btn btn-light">Çıkış</button></div>
  </header>
  <main class="content">
- <section class="kpis">
- <div class="kpi"><small>TOPLAM SEVKİYAT</small><strong id="kpiCount">0</strong></div>
- <div class="kpi"><small>BUGÜNKÜ m³</small><strong id="kpiToday">0,00</strong></div>
- <div class="kpi"><small>HAFTALIK m³</small><strong id="kpiWeek">0,00</strong></div>
+ <section class="kpis" aria-label="Seçili ayın sevkiyat toplamları" data-month-filter-version="20261013-1">
+ <div class="kpi"><small>SEÇİLİ AY SEVKİYAT</small><strong id="kpiCount">0</strong></div>
+ <div class="kpi"><small>SEÇİLİ AYDA BUGÜN m³</small><strong id="kpiToday">0,00</strong></div>
+ <div class="kpi"><small>SEÇİLİ AYDA BU HAFTA m³</small><strong id="kpiWeek">0,00</strong></div>
  <div class="kpi">
  <small>AYLIK m³</small>
  <div class="kpi-month-shell">
  <span id="kpiMonthPickerLabel" aria-hidden="true">AĞUSTOS 2026</span>
- <input id="kpiMonthPicker" type="month" aria-label="Aylık m³ için ay seç">
+ <input id="kpiMonthPicker" type="month" aria-label="Üstteki sevkiyat toplamları için ay seç">
  </div>
  <strong id="kpiMonth">0,00</strong>
  </div>
@@ -3407,17 +3407,22 @@ function printTomorrow(){
 function renderKpis(){
   const now=new Date(),today=iso(now);
   const selectedMonth=$("kpiMonthPicker").value||today.slice(0,7);
-  const thisWeekStart=monday(now);
-  const thisWeekEnd=addDays(thisWeekStart,6);
-  $("kpiCount").textContent=records.length;
-  $("kpiToday").textContent=m3(records.filter(r=>r.tarih===today).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
-  $("kpiWeek").textContent=m3(records.filter(r=>{
-    if(!r.tarih)return false;
-    const d=new Date(r.tarih+"T00:00:00");
-    return d>=thisWeekStart&&d<=thisWeekEnd;
-  }).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
-  $("kpiMonth").textContent=m3(records.filter(r=>(r.tarih||"").startsWith(selectedMonth)).reduce((s,r)=>s+Number(r.metraj||0),0))+" m³";
+  const thisWeekStart=iso(monday(now));
+  const thisWeekEnd=iso(addDays(monday(now),6));
+  const monthRecords=records.filter(row=>{
+    if(row.durum==="iptal")return false;
+    const date=parseDateValue(row.tarih);
+    return date&&iso(date).slice(0,7)===selectedMonth;
+  });
+  const dateOf=row=>{const date=parseDateValue(row.tarih);return date?iso(date):"";};
+  const sumMetraj=items=>items.reduce((sum,row)=>{const amount=Number(row.metraj);return sum+(Number.isFinite(amount)?amount:0);},0);
+  const update=(id,value)=>{const element=$(id),text=String(value);if(element.textContent!==text)element.textContent=text;};
+  update("kpiCount",monthRecords.length);
+  update("kpiToday",m3(sumMetraj(monthRecords.filter(row=>dateOf(row)===today)))+" m³");
+  update("kpiWeek",m3(sumMetraj(monthRecords.filter(row=>{const date=dateOf(row);return date>=thisWeekStart&&date<=thisWeekEnd;})))+" m³");
+  update("kpiMonth",m3(sumMetraj(monthRecords))+" m³");
 }
+
 const monthNames=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 function longDayLabel(d,dayName){return `${dayName} ${String(d.getDate()).padStart(2,"0")} ${monthNames[d.getMonth()]}`}
 function calendarHours(){return [...Array(24)].map((_,i)=>(7+i)%24)}
@@ -4152,10 +4157,14 @@ function updateKpiMonthPickerLabel(){
   const parts=value.split("-");
   const y=Number(parts[0]), m=Number(parts[1]);
   const months=["OCAK","ŞUBAT","MART","NİSAN","MAYIS","HAZİRAN","TEMMUZ","AĞUSTOS","EYLÜL","EKİM","KASIM","ARALIK"];
-  label.textContent=(months[m-1]||"")+" "+y;
+  const text=(months[m-1]||"")+" "+y;
+  if(label.textContent!==text)label.textContent=text;
 }
 
-$("kpiMonthPicker").addEventListener("change",()=>{updateKpiMonthPickerLabel();renderKpis();});$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
+function updateKpiMonthSelection(){updateKpiMonthPickerLabel();renderKpis();}
+$("kpiMonthPicker").addEventListener("input",updateKpiMonthSelection);
+$("kpiMonthPicker").addEventListener("change",updateKpiMonthSelection);
+$("cancelEdit").addEventListener("click",clearForm);$("refreshBtn").addEventListener("click",loadRecords);
 $("themeBtn").addEventListener("click",()=>{
   document.body.classList.toggle("dark-app");
   localStorage.setItem("betonexa_theme",document.body.classList.contains("dark-app")?"dark":"light");
