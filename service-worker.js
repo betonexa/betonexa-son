@@ -1,9 +1,15 @@
-const CACHE='betonexa-2026.10.13-demo-palette-v1';
+const CACHE='betonexa-2026.10.13-orange-icons-v2';
 const ASSETS=[
   './',
   './index.html',
-  './betonexa-theme.css?v=20261013-demo-palette1',
+  './betonexa-theme.css?v=20261013-orange2',
   './manifest.webmanifest',
+  './manifest.webmanifest?v=20261013-orange2',
+  './apple-touch-icon-green-v2-180.png',
+  './betonexa-icon-green-v2-192.png',
+  './betonexa-icon-green-v2-512.png',
+  './favicon-green-v2-32.png',
+  './icon.svg?v=20261013-green2',
   './icon-192.png',
   './icon-512.png',
   './cimento-module.js',

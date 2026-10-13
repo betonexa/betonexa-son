@@ -7,12 +7,12 @@
   "theme_color": "#112b2a",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "./betonexa-icon-green-v2-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./icon-512.png",
+      "src": "./betonexa-icon-green-v2-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

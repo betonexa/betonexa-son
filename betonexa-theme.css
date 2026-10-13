@@ -98,3 +98,24 @@ tbody tr:hover td { background: #e9f0e7 !important; }
 :focus-visible { outline: 3px solid #dc8759; outline-offset: 2px; }
 @media (max-width: 700px) { #app::before { background: var(--betonexa-forest); } }
 @media print { body { background: #fff !important; } .top { background: #fff; color: var(--ink); } }
+
+/* Warm action accents — the forest header remains the visual anchor. */
+:root { --betonexa-orange-soft: #fff0e5; --betonexa-orange-ink: #805128; }
+.btn-primary { background: var(--betonexa-orange) !important; color: #322b20 !important; box-shadow: 0 6px 16px #d78a5920; }
+.btn-primary:hover { background: #f58e60 !important; }
+.tabs button.active, #analysisPage .analysis-mode-tabs button.active,
+.analysis-mode-tabs button.active, .calendar-view-tabs .active {
+  background: var(--betonexa-orange) !important;
+  color: #322b20 !important;
+  border-color: #e58b5f !important;
+  box-shadow: 0 4px 14px #d78a591c !important;
+}
+.home-action:hover { background: var(--betonexa-orange-soft); border-color: #edc0a5; }
+.home-actions .home-action:first-child { background: var(--betonexa-orange-soft); border-color: #edc0a5; }
+.kpi:first-child, .dashboard-kpi:first-child, .analysis-card:first-child { background: var(--betonexa-orange-soft); border-color: #edc0a5; }
+.kpi:first-child strong, .dashboard-kpi:first-child strong, .analysis-card:first-child strong { color: #9a4f2e; }
+.analysis-company.active { background: var(--betonexa-orange-soft); box-shadow: inset 4px 0 0 var(--betonexa-orange); }
+#contractsList .contract-card.active { background: var(--betonexa-orange-soft); border-color: #edc0a5; }
+.multi-select-chip, .icon-action.edit { background: var(--betonexa-orange-soft); color: #805128; border-color: #edc0a5; }
+.event { background: var(--betonexa-orange-soft); border-left-color: var(--betonexa-orange); }
+.contract-card-main .contract-card-right { color: var(--betonexa-orange-ink); }
