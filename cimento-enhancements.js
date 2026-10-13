@@ -33,15 +33,15 @@
   function addStyles(){
     if($('cementEnhStyles'))return;
     const s=document.createElement('style');s.id='cementEnhStyles';s.textContent=`
-      #cementAnalysisAddon{margin-top:20px;padding-top:18px;border-top:2px solid rgba(103,52,189,.18)}
-      #cementAnalysisAddon h3{margin:0 0 12px}.cement-analysis-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.cement-analysis-card{background:rgba(255,255,255,.55);border:1px solid rgba(103,52,189,.12);border-radius:14px;padding:14px}.cement-analysis-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:6px}.cement-analysis-card strong{font-size:21px}.cement-analysis-table{overflow:auto;border-radius:14px}.cement-analysis-table table{width:100%;border-collapse:collapse;min-width:620px}.cement-analysis-table th,.cement-analysis-table td{padding:9px;border-bottom:1px solid rgba(103,52,189,.1);text-align:left}.cement-analysis-table th{background:#7442c8;color:#fff!important}.cement-tonnage-pending{font-weight:800;color:var(--purple-dark)}
+      #cementAnalysisAddon{margin-top:20px;padding-top:18px;border-top:2px solid rgba(23,53,46,.18)}
+      #cementAnalysisAddon h3{margin:0 0 12px}.cement-analysis-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.cement-analysis-card{background:rgba(255,255,255,.55);border:1px solid rgba(23,53,46,.12);border-radius:14px;padding:14px}.cement-analysis-card small{display:block;color:var(--muted);font-weight:700;margin-bottom:6px}.cement-analysis-card strong{font-size:21px}.cement-analysis-table{overflow:auto;border-radius:14px}.cement-analysis-table table{width:100%;border-collapse:collapse;min-width:620px}.cement-analysis-table th,.cement-analysis-table td{padding:9px;border-bottom:1px solid rgba(23,53,46,.1);text-align:left}.cement-analysis-table th{background:#17352e;color:#fff!important}.cement-tonnage-pending{font-weight:800;color:var(--purple-dark)}
       #recordsPage .field,#cementPage .cement-field{overflow:visible!important}
-      .cement-pair-menu,.betonexa-auto-menu{position:absolute;left:0;right:0;top:100%;z-index:99999;background:#fff;border:1px solid rgba(103,52,189,.22);border-radius:12px;box-shadow:0 10px 24px rgba(40,25,70,.16);max-height:220px;overflow:auto;margin-top:4px;padding:0}
+      .cement-pair-menu,.betonexa-auto-menu{position:absolute;left:0;right:0;top:100%;z-index:99999;background:#fff;border:1px solid rgba(23,53,46,.22);border-radius:12px;box-shadow:0 10px 24px rgba(17,43,42,.16);max-height:220px;overflow:auto;margin-top:4px;padding:0}
       .cement-pair-menu,.betonexa-auto-menu{overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
       .cement-pair-menu.hidden,.betonexa-auto-menu.hidden{display:none}
-      .cement-pair-option,.betonexa-auto-option{display:block;width:100%;border:0;background:#fff;text-align:left;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.25;font-weight:700;cursor:pointer;color:#4d2393}
-      .cement-pair-option:hover,.cement-pair-option:focus,.betonexa-auto-option:hover,.betonexa-auto-option:focus{background:rgba(103,52,189,.09);outline:none}
-      .cement-pair-option strong{color:#4d2393;font-weight:700}
+      .cement-pair-option,.betonexa-auto-option{display:block;width:100%;border:0;background:#fff;text-align:left;padding:10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.25;font-weight:700;cursor:pointer;color:#112b2a}
+      .cement-pair-option:hover,.cement-pair-option:focus,.betonexa-auto-option:hover,.betonexa-auto-option:focus{background:rgba(23,53,46,.09);outline:none}
+      .cement-pair-option strong{color:#112b2a;font-weight:700}
       @media(max-width:700px){.cement-analysis-cards{grid-template-columns:1fr 1fr}.cement-pair-option,.betonexa-auto-option{font-size:16px;padding:11px 12px}}
     `;document.head.appendChild(s);
   }
@@ -218,3 +218,4 @@
   function init(){addStyles();guardRenderedSuggestionMenus();trackEditIds();bindPageCleanup();let n=0;const t=setInterval(()=>{n++;if($('cementPage')){clearInterval(t);loadSuggestions();fillLists();bindConcreteAutocomplete();enablePendingTonnage();observeDisplays();patchAllDisplays()}else if(n>80)clearInterval(t)},100);bindAnalysis();if($('analysisPage')&&!$('analysisPage').classList.contains('hidden'))renderAnalysis()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+

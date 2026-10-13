@@ -1,7 +1,8 @@
-const CACHE='betonexa-2026.09.29-piece-export-v4';
+const CACHE='betonexa-2026.10.13-demo-palette-v1';
 const ASSETS=[
   './',
   './index.html',
+  './betonexa-theme.css?v=20261013-demo-palette1',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',

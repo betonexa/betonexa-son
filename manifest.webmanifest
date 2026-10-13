@@ -3,8 +3,8 @@
   "short_name": "Betonexa",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f2f8",
-  "theme_color": "#6f42c1",
+  "background_color": "#f5f6f2",
+  "theme_color": "#112b2a",
   "icons": [
     {
       "src": "./icon-192.png",

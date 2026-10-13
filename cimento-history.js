@@ -55,7 +55,7 @@
     const head=page.querySelector(".cement-head small");if(head)head.textContent="Tüm çimento sevkiyatlarını araç, palet ve tonaj bilgileriyle takip et.";
     const oldHistory=$("cementHistoryBtn");if(oldHistory)oldHistory.remove();const oldPanel=$("cementHistoryPanel");if(oldPanel)oldPanel.remove();
     const summary=page.querySelector(".cement-summary");if(summary){const first=summary.querySelector("small");if(first)first.textContent="SEVKİYAT";const bar=document.createElement("div");bar.id="cementFilters";bar.innerHTML=`<label>Dönem <select id="cementRange"><option value="daily">Günlük</option><option value="weekly">Haftalık</option><option value="monthly">Aylık</option><option value="all" selected>Tümü</option></select></label><label id="cementFilterDateWrap">Referans tarihi <input id="cementFilterDate" type="date"></label>`;summary.parentNode.insertBefore(bar,summary);$("cementFilterDate").value=iso(new Date());$("cementRange").addEventListener("change",()=>{updateDateVisibility();render()});$("cementFilterDate").addEventListener("change",render);updateDateVisibility();}
-    const st=document.createElement("style");st.id="cementUnifiedStyles";st.textContent=`#cementFilters{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:4px 0 14px}#cementFilters label{font-size:12px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:5px}#cementFilters select,#cementFilters input{height:40px;border:1px solid rgba(103,52,189,.2);border-radius:10px;padding:7px 10px;background:rgba(255,255,255,.75);color:var(--ink);font:inherit}#cementPage .cement-row-actions .btn{padding:6px 9px}#cementPage .cement-table-wrap{margin-top:4px}@media(min-width:901px){#cementPage .cement-form{grid-template-columns:repeat(8,minmax(0,1fr))!important}}`;
+    const st=document.createElement("style");st.id="cementUnifiedStyles";st.textContent=`#cementFilters{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:4px 0 14px}#cementFilters label{font-size:12px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:5px}#cementFilters select,#cementFilters input{height:40px;border:1px solid rgba(23,53,46,.2);border-radius:10px;padding:7px 10px;background:rgba(255,255,255,.75);color:var(--ink);font:inherit}#cementPage .cement-row-actions .btn{padding:6px 9px}#cementPage .cement-table-wrap{margin-top:4px}@media(min-width:901px){#cementPage .cement-form{grid-template-columns:repeat(8,minmax(0,1fr))!important}}`;
     document.head.appendChild(st);return true;
   }
   function updateDateVisibility(){const w=$("cementFilterDateWrap");if(w)w.style.display=$("cementRange")?.value==="all"?"none":"flex"}
@@ -111,3 +111,4 @@
     };
   },50);
 })();
+

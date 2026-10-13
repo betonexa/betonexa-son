@@ -48,36 +48,36 @@ function addStyles(){
   if(!$('contractListDeleteStyles')){const s=document.createElement('style');s.id='contractListDeleteStyles';s.textContent=`
     #contractsList .contract-card-wrap{position:relative;margin-bottom:10px;border:1px solid transparent;border-radius:14px;transition:.18s ease}
     #contractsList .contract-card-wrap>.contract-card{width:100%;margin:0;padding-right:58px}
-    #contractsList .contract-list-delete{position:absolute;right:10px;top:19px;z-index:3;width:36px;height:36px;border:1px solid rgba(190,40,40,.18);border-radius:10px;background:#fff0f0;color:#b42318;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
-    #contractsList .contract-list-delete:hover{background:#ffe3e3}
-    #contractsList .contract-card-wrap.is-open{border-color:rgba(103,52,189,.24);background:rgba(255,255,255,.72);box-shadow:0 10px 26px rgba(73,42,115,.10)}
-    #contractsList .contract-card-wrap.is-open>.contract-card{border-color:transparent;border-bottom-left-radius:0;border-bottom-right-radius:0;background:rgba(244,238,255,.62);box-shadow:none;transform:none}
+    #contractsList .contract-list-delete{position:absolute;right:10px;top:19px;z-index:3;width:36px;height:36px;border:1px solid rgba(164,70,53,.18);border-radius:10px;background:#fff0e9;color:#a44635;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+    #contractsList .contract-list-delete:hover{background:#fff0e9}
+    #contractsList .contract-card-wrap.is-open{border-color:rgba(23,53,46,.24);background:rgba(255,255,255,.72);box-shadow:0 10px 26px rgba(17,43,42,.10)}
+    #contractsList .contract-card-wrap.is-open>.contract-card{border-color:transparent;border-bottom-left-radius:0;border-bottom-right-radius:0;background:rgba(213,236,223,.62);box-shadow:none;transform:none}
     #contractsList .contract-card-wrap.is-open .contract-card-arrow{transform:translateY(-50%) rotate(90deg);opacity:1}
-    #contractsList .contract-inline-detail{display:none;padding:4px 16px 16px;border-top:1px solid rgba(103,52,189,.10)}
+    #contractsList .contract-inline-detail{display:none;padding:4px 16px 16px;border-top:1px solid rgba(23,53,46,.10)}
     #contractsList .contract-card-wrap.is-open .contract-inline-detail{display:block}
     #contractsList .contract-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
-    #contractsList .contract-detail-cell{min-width:0;padding:10px 11px;border:1px solid rgba(103,52,189,.10);border-radius:11px;background:rgba(255,255,255,.72)}
-    #contractsList .contract-detail-cell small{display:block;margin-bottom:4px;color:#7a7187;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-    #contractsList .contract-detail-cell strong{display:block;color:#24202c;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+    #contractsList .contract-detail-cell{min-width:0;padding:10px 11px;border:1px solid rgba(23,53,46,.10);border-radius:11px;background:rgba(255,255,255,.72)}
+    #contractsList .contract-detail-cell small{display:block;margin-bottom:4px;color:#63766f;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+    #contractsList .contract-detail-cell strong{display:block;color:#172e2d;font-size:13px;line-height:1.3;overflow-wrap:anywhere}
     #contractsList .contract-detail-cell.wide{grid-column:span 3}
     #contractsList .contract-progress-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
-    #contractsList .contract-progress-grid>div{padding:10px;border-radius:11px;background:rgba(103,52,189,.07);color:#5d5570;font-size:11px}
-    #contractsList .contract-progress-grid strong{display:block;margin-top:3px;color:#282330;font-size:14px}
+    #contractsList .contract-progress-grid>div{padding:10px;border-radius:11px;background:rgba(23,53,46,.07);color:#63766f;font-size:11px}
+    #contractsList .contract-progress-grid strong{display:block;margin-top:3px;color:#172e2d;font-size:14px}
     #contractsList .contract-inline-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 8px}
-    #contractsList .contract-inline-head h4{margin:0;color:var(--purple-dark,#4d2393);font-size:14px}
-    #contractsList .contract-inline-add{border:1px solid rgba(103,52,189,.18);border-radius:9px;background:#fff;color:#4d2393;padding:7px 10px;font-weight:800;cursor:pointer}
-    #contractsList .contract-history-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border-top:1px solid rgba(103,52,189,.09);font-size:12px}
+    #contractsList .contract-inline-head h4{margin:0;color:var(--purple-dark,#112b2a);font-size:14px}
+    #contractsList .contract-inline-add{border:1px solid rgba(23,53,46,.18);border-radius:9px;background:#fff;color:#112b2a;padding:7px 10px;font-weight:800;cursor:pointer}
+    #contractsList .contract-history-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border-top:1px solid rgba(23,53,46,.09);font-size:12px}
     #contractsList .contract-history-row:first-child{border-top:0}
     #contractsList .contract-history-meta{margin-left:auto;text-align:right}
     #contractsList .contract-history-actions{display:flex;gap:6px;margin-left:8px}
-    #contractsList .contract-history-action{border:1px solid rgba(103,52,189,.16);border-radius:8px;background:#fff;color:#4d2393;padding:6px 8px;font-size:11px;font-weight:800;cursor:pointer}
-    #contractsList .contract-history-action.delete{border-color:rgba(190,40,40,.18);color:#b42318;background:#fff5f5}
+    #contractsList .contract-history-action{border:1px solid rgba(23,53,46,.16);border-radius:8px;background:#fff;color:#112b2a;padding:6px 8px;font-size:11px;font-weight:800;cursor:pointer}
+    #contractsList .contract-history-action.delete{border-color:rgba(164,70,53,.18);color:#a44635;background:#fff0e9}
     #contractsList .contract-history-edit-form{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end}
-    #contractsList .contract-history-edit-form label{display:flex;flex-direction:column;gap:4px;color:#6f667b;font-size:10px;font-weight:800}
-    #contractsList .contract-history-edit-form input{box-sizing:border-box;width:100%;height:36px;border:1px solid rgba(103,52,189,.18);border-radius:8px;background:#fff;padding:0 8px;color:#202633}
+    #contractsList .contract-history-edit-form label{display:flex;flex-direction:column;gap:4px;color:#63766f;font-size:10px;font-weight:800}
+    #contractsList .contract-history-edit-form input{box-sizing:border-box;width:100%;height:36px;border:1px solid rgba(23,53,46,.18);border-radius:8px;background:#fff;padding:0 8px;color:#172e2d}
     #contractsList .contract-history-edit-actions{display:flex;gap:6px;grid-column:1/-1;justify-content:flex-end}
-    #contractsList .contract-history-empty{padding:9px 0;color:#7a7187;font-size:12px}
-    #contractsList .contract-inline-loading{padding:15px 0;color:#7a7187;font-size:12px}
+    #contractsList .contract-history-empty{padding:9px 0;color:#63766f;font-size:12px}
+    #contractsList .contract-inline-loading{padding:15px 0;color:#63766f;font-size:12px}
     #contractsPage .settings-grid{grid-template-columns:minmax(0,1fr)!important}
     #contractsPage .contract-list-box{width:100%;max-width:none}
     #contractsPage .contract-editor-box{display:none}
@@ -85,7 +85,7 @@ function addStyles(){
     #contractsPage .contract-editor-box .contract-legacy-history,
     #contractsPage .contract-editor-box .contract-legacy-progress{display:none!important}
     #contractsPage .contract-editor-toolbar{display:flex;justify-content:flex-end;margin:-4px 0 14px}
-    #contractsPage .contract-editor-close{border:1px solid rgba(103,52,189,.18);border-radius:10px;background:#fff;color:#4d2393;padding:8px 13px;font-weight:800;cursor:pointer}
+    #contractsPage .contract-editor-close{border:1px solid rgba(23,53,46,.18);border-radius:10px;background:#fff;color:#112b2a;padding:8px 13px;font-weight:800;cursor:pointer}
     @media(max-width:700px){
       #contractsList .contract-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       #contractsList .contract-detail-cell.wide{grid-column:span 2}
@@ -99,20 +99,20 @@ function addStyles(){
   `;document.head.appendChild(s)}
   if(!$('shipmentFilterStyles')){const s=document.createElement('style');s.id='shipmentFilterStyles';s.textContent=`
     #recordsCombinedView>.rc-title{display:none!important}
-    #shipmentQuickFilters{margin:0 0 18px;padding:16px;border:1px solid rgba(103,52,189,.15);border-radius:18px;background:rgba(255,249,244,.52);box-shadow:0 8px 22px rgba(73,42,115,.06)}
+    #shipmentQuickFilters{margin:0 0 18px;padding:16px;border:1px solid rgba(23,53,46,.15);border-radius:18px;background:rgba(245,246,242,.52);box-shadow:0 8px 22px rgba(17,43,42,.06)}
     #shipmentQuickFilters .sqf-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-    #shipmentQuickFilters .sqf-head strong{font-size:18px;color:var(--purple-dark,#4d2393)}
+    #shipmentQuickFilters .sqf-head strong{font-size:18px;color:var(--purple-dark,#112b2a)}
     #shipmentQuickFilters .sqf-quick{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-    #shipmentQuickFilters .sqf-quick button{border:1px solid rgba(103,52,189,.18);background:rgba(255,255,255,.82);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;color:var(--ink,#202633)}
-    #shipmentQuickFilters .sqf-quick button.active{background:var(--purple,#6734bd);color:white;border-color:transparent;box-shadow:0 5px 12px rgba(103,52,189,.18)}
+    #shipmentQuickFilters .sqf-quick button{border:1px solid rgba(23,53,46,.18);background:rgba(255,255,255,.82);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;color:var(--ink,#172e2d)}
+    #shipmentQuickFilters .sqf-quick button.active{background:var(--purple,#17352e);color:white;border-color:transparent;box-shadow:0 5px 12px rgba(23,53,46,.18)}
     #shipmentQuickFilters .sqf-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
-    #shipmentQuickFilters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800;color:var(--muted,#687181)}
-    #shipmentQuickFilters select,#shipmentQuickFilters input{box-sizing:border-box;width:100%;height:42px;border:1px solid rgba(103,52,189,.20);border-radius:10px;background:rgba(255,255,255,.90);padding:0 10px;font:inherit;color:var(--ink,#202633)}
-    #shipmentQuickFilters .sqf-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(103,52,189,.12)}
+    #shipmentQuickFilters label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:800;color:var(--muted,#63766f)}
+    #shipmentQuickFilters select,#shipmentQuickFilters input{box-sizing:border-box;width:100%;height:42px;border:1px solid rgba(23,53,46,.20);border-radius:10px;background:rgba(255,255,255,.90);padding:0 10px;font:inherit;color:var(--ink,#172e2d)}
+    #shipmentQuickFilters .sqf-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(23,53,46,.12)}
     #shipmentQuickFilters .sqf-clear{min-width:0;width:auto;padding-left:14px;padding-right:14px;margin-left:auto}
-    #shipmentFilterResult{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;font-size:12px;font-weight:850;color:var(--purple-dark,#4d2393)}
-    #shipmentFilterResult .sqf-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:rgba(103,52,189,.10);border:1px solid rgba(103,52,189,.13);white-space:nowrap}
-    #shipmentFilterResult .sqf-badge-cement{background:rgba(184,119,33,.10);border-color:rgba(184,119,33,.16);color:#765015}
+    #shipmentFilterResult{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;font-size:12px;font-weight:850;color:var(--purple-dark,#112b2a)}
+    #shipmentFilterResult .sqf-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:rgba(23,53,46,.10);border:1px solid rgba(23,53,46,.13);white-space:nowrap}
+    #shipmentFilterResult .sqf-badge-cement{background:rgba(250,157,116,.10);border-color:rgba(250,157,116,.16);color:#805128}
     #shipmentQuickFilters .sqf-hidden{display:none!important}
     @media(max-width:1100px){#shipmentQuickFilters .sqf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:700px){#shipmentQuickFilters{padding:12px;max-width:100%;overflow:visible;box-sizing:border-box}#shipmentQuickFilters .sqf-grid{grid-template-columns:minmax(0,1fr);width:100%;max-width:100%;min-width:0;box-sizing:border-box}#shipmentQuickFilters .sqf-grid>label{min-width:0!important;max-width:100%!important;width:100%!important;overflow:visible;box-sizing:border-box}#shipmentFilterCompany,#shipmentFilterSite{overflow-y:auto;touch-action:pan-y}#shipmentFilterStart,#shipmentFilterEnd{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;inline-size:100%!important;max-inline-size:100%!important;min-inline-size:0!important;margin-left:0!important;margin-right:0!important;box-sizing:border-box!important;-webkit-appearance:none!important;appearance:none!important}#shipmentFilterStart::-webkit-date-and-time-value,#shipmentFilterEnd::-webkit-date-and-time-value{width:100%!important;min-width:0!important}#shipmentQuickFilters .sqf-actions .btn{flex:1}#shipmentQuickFilters .sqf-clear{margin-left:0}#shipmentFilterResult{justify-content:flex-start}}
@@ -262,7 +262,7 @@ async function pdf(){
   await window.BetonexaProfessionalPdf.savePrepared({mode:'selection',start:start||null,end:end||null,dateLabel,typeLabel},data,`Betonexa-Sevkiyat-Raporu${suffix}.pdf`);
 }
 function excel(){const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Çıktı alınacak sevkiyat bulunmuyor.');if(!window.XLSX)return alert('Excel modülü yüklenemedi.');const wb=XLSX.utils.book_new();if(p.concrete.length){const rows=p.concrete.map(x=>({...x,Metraj:parseNumber(x.Metraj)}));rows.push({Firma:'TOPLAM',Metraj:p.m3});XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Beton')}if(p.cement.length){const rows=p.cement.map(x=>({...x,Araç:parseNumber(x.Araç),Palet:parseNumber(x.Palet),Adet:parseNumber(x.Adet),Tonaj:x.Tonaj==='-'?'':parseNumber(x.Tonaj)}));rows.push({Firma:'TOPLAM',Araç:p.vehicles,Palet:p.pallets,Adet:p.pieces,Tonaj:p.tons});XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Çimento')}XLSX.writeFile(wb,'Betonexa-Sevkiyatlar.xlsx')}
-function printRows(){const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Yazdırılacak filtrelenmiş sevkiyat bulunmuyor.');const w=window.open('','_blank');if(!w)return;const table=(heads,rows)=>`<table><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>`;let html=`<!doctype html><meta charset="utf-8"><title>${esc(exportTitle())}</title><style>body{font-family:Arial;padding:22px}table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px}th,td{border:1px solid #bbb;padding:6px}th{background:#6f42c1;color:#fff}h3{margin-top:20px}</style><h2>${esc(exportTitle())}</h2><p>${esc(exportSubline())}</p>`;if(p.concrete.length)html+=`<h3>Beton Sevkiyatları</h3>${table(['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Metraj','Pompa'],p.concrete.map(x=>[x.No,x.Tarih,x.Saat,x.Santral,x.Firma,x['Şantiye'],x.Beton,x.Metraj,x.Pompa]))}<b>BETON TOPLAM: ${p.concrete.length} sevkiyat · ${trNum(p.m3)} m³</b>`;if(p.cement.length)html+=`<h3>Çimento Sevkiyatları</h3>${table(['No','Tarih','Firma','Teslim Yeri','Araç','Palet','Adet','Tonaj','Çimento Özelliği'],p.cement.map(x=>[x.No,x.Tarih,x.Firma,x['Teslim Yeri'],x.Araç,x.Palet,x.Adet,x.Tonaj,x['Çimento Özelliği']]))}<b>ÇİMENTO TOPLAM: ${p.cement.length} sevkiyat · ${p.vehicles} araç · ${p.pallets} palet · ${p.pieces} adet · ${trNum(p.tons)} ton</b>`;w.document.write(html);w.document.close();setTimeout(()=>w.print(),250)}
+function printRows(){const p=exportData();if(!p.concrete.length&&!p.cement.length)return alert('Yazdırılacak filtrelenmiş sevkiyat bulunmuyor.');const w=window.open('','_blank');if(!w)return;const table=(heads,rows)=>`<table><tr>${heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table>`;let html=`<!doctype html><meta charset="utf-8"><title>${esc(exportTitle())}</title><style>body{font-family:Arial;padding:22px}table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:10px}th,td{border:1px solid #c4d0c4;padding:6px}th{background:#17352e;color:#fff}h3{margin-top:20px}</style><h2>${esc(exportTitle())}</h2><p>${esc(exportSubline())}</p>`;if(p.concrete.length)html+=`<h3>Beton Sevkiyatları</h3>${table(['No','Tarih','Saat','Santral','Firma','Şantiye','Beton','Metraj','Pompa'],p.concrete.map(x=>[x.No,x.Tarih,x.Saat,x.Santral,x.Firma,x['Şantiye'],x.Beton,x.Metraj,x.Pompa]))}<b>BETON TOPLAM: ${p.concrete.length} sevkiyat · ${trNum(p.m3)} m³</b>`;if(p.cement.length)html+=`<h3>Çimento Sevkiyatları</h3>${table(['No','Tarih','Firma','Teslim Yeri','Araç','Palet','Adet','Tonaj','Çimento Özelliği'],p.cement.map(x=>[x.No,x.Tarih,x.Firma,x['Teslim Yeri'],x.Araç,x.Palet,x.Adet,x.Tonaj,x['Çimento Özelliği']]))}<b>ÇİMENTO TOPLAM: ${p.cement.length} sevkiyat · ${p.vehicles} araç · ${p.pallets} palet · ${p.pieces} adet · ${trNum(p.tons)} ton</b>`;w.document.write(html);w.document.close();setTimeout(()=>w.print(),250)}
 
 function placeFilterExports(){
   const report=document.querySelector('#recordsPage .records-report');if(!report)return;
@@ -305,3 +305,4 @@ document.addEventListener('betonexa:records-rendered',()=>{refreshOptions();appl
 function init(){addStyles();if($('contractsPage')){setupContractLayout();decorateCards();observeContracts()}forceLegacyAll();observeRecords();ensureFilters();document.querySelector('[data-page="records"]')?.addEventListener('click',()=>setTimeout(ensureFilters,180))}
 let tries=0,t=setInterval(()=>{init();if(++tries>80)clearInterval(t)},250);if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+
