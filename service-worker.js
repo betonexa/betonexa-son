@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.13-future-plan-title-v3';
+const CACHE='betonexa-2026.10.13-month-kpis-v4';
 const ASSETS=[
   './',
   './index.html',
