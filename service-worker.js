@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.21-idealcem-v7';
+const CACHE='betonexa-2026.10.22-rental-pumps-v1';
 const ASSETS=[
   './',
   './index.html',
