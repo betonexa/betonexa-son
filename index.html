@@ -1826,7 +1826,7 @@ tbody tr:hover td { background: rgba(213,236,223,.63) !important; }
 
  <div class="field metraj-field"><label>Metraj (m³)</label><div class="metraj-input-row"><input id="metraj" type="text" inputmode="decimal" autocomplete="off" placeholder="Örn. 40 veya 40+" required><button id="metrajPlusBtn" class="metraj-plus-btn" type="button" aria-pressed="false" title="Miktarı + olarak işaretle">+</button></div></div>
  <div class="field"><label>Pompa durumu</label><select id="pompaVar"><option value="false">Pompasız</option><option value="true">Pompalı</option></select></div>
- <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option></select></div>
+ <div id="pumpTypeWrap" class="field hidden"><label>Pompa tipi</label><select id="pompaTipi"><option value="">Seçiniz</option><option>38'lik</option><option>42'lik</option><option>47'lik</option><option>52'lik</option><option>56'lık</option><option value="Pompa alpaslan (kiralık)">Pompa Alpaslan (Kiralık)</option></select></div>
  </div>
 
  <div class="contact-row">
@@ -1888,6 +1888,7 @@ tbody tr:hover td { background: rgba(213,236,223,.63) !important; }
  </select></div>
  <div id="analysisStartWrap" class="hidden"><label>Başlangıç</label><input id="analysisStart" type="date"></div>
  <div id="analysisEndWrap" class="hidden"><label>Bitiş</label><input id="analysisEnd" type="date"></div>
+ <div id="analysisPumpScopeWrap" class="hidden"><label>Pompa kapsamı</label><select id="analysisPumpScope"><option value="all">Tüm pompalar</option><option value="rental">Kiralık pompalar</option><option value="own">Kendi pompalarımız</option></select></div>
  <button id="analysisRefresh" type="button" class="btn btn-primary">Analizi Yenile</button>
  </div>
 
@@ -2274,6 +2275,11 @@ function refreshFormOptions(){
   const responsiblePeople=uniqueNames(records.map(r=>r.sorumlu_kisi));
   $("sorumluKisiList").innerHTML=responsiblePeople.map(x=>`<option value="${esc(x)}"></option>`).join("");
 
+  const pumpSelect=$("pompaTipi");
+  const currentPump=pumpSelect.value;
+  const pumpNames=uniqueSorted([...Array.from(pumpSelect.options).map(o=>o.value),...records.map(r=>r.pompa_tipi)]);
+  pumpSelect.innerHTML='<option value="">Seçiniz</option>'+pumpNames.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`).join("");
+  pumpSelect.value=currentPump;
   const current=$("santral").value;
   const recordPlants=records.map(r=>r.santral);
   const plants=uniqueSorted([...DEFAULT_PLANTS,...appSettings.plants,...recordPlants]);
@@ -3630,7 +3636,9 @@ function analysisDateRangeText(items){
 }
 function renderAnalysis(){
   if(!$("analysisPage"))return;
-  const items=analysisRecords();
+  $("analysisPumpScopeWrap").classList.toggle("hidden",analysisMode!=="pump");
+  const scope=$("analysisPumpScope").value;
+  const items=analysisRecords().filter(r=>analysisMode!=="pump" || (r.pompa_var_mi && (scope==="all" || (scope==="rental")===/\(kiralık\)/i.test(r.pompa_tipi||""))));
   const total=items.reduce((s,r)=>s+Number(r.metraj||0),0);
   $("analysisShipmentCount").textContent=items.length;
   $("analysisTotalM3").textContent=m3(total)+" m³";
@@ -4206,7 +4214,8 @@ $("historyToggleBtn").addEventListener("click",()=>{
 $("newCompanyName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("company")});
 $("newSiteName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("site")});
 $("newPlantName").addEventListener("keydown",e=>{if(e.key==="Enter")addSettingItem("plant")});
-$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
+$("analysisRange").addEventListener("change",toggleAnalysisDates);$("analysisPumpScope").addEventListener("change",()=>{selectedAnalysisPump="";renderAnalysis();});
+$("analysisRefresh").addEventListener("click",renderAnalysis);$("analysisStart").addEventListener("change",renderAnalysis);$("analysisEnd").addEventListener("change",renderAnalysis);
 $("pompaVar").addEventListener("change",()=>$("pumpTypeWrap").classList.toggle("hidden",$("pompaVar").value!=="true"));
 $("telefon").addEventListener("input",e=>e.target.value=phoneFormat(e.target.value));
 document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
