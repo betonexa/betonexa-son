@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.10.22-rental-pumps-v1';
+const CACHE='betonexa-2026.11.12-analysis-date-order-v1';
 const ASSETS=[
   './',
   './index.html',
