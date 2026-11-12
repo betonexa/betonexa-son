@@ -3630,14 +3630,9 @@ function groupAnalysis(items,keyFn){
     .sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,"tr"));
 }
 function sortAnalysisRecords(items){
-  const today=iso(new Date());
-  return [...items].sort((a,b)=>{
-    const aPast=a.tarih<today;
-    const bPast=b.tarih<today;
-    if(aPast!==bPast)return Number(aPast)-Number(bPast);
-    const dateOrder=aPast?b.tarih.localeCompare(a.tarih):a.tarih.localeCompare(b.tarih);
-    return dateOrder||(a.saat||"").localeCompare(b.saat||"");
-  });
+  return [...items].sort((a,b)=>
+    a.tarih.localeCompare(b.tarih)||(a.saat||"").localeCompare(b.saat||"")
+  );
 }
 function analysisDateRangeText(items){
   if(!items.length)return "-";
