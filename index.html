@@ -3629,6 +3629,16 @@ function groupAnalysis(items,keyFn){
   return [...map.values()]
     .sort((a,b)=>b.total-a.total||a.name.localeCompare(b.name,"tr"));
 }
+function sortAnalysisRecords(items){
+  const today=iso(new Date());
+  return [...items].sort((a,b)=>{
+    const aPast=a.tarih<today;
+    const bPast=b.tarih<today;
+    if(aPast!==bPast)return Number(aPast)-Number(bPast);
+    const dateOrder=aPast?b.tarih.localeCompare(a.tarih):a.tarih.localeCompare(b.tarih);
+    return dateOrder||(a.saat||"").localeCompare(b.saat||"");
+  });
+}
 function analysisDateRangeText(items){
   if(!items.length)return "-";
   const dates=items.map(r=>r.tarih).filter(Boolean).sort();
@@ -3758,7 +3768,7 @@ function analysisChips(items,suffix=""){
   return items.length?items.map(x=>`<span class="analysis-chip">${esc(x.name)} · ${m3(x.total)}${suffix}</span>`).join(""):'<span class="analysis-chip">Kayıt yok</span>';
 }
 function renderAnalysisCompanyDetail(company){
-  const companyRecords=[...company.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const companyRecords=sortAnalysisRecords(company.records);
   const plants=topAnalysisItems(companyRecords,r=>r.santral);
   const sites=topAnalysisItems(companyRecords,r=>r.santiye);
   const concretes=topAnalysisItems(companyRecords,r=>r.beton_sinifi);
@@ -3794,7 +3804,7 @@ function selectAnalysisCompany(encodedName){
 }
 
 function renderAnalysisPlantDetail(plant){
-  const plantRecords=[...plant.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const plantRecords=sortAnalysisRecords(plant.records);
   const companies=groupAnalysis(plantRecords,r=>r.firma);
   const sites=groupAnalysis(plantRecords,r=>r.santiye);
   const concretes=topAnalysisItems(plantRecords,r=>r.beton_sinifi);
@@ -3844,7 +3854,7 @@ function setAnalysisMode(mode){
 
 
 function renderAnalysisSiteDetail(site){
-  const siteRecords=[...site.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const siteRecords=sortAnalysisRecords(site.records);
   const companies=groupAnalysis(siteRecords,r=>r.firma);
   const plants=groupAnalysis(siteRecords,r=>r.santral);
   const concretes=topAnalysisItems(siteRecords,r=>r.beton_sinifi);
@@ -3890,7 +3900,7 @@ function selectAnalysisSite(encodedName){
 
 
 function renderAnalysisPumpDetail(pump){
-  const pumpRecords=[...pump.records].sort((a,b)=>`${b.tarih||""} ${b.saat||""}`.localeCompare(`${a.tarih||""} ${a.saat||""}`));
+  const pumpRecords=sortAnalysisRecords(pump.records);
   const companies=groupAnalysis(pumpRecords,r=>r.firma);
   const sites=groupAnalysis(pumpRecords,r=>r.santiye);
   const plants=groupAnalysis(pumpRecords,r=>r.santral);
