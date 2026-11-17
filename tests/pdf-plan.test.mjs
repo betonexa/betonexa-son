@@ -7,7 +7,7 @@ const professional=await readFile(new URL('../professional-pdf-reports.js',impor
 const adapter=await readFile(new URL('../cement-pallet-export-fix.js',import.meta.url),'utf8');
 const legacy=await readFile(new URL('../cement-pallet-exports.js',import.meta.url),'utf8');
 
-function harness(concrete=[{tarih:'2026-10-14',firma:'Örnek Firma',metraj:25}],cement=[]){
+function harness(concrete=[{tarih:'2026-10-14',firma:'Örnek Firma',metraj:25}],cement=[],analysis=null){
   class FixedDate extends Date{constructor(...args){super(...(args.length?args:['2026-10-13T12:00:00Z']));}}
   const saved=[],opened=[],listeners={},timers=[];
   class Pdf{
@@ -16,14 +16,14 @@ function harness(concrete=[{tarih:'2026-10-14',firma:'Örnek Firma',metraj:25}],
     setProperties(value){this.properties=value;}
     text(value){this.texts.push(String(value));}
     getTextWidth(value){return String(value).length;}
-    autoTable(options){this.lastAutoTable={finalY:options.startY+20};}
+    autoTable(options){(this.tables??=[]).push(options);this.lastAutoTable={finalY:options.startY+20};}
     getNumberOfPages(){return this.pages;}setPage(){}addPage(){this.pages++;}
     save(file){saved.push({file,doc:this});}
   }
-  const elements={exportRange:{value:'daily'},exportDate:{value:'2026-10-14'}};
-  const document={readyState:'complete',getElementById:id=>elements[id]||null,querySelectorAll:()=>[],addEventListener(type,handler){(listeners[type]??=[]).push(handler);}};
+  const elements={exportRange:{value:'daily'},exportDate:{value:'2026-10-14'},...analysis};
+  const document={readyState:'complete',getElementById:id=>elements[id]||null,createElement:()=>({addEventListener(type,handler){this[type]=handler;}}),querySelectorAll:()=>[],addEventListener(type,handler){(listeners[type]??=[]).push(handler);}};
   const query=table=>({select(){return this;},order(){return this;},then(resolve){return Promise.resolve({data:table==='sevkiyatlar'?concrete:cement,error:null}).then(resolve);}});
-  const root={document,jspdf:{jsPDF:Pdf},ensureDb:()=>({from:query}),BetonexaNoteText:value=>String(value??''),preparePdfFont:async()=>({name:'test-font',text:value=>String(value??'')}),open(){const output={html:''};opened.push(output);return {document:{write:html=>output.html=html,close(){}},focus(){},print(){}};}};
+  const root={document,renderAnalysis(){},jspdf:{jsPDF:Pdf},ensureDb:()=>({from:query}),BetonexaNoteText:value=>String(value??''),preparePdfFont:async()=>({name:'test-font',text:value=>String(value??'')}),open(){const output={html:''};opened.push(output);return {document:{write:html=>output.html=html,close(){}},focus(){},print(){}};}};
   const context=vm.createContext({window:root,document,Date:FixedDate,Intl,console,setInterval:callback=>{timers.push(callback);return timers.length;},clearInterval(){},setTimeout:callback=>callback(),alert:message=>{throw new Error(message);}});
   vm.runInContext(professional,context);
   const click=async id=>{
@@ -88,4 +88,39 @@ test('bugün ve geçmiş kayıtların PDF başlığı rapor olarak kalır',async
   assert.equal(saved[0].doc.texts[0],'SEVKİYAT RAPORU');
   assert.equal(saved[0].doc.properties.title,'SEVKİYAT RAPORU');
   assert.equal(saved[0].file,'Betonexa-Sevkiyat-Raporu.pdf');
+});
+
+test('Analiz PDF düğmesi filtreli pompa ayrıntısını ve tablo sırasını korur',async()=>{
+  const node=textContent=>({textContent});
+  const heading=node('Pompa kullanım geçmişi');
+  const history={
+    tHead:{rows:[{cells:['Tarih','Metraj'].map(node)}]},
+    tBodies:[{rows:[
+      {cells:['09 Haziran 2026','25,00+ m³'].map(node)},
+      {cells:['12 Aralık 2026','30,00 m³'].map(node)}
+    ]}],
+    closest:()=>({querySelector:()=>heading})
+  };
+  const metric={querySelector:selector=>node(selector==='small'?'TOPLAM BETON':'55,00 m³')};
+  let button;
+  const {saved}=harness([],[],{
+    analysisRefresh:{after(value){button=value;}},
+    analysisListTitle:node('Pompa Analizi'),
+    analysisDetailTitle:node('Alpaslan Pompa'),
+    analysisDetail:{querySelector:()=>history,querySelectorAll:selector=>selector==='.analysis-mini'?[metric]:[]},
+    analysisCompanyList:{querySelectorAll:()=>[{}]},
+    analysisRange:{value:'all',selectedOptions:[node('Tüm zamanlar')]},
+    analysisPumpScopeWrap:{classList:{contains:()=>false}},
+    analysisPumpScope:{selectedOptions:[node('Kiralık pompalar')]}
+  });
+
+  await button.click();
+  assert.equal(button.textContent,'PDF İndir');
+  assert.equal(button.disabled,false);
+  assert.equal(saved.length,1);
+  const [summary,shipments]=saved[0].doc.tables;
+  assert.equal(summary.head[0][0].content,'Alpaslan Pompa');
+  assert.equal(summary.body[0][1],'Tüm zamanlar · Kiralık pompalar');
+  assert.equal(shipments.body[0][1],'25,00+ m³');
+  assert.equal(shipments.body.map(row=>row[0]).join('|'),'09 Haziran 2026|12 Aralık 2026');
 });

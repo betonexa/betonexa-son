@@ -83,7 +83,95 @@
   async function save(kind){try{const bounds=kind==='tomorrow'?tomorrowPeriod():period(),data=await fetchData(bounds),doc=await buildReport(bounds,data);const name=kind==='tomorrow'?`Betonexa-Yarinki-Sevkiyatlar-${bounds.start}.pdf`:`Betonexa-Sevkiyat-Raporu-${bounds.mode}.pdf`;doc.save(documentFilename(name,bounds,data));}catch(error){alert(error.message||String(error));}}
   async function savePrepared(bounds,data,fileName='Betonexa-Sevkiyat-Raporu.pdf'){try{const doc=await buildReport(bounds,data);doc.save(documentFilename(fileName,bounds,data))}catch(error){alert(error.message||String(error))}}
   function replacePdfButton(id,kind){const old=$(id);if(!old||old.dataset.professionalPdf==='1')return false;const button=old.cloneNode(true);button.dataset.professionalPdf='1';old.replaceWith(button);button.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();save(kind)},true);return true;}
+  async function downloadAnalysisPdf(button){
+    button.disabled=true;
+
+    try{
+      root.renderAnalysis();
+      const title=$("analysisListTitle").textContent;
+      const detail=$("analysisDetail");
+      const history=detail.querySelector(".analysis-table");
+      const groups=$("analysisCompanyList").querySelectorAll(".analysis-company");
+      if(!groups.length){
+        alert("Seçilen dönemde analiz kaydı yok.");
+        return;
+      }
+
+      const subtitle=history?$("analysisDetailTitle").textContent:"Genel özet";
+      const range=$("analysisRange");
+      const period=range.value==="custom"
+        ? `${trDate($("analysisStart").value)||"Başlangıç açık"} – ${trDate($("analysisEnd").value)||"Bitiş açık"}`
+        : range.selectedOptions[0].textContent;
+      const scope=!$("analysisPumpScopeWrap").classList.contains("hidden")?$("analysisPumpScope").selectedOptions[0].textContent:"";
+      const summaryNodes=history?detail.querySelectorAll(".analysis-mini"):$("analysisPage").querySelectorAll(".analysis-card");
+      const summary=Array.from(summaryNodes,card=>[
+        card.querySelector("small").textContent,
+        card.querySelector("strong").textContent
+      ]);
+      const breakdowns=Array.from(detail.querySelectorAll(".analysis-chips"),chips=>[
+        chips.parentElement.querySelector("h4").textContent,
+        Array.from(chips.querySelectorAll(".analysis-chip"),chip=>chip.textContent).join("  |  ")
+      ]);
+      const headers=history?Array.from(history.tHead.rows[0].cells,cell=>cell.textContent):["Ad","Sevkiyat / İş","Toplam Beton"];
+      const rows=history
+        ? Array.from(history.tBodies[0].rows,row=>Array.from(row.cells,cell=>cell.textContent.trim()))
+        : Array.from(groups,group=>Array.from(group.querySelectorAll("b, span > span, strong"),node=>node.textContent));
+      const historyTitle=history?history.closest(".analysis-section").querySelector("h4").textContent:"Gruplara göre toplamlar";
+
+      if(!root.jspdf?.jsPDF)throw new Error("PDF modülü yüklenemedi.");
+      const doc=new root.jspdf.jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+      if(!doc.autoTable)throw new Error("PDF tablo modülü yüklenemedi.");
+      const {name:font,text}=await fontPack(doc);
+      const margin={top:14,right:14,bottom:14,left:14};
+      const styles={font,fontStyle:"normal",fontSize:9,overflow:"linebreak"};
+      const headStyles={fillColor:[23,53,46],fontStyle:"normal"};
+      const filename=`Betonexa-${key(title).replace(/ +/g,"-")}.pdf`;
+      doc.setProperties({title:`Betonexa · ${title}`});
+      doc.setFontSize(15);
+      doc.text(text(`Betonexa · ${title}`),margin.left,14);
+      doc.autoTable({
+        startY:19,
+        margin,
+        styles,
+        headStyles,
+        head:[[{content:text(subtitle),colSpan:2}]],
+        body:[[text("DÖNEM"),text([period,scope].filter(Boolean).join(" · "))],
+          ...[...summary,...breakdowns].map(row=>row.map(text))],
+        columnStyles:{0:{cellWidth:72}}
+      });
+      doc.autoTable({
+        startY:doc.lastAutoTable.finalY+6,
+        margin,
+        styles,
+        headStyles,
+        rowPageBreak:"avoid",
+        head:[[{content:text(historyTitle),colSpan:headers.length}],headers.map(text)],
+        body:rows.map(row=>row.map(text))
+      });
+      doc.save(filename);
+    }catch(error){
+      console.error("Analiz PDF oluşturulamadı.",error);
+      alert("Analiz PDF’i oluşturulamadı. Sayfayı yenileyip tekrar deneyin.");
+    }finally{
+      button.disabled=false;
+    }
+  }
+
+  function bindAnalysisPdf(){
+    const refresh=$("analysisRefresh");
+    if(!refresh)return;
+
+    const button=document.createElement("button");
+    button.id="analysisPdf";
+    button.type="button";
+    button.className="btn btn-light";
+    button.textContent="PDF İndir";
+    button.addEventListener("click",()=>downloadAnalysisPdf(button));
+    refresh.after(button);
+  }
+
   function bind(){
+    bindAnalysisPdf();
     document.addEventListener('click',event=>{
       if(!event.target.closest?.('#tomorrowPdfBtn'))return;
       event.preventDefault();event.stopImmediatePropagation();save('tomorrow');

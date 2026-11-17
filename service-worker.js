@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.11.12-analysis-date-order-v2';
+const CACHE='betonexa-2026.11.17-analysis-pdf-v1';
 const ASSETS=[
   './',
   './index.html',
