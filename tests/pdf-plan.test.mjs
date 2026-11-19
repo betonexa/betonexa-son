@@ -124,3 +124,14 @@ test('Analiz PDF düğmesi filtreli pompa ayrıntısını ve tablo sırasını k
   assert.equal(shipments.body[0][1],'25,00+ m³');
   assert.equal(shipments.body.map(row=>row[0]).join('|'),'09 Haziran 2026|12 Aralık 2026');
 });
+
+test('çimento PDF plakasını ayrı sütuna yazar ve eski kayıtları gösterir',async()=>{
+  const shipment={tarih:'2026-10-14',firma:'Örnek Firma',arac_sayisi:1};
+  const {root,saved}=harness([],[{...shipment,plaka:'45 AKC 681'},shipment]);
+  await root.BetonexaProfessionalPdf.save('tomorrow');
+  const table=saved[0].doc.tables[0];
+  const column=table.head[0].indexOf('Plaka');
+  assert.ok(column>=0);
+  assert.equal(table.body[0][column],'45 AKC 681');
+  assert.equal(table.body[1][column],'-');
+});

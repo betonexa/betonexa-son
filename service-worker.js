@@ -1,4 +1,4 @@
-const CACHE='betonexa-2026.11.17-analysis-pdf-v1';
+const CACHE='betonexa-20261119-cement-plate';
 const ASSETS=[
   './',
   './index.html',
@@ -15,7 +15,7 @@ const ASSETS=[
   './cimento-module.js',
   './cimento-module.js?v=20261021-idealcem-r1',
   './cimento-history.js',
-  './cimento-history.js?v=20261021-idealcem-r1',
+  './cimento-history.js?v=20261119-cement-plate',
   './cimento-enhancements.js',
   './cimento-mobile-fix.css',
   './contracts-module.js',
@@ -25,7 +25,7 @@ const ASSETS=[
   './tracking-finalizer.js',
   './tracking-finalizer.js?v=20261013-mobile-plan2',
   './backup-manager.js',
-  './cement-pallet-exports.js?v=20261013-mobile-plan2',
+  './cement-pallet-exports.js?v=20261119-cement-plate',
   './cement-pallet-export-fix.js?v=20261013-mobile-plan2',
   './professional-pdf-reports.js',
   './professional-pdf-reports.js?v=20261013-mobile-plan2',
