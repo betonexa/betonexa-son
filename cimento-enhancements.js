@@ -142,7 +142,7 @@
     const page=$('cementPage');if(!page)return;
     window.__cementPendingEditId=null;
     if($('cementDate'))$('cementDate').value=today();
-    ['cementCompany','cementType','cementDelivery','cementVehicleCount','cementPalletCount','cementPieceCount','cementTonnage'].forEach(id=>{if($(id))$(id).value=''});
+    ['cementCompany','cementType','cementDelivery','cementVehicleCount','cementPalletCount','cementPieceCount','cementTonnage','cementPlate'].forEach(id=>{if($(id))$(id).value=''});
     if($('cementSaveBtn'))$('cementSaveBtn').textContent='Sevkiyatı Kaydet';
     $('cementCancelBtn')?.classList.add('hidden');
     if($('cementStatus'))$('cementStatus').textContent='';
@@ -189,7 +189,7 @@
       const tarih=$('cementDate')?.value,firma=title($('cementCompany')?.value),yer=title($('cementDelivery')?.value),arac=Number($('cementVehicleCount')?.value);
       if(!tarih||!firma||!yer||!Number.isInteger(arac)||arac<1){const st=$('cementStatus');if(st){st.textContent='Tarih, firma, teslim yeri ve araç sayısını eksiksiz doldur.';st.style.color='var(--danger)'}return}
       const c=db();if(!c)return;save.disabled=true;const editId=window.__cementPendingEditId||null;
-      const payload={tarih,firma,teslim_yeri:yer,cimento_ozelligi:$('cementType')?.value.trim().replace(/\s+/g,' ')||null,arac_sayisi:arac,toplam_tonaj:null,tamamlandi:false};
+      const payload={tarih,firma,teslim_yeri:yer,cimento_ozelligi:$('cementType')?.value.trim().replace(/\s+/g,' ')||null,arac_sayisi:arac,toplam_tonaj:null,plaka:$('cementPlate')?.value.trim()||null,tamamlandi:false};
       const q=editId?c.from(CEMENT).update(payload).eq('id',editId):c.from(CEMENT).insert(payload);const {error}=await q;save.disabled=false;const st=$('cementStatus');
       if(error){if(st){st.textContent='Çimento sevkiyatı kaydedilemedi: '+error.message;st.style.color='var(--danger)'}return}
       window.__cementPendingEditId=null;if(typeof window.loadCementShipments==='function')await window.loadCementShipments();resetCementDraft();
