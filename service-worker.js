@@ -1,4 +1,4 @@
-const CACHE='betonexa-20261119-tracking-plate';
+const CACHE='betonexa-20261119-cement-company-order';
 const ASSETS=[
   './',
   './index.html',
@@ -31,7 +31,7 @@ const ASSETS=[
   './professional-pdf-reports.js?v=20261013-mobile-plan2',
   './shipment-status.js',
   './records-cement-addon.js',
-  './records-cement-addon.js?v=20261119-tracking-plate',
+  './records-cement-addon.js?v=20261119-cement-company-order',
   './live-sync.js'
 ];
 
