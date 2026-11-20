@@ -1,4 +1,4 @@
-const CACHE='betonexa-20261119-cement-company-order';
+const CACHE='betonexa-20261120-cement-report-plate';
 const ASSETS=[
   './',
   './index.html',
